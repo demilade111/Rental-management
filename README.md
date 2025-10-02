@@ -94,7 +94,13 @@ npm install
 Create `.env` file in `server/`:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rentaldb"
+
+# Connect to Supabase via connection pooling
+DATABASE_URL="postgresql://postgres.ovdextewcgxjjngyallq:[YOUR-PASSWORD]@aws-1-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Direct connection to the database. Used for migrations
+DIRECT_URL="postgresql://postgres.ovdextewcgxjjngyallq:[YOUR-PASSWORD]@aws-1-us-east-2.pooler.supabase.com:5432/postgres"
+
 PORT=5000
 JWT_SECRET=supersecretkey
 ```

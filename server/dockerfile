@@ -1,14 +1,53 @@
+# Multi-stage build for production optimization
 FROM node:20-alpine AS base
 
+# Install dependencies only when needed
+FROM base AS deps
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --only=production && npm cache clean --force
 
+# Development stage
+FROM base AS dev
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code
 COPY . .
 
+# Generate Prisma client
 RUN npx prisma generate
 
 EXPOSE 4000
 
-CMD ["node", "src/server.js"]
+CMD ["npm", "run", "dev"]
+
+# Production stage
+FROM base AS prod
+WORKDIR /app
+
+# Copy production dependencies
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejs
+
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
+EXPOSE 4000
+
+CMD ["npm", "start"]
