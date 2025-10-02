@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import "./src/prisma/client.js";
 
 dotenv.config();
 const app = express();
