@@ -23,6 +23,7 @@ model User {
   @@map("users")
 }
 
+
 enum UserRole {
   ADMIN
   TENANT
