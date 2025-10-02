@@ -1,29 +1,4 @@
-version: "3.8"
-
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: rental-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: rental_management
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./server/prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    networks:
-      - rental-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend API
   backend:
     build:
       context: ./server
@@ -31,23 +6,16 @@ services:
       target: ${NODE_ENV:-dev}
     container_name: rental-backend
     restart: unless-stopped
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/rental_management
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      PORT: 4000
+    env_file:
+      - ./server/.env # backend env file
     ports:
       - "4000:4000"
     volumes:
-      # Only mount source and configs, not whole project
       - ./server/src:/app/src
       - ./server/prisma:/app/prisma
       - ./server/package.json:/app/package.json
       - ./server/package-lock.json:/app/package-lock.json
       - /app/node_modules
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - rental-network
     command: >
@@ -55,7 +23,6 @@ services:
              npx prisma generate &&
              npm run dev"
 
-  # Frontend React App
   frontend:
     build:
       context: ./client
@@ -63,14 +30,12 @@ services:
       target: ${NODE_ENV:-dev}
     container_name: rental-frontend
     restart: unless-stopped
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      VITE_API_URL: http://localhost:4000
+    env_file:
+      - ./client/.env # frontend env file
     ports:
-      - "5173:5173" # Vite dev server
-      - "80:80" # for production builds if served with nginx
+      - "5173:5173"
+      - "80:80"
     volumes:
-      # Mount only what’s needed
       - ./client/src:/app/src
       - ./client/public:/app/public
       - ./client/package.json:/app/package.json
@@ -81,10 +46,6 @@ services:
       - backend
     networks:
       - rental-network
-
-volumes:
-  postgres_data:
-    driver: local
 
 networks:
   rental-network:
