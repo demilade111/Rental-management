@@ -81,7 +81,7 @@ export const requestPasswordReset = async (email) => {
 export const resetPassword = async (token, newPassword) => {
     const user = await prisma.user.findFirst({
         where: {
-            token,
+            resetToken: token,
             resetTokenExpiry: { gte: new Date() },
         },
     });
