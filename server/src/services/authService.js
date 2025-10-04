@@ -12,9 +12,11 @@ export const registerUser = async (data) => {
         throw new Error("Invalid role. Allowed values: TENANT or ADMIN");
     }
 
-    const existingUser = await prisma.user.findFirst({
-        where: { OR: [{ email }, { username }] },
+    // check if email already exists
+    const existingUser = await prisma.user.findUnique({
+        where: { email },
     });
+
     if (existingUser) throw new Error("Username or email already exists");
 
     const hashedPassword = await bcrypt.hash(password, 10);
