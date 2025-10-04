@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { register, login } from "../controllers/authController.js";
-import { authenticate } from "../middleware/AuthMiddleware.js";
+import { authenticate } from "../middleware/authMiddleware.js";
+import { validateRequest } from "../middleware/validateRequest.js";
+import { signupSchema } from "../validations/authValidation.js";
 
 const router = Router();
 
-router.post("/register", register);
+router.post("/register", validateRequest(signupSchema), register);
 router.post("/login", login);
 
 // protected route
