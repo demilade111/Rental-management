@@ -17,6 +17,8 @@ model User {
   lastName  String?
   phone     String?
   role      UserRole @default(TENANT)
+  resetToken String?
+  resetTokenExpiry DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
