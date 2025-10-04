@@ -1,21 +1,8 @@
-import { z } from "zod";
 import { registerUser, loginUser } from "../services/authService.js";
-
-const signupSchema = z.object({
-    email: z.string().email("Invalid email"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
-    phone: z.string().optional(),
-    role: z.string().optional(),
-});
 
 export const register = async (req, res) => {
     try {
-        const data = signupSchema.parse(req.body);
-
-        const user = await registerUser(data);
-
+        const user = await registerUser(req.body);
         return res.status(201).json({
             message: "User registered successfully",
             user,
