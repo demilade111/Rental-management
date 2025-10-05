@@ -22,6 +22,7 @@ app.use(morgan("dev"));
 app.use("/api/user", userRoutes);
 
 
+
 app.get("/", (_req, res) => {
   res.json({ message: "Rental Management API running" });
 });
