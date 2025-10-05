@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login } from "../controllers/authController.js";
+import { register, login, requestReset, resetController } from "../controllers/authController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { signupSchema } from "../validations/authValidation.js";
@@ -8,6 +8,10 @@ const router = Router();
 
 router.post("/register", validateRequest(signupSchema), register);
 router.post("/login", login);
+
+// Route for Password reset routes
+router.post("/request-reset", requestReset);
+router.post("/reset-password", resetController);
 
 // protected route
 router.get("/profile", authenticate, (req, res) => {
