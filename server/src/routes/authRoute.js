@@ -11,7 +11,7 @@ router.post("/login", login);
 
 // Route for Password reset routes
 router.post("/request-reset", requestReset);
-router.post("/reset-password", resetController);
+router.patch("/reset-password", resetController);
 
 // protected route
 router.get("/profile", authenticate, (req, res) => {
