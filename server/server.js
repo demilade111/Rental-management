@@ -8,6 +8,7 @@ import { createRequire } from "module";
 import "./src/prisma/client.js";
 import authRoutes from "./src/routes/authRoute.js";
 import userRoutes from "./src/routes/userRoutes.js";
+import listingRoutes from "./src/routes/listingRoute.js";
 import { specs } from "./src/config/swagger.js";
 
 const require = createRequire(import.meta.url);
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/listings", listingRoutes);
 
 // Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
@@ -36,5 +38,5 @@ app.get("/", (_req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

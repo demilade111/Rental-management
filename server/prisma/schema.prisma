@@ -122,7 +122,6 @@ model ListingAmenity {
   id         String   @id @default(cuid())
   listingId  String
   name       String
-
   listing    Listing  @relation(fields: [listingId], references: [id])
   createdAt  DateTime @default(now())
 

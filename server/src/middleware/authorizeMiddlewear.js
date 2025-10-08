@@ -1,5 +1,4 @@
-// src/middlewares/authorize.middleware.js
-module.exports = function authorize(roles = []) {
+ export function authorize(roles = []) {
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
   return (req, res, next) => {
