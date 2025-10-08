@@ -1,0 +1,32 @@
+services:
+  backend:
+    develop:
+      watch:
+        - path: ./server/src
+          target: /app/src
+          action: sync
+        - path: ./server/prisma
+          target: /app/prisma
+          action: sync
+        - path: ./server/package.json
+          target: /app/package.json
+          action: rebuild
+        - path: ./server/package-lock.json
+          target: /app/package-lock.json
+          action: rebuild
+
+  frontend:
+    develop:
+      watch:
+        - path: ./client/src
+          target: /app/src
+          action: sync
+        - path: ./client/public
+          target: /app/public
+          action: sync
+        - path: ./client/package.json
+          target: /app/package.json
+          action: rebuild
+        - path: ./client/package-lock.json
+          target: /app/package-lock.json
+          action: rebuild
