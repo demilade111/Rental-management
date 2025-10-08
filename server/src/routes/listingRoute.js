@@ -252,6 +252,6 @@ const router = Router();
  *                   type: string
  *                   example: "Invalid or expired token"
  */
-router.post("/", authenticate, authorize("LANDLORD"), createListing);
+router.post("/", authenticate, authorize(["ADMIN"]), createListing);
 
 export default router;
