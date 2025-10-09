@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../store/authStore';
 
 export default function SignUpPage() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login } = useAuthStore();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -13,6 +13,7 @@ export default function SignUpPage() {
         phone: '',
         role: 'TENANT'
     });
+
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -25,61 +26,56 @@ export default function SignUpPage() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+        });
 
-            const data = await response.json();
+        const data = await response.json();
+        console.log('API Response:', data);
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
-            }
-
-            // Store user data and token
-            login(data.user, data.token);
-
-            setSuccess('Registration successful! Redirecting...');
-
-            // Redirect based on role
-            setTimeout(() => {
-                if (formData.role === 'TENANT') {
-                    navigate('/onboarding/tenant');
-                } else if (formData.role === 'ADMIN') {
-                    navigate('/onboarding/landlord');
-                }
-            }, 1500);
-        } catch (err) {
-            setError(err.message);
+        if (!response.ok) {
+            throw new Error(data.message || 'Registration failed');
         }
-    };
+
+        setSuccess('Registration successful!');
+
+        setTimeout(() => {
+            login(data.user, data.token);
+            navigate(formData.role === 'TENANT' ? '/onboarding/tenant' : '/onboarding/landlord');
+        }, 1500);
+    } catch (err) {
+        setError(err.message);
+    }
+};
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
             <div className="w-full max-w-md">
                 <h1 className="text-2xl font-bold text-center mb-6">Sign Up</h1>
 
+                {/* Success message */}
+                {success && (
+                    <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
+                        {success}
+                    </div>
+                )}
+
+                {/* Error message */}
+                {error && (
+                    <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                            {error}
-                        </div>
-                    )}
-
-                    {success && (
-                        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-                            {success}
-                        </div>
-                    )}
-
                     <div className="mb-4">
                         <label className="block mb-1">First Name</label>
                         <input
@@ -150,7 +146,7 @@ export default function SignUpPage() {
                             className="w-full p-2 border rounded"
                         >
                             <option value="TENANT">Tenant</option>
-                            <option value="ADMIN">LANDLORD</option>
+                            <option value="ADMIN">Landlord</option>
                         </select>
                     </div>
 
