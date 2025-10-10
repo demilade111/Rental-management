@@ -4,46 +4,36 @@ import {
   getAllListings,
   getListingById,
 } from "../services/listingService.js";
+import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
 
-async function createListing(req, res, next) {
+async function createListing(req, res) {
   try {
     const body = createListingSchema.parse(req.body);
     const userId = req.user.id;
     const listing = await createListings(userId, body);
 
-    res.status(201).json({
-      success: true,
-      message: "Listing created successfully",
-      data: listing,
-    });
-  } catch (err) {
-    next(err);
+    return CreatedResponse(res, "Listing created successfully", listing);
+  } catch (error) {
+    return HandleError(res, error);
   }
 }
 
-async function fetchAllListings(req, res, next) {
+async function fetchAllListings(req, res) {
   try {
     const listings = await getAllListings();
-    res.status(200).json({
-      success: true,
-      message: "Listings fetched successfully",
-      data: listings,
-    });
-  } catch (err) {
-    next(err);
+    return SuccessResponse(res, 200, "Listings fetched successfully", listings);
+  } catch (error) {
+    return HandleError(res, error);
   }
 }
-async function fetchListingById(req, res, next) {
+
+async function fetchListingById(req, res) {
   try {
     const { id } = req.params;
     const listing = await getListingById(id);
-    res.status(200).json({
-      success: true,
-      message: "Listing fetched successfully",
-      data: listing,
-    });
-  } catch (err) {
-    next(err);
+    return SuccessResponse(res, 200, "Listing fetched successfully", listing);
+  } catch (error) {
+    return HandleError(res, error);
   }
 }
 
