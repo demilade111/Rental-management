@@ -55,4 +55,41 @@ async function createListings(landlordId, data) {
 
   return listing;
 }
-export { createListings };
+
+async function getAllListings() {
+  const listings = await prisma.listing.findMany({
+    include: {
+      amenities: true,
+      images: true,
+      landlord: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return listings;
+}
+async function getListingById(listingId) {
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    include: {
+      amenities: true,
+      images: true,
+      landlord: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+  });
+
+  if (!listing) {
+    const err = new Error("Listing not found");
+    err.status = 404;
+    throw err;
+  }
+
+  return listing;
+}
+export { createListings, getAllListings, getListingById };
