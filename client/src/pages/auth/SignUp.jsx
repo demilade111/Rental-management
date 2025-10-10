@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 
 export default function SignUpPage() {
@@ -14,9 +15,6 @@ export default function SignUpPage() {
         role: 'TENANT'
     });
 
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -25,36 +23,36 @@ export default function SignUpPage() {
         }));
     };
 
-    const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+    // TanStack Query mutation
+    const registerMutation = useMutation({
+        mutationFn: async (data) => {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
 
-    try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData),
-        });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Registration failed');
+            }
 
-        const data = await response.json();
-        console.log('API Response:', data);
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Registration failed');
+            return response.json();
+        },
+        onSuccess: (data) => {
+            setTimeout(() => {
+                login(data.data.user, data.data.token);
+                navigate(formData.role === 'TENANT' ? '/onboarding/tenant' : '/onboarding/landlord');
+            }, 1500);
         }
+    });
 
-        setSuccess('Registration successful!');
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        registerMutation.mutate(formData);
+    };
 
-        setTimeout(() => {
-            login(data.user, data.token);
-            navigate(formData.role === 'TENANT' ? '/onboarding/tenant' : '/onboarding/landlord');
-        }, 1500);
-    } catch (err) {
-        setError(err.message);
-    }
-};
-
+    const { isPending, error, isSuccess } = registerMutation;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -62,16 +60,16 @@ export default function SignUpPage() {
                 <h1 className="text-2xl font-bold text-center mb-6">Sign Up</h1>
 
                 {/* Success message */}
-                {success && (
+                {isSuccess && (
                     <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
-                        {success}
+                        Registration successful!
                     </div>
                 )}
 
                 {/* Error message */}
                 {error && (
                     <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded">
-                        {error}
+                        {error.message}
                     </div>
                 )}
 
@@ -84,7 +82,8 @@ export default function SignUpPage() {
                             value={formData.firstName}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded"
+                            disabled={isPending}
+                            className="w-full p-2 border rounded disabled:opacity-50"
                         />
                     </div>
 
@@ -96,7 +95,8 @@ export default function SignUpPage() {
                             value={formData.lastName}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded"
+                            disabled={isPending}
+                            className="w-full p-2 border rounded disabled:opacity-50"
                         />
                     </div>
 
@@ -108,7 +108,8 @@ export default function SignUpPage() {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded"
+                            disabled={isPending}
+                            className="w-full p-2 border rounded disabled:opacity-50"
                         />
                     </div>
 
@@ -120,7 +121,8 @@ export default function SignUpPage() {
                             value={formData.password}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded"
+                            disabled={isPending}
+                            className="w-full p-2 border rounded disabled:opacity-50"
                         />
                     </div>
 
@@ -132,7 +134,8 @@ export default function SignUpPage() {
                             value={formData.phone}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded"
+                            disabled={isPending}
+                            className="w-full p-2 border rounded disabled:opacity-50"
                         />
                     </div>
 
@@ -143,7 +146,8 @@ export default function SignUpPage() {
                             value={formData.role}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded"
+                            disabled={isPending}
+                            className="w-full p-2 border rounded disabled:opacity-50"
                         >
                             <option value="TENANT">Tenant</option>
                             <option value="ADMIN">Landlord</option>
@@ -152,9 +156,10 @@ export default function SignUpPage() {
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                        disabled={isPending}
+                        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Sign Up
+                        {isPending ? 'Signing up...' : 'Sign Up'}
                     </button>
                 </form>
             </div>
