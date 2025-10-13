@@ -1,4 +1,7 @@
 import { Router } from "express";
+
+import { register, login, requestReset, resetController } from "../controllers/authController.js";
+import { authenticate } from "../middleware/AuthMiddleware.js";
 import { register, login } from "../controllers/authController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { validateRequest } from "../middleware/validateRequest.js";
@@ -64,6 +67,14 @@ const router = Router();
  */
 router.post("/register", validateRequest(signupSchema), register);
 
+// Route for Password reset routes
+router.post("/request-reset", requestReset);
+router.patch("/reset-password", resetController);
+
+// protected route
+// router.get("/profile", authenticate, (req, res) => {
+//   res.json({ message: "This is a protected route", user: req.user });
+// });
 /**
  * @swagger
  * /api/auth/login:
