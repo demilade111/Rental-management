@@ -1,18 +1,38 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuthStore } from './store/authStore';
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 import SignUp from './pages/auth/SignUp';
 import TenantOnboarding from './pages/onboarding/TenantOnboarding';
 import LandlordOnboarding from './pages/onboarding/LandlordOnboarding';
 import Dashboard from './pages/Dashboard';
 
+// Create a client
+const queryClient = new QueryClient();
+
 function App() {
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
+  // Initialize auth on app load
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/signup" replace />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route 
+            path="/signup" 
+            element={
+              <PublicRoute>
+                <SignUp />
+              </PublicRoute>
+            } 
+          />
 
           {/* protected Tenant Routes */}
           <Route
@@ -45,7 +65,7 @@ function App() {
           />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
