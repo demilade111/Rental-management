@@ -1,65 +1,81 @@
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import { signToken } from "../utils/signJwtToken.js";
 
 const prisma = new PrismaClient();
 
-export const registerUser = async (data) => {
-    const { email, password, firstName, lastName, phone, role } = data;
+const buildSafeUser = (user) => ({
+  id: user.id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  phone: user.phone,
+  role: user.role,
+  profileImage: user.profileImage,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
 
+export const registerUser = async ({
+  email,
+  password,
+  firstName,
+  lastName,
+  phone,
+  role,
+}) => {
+  if (!Object.values(UserRole).includes(role)) {
+    const err = new Error("Invalid role. Allowed values: TENANT or ADMIN");
+    err.status = 400;
+    throw err;
+  }
 
-    if (!Object.values(UserRole).includes(role)) {
-        throw new Error("Invalid role. Allowed values: TENANT or ADMIN");
-    }
-
-
-    const existingUser = await prisma.user.findUnique({
-        where: { email },
-    });
-
-    if (existingUser) throw new Error("Username or email already exists");
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-        data: {
-            email,
-            password: hashedPassword,
-            firstName,
-            lastName,
-            phone,
-            role
-        },
-    });
-
-    // generate token for new user
-    const token = jwt.sign(
-        { userId: user.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+  try {
+    const hashedPassword = await bcrypt.hash(
+      password,
+      Number(process.env.SALT_ROUNDS) || 12
     );
 
-    return { user, token }; // return both
+    const user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase().trim(),
+        password: hashedPassword,
+        firstName: firstName?.trim() || null,
+        lastName: lastName?.trim() || null,
+        phone: phone?.trim() || null,
+        role,
+      },
+    });
+
+    return { user: buildSafeUser(user) };
+  } catch (err) {
+    if (err.code === "P2002" && err.meta?.target.includes("email")) {
+      const conflict = new Error("Email already exists");
+      conflict.status = 409;
+      throw conflict;
+    }
+    throw err;
+  }
 };
 
 export const loginUser = async ({ email, password }) => {
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) throw new Error("Invalid credentials");
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    const err = new Error("Invalid credentials");
+    err.status = 401;
+    throw err;
+  }
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) throw new Error("Invalid credentials");
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) {
+    const err = new Error("Invalid credentials");
+    err.status = 401;
+    throw err;
+  }
 
-    const token = jwt.sign(
-        { userId: user.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-    );
+  const token = signToken(user);
 
-    return {
-        user: { id: user.id, username: user.username, email: user.email },
-        token,
-    };
+  return { user: buildSafeUser(user), token };
 };
 
 //Functonality for requesting reset password token.

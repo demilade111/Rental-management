@@ -65,6 +65,14 @@ const router = Router();
  */
 router.post("/register", validateRequest(signupSchema), register);
 
+// Route for Password reset routes
+router.post("/request-reset", requestReset);
+router.patch("/reset-password", resetController);
+
+// protected route
+// router.get("/profile", authenticate, (req, res) => {
+//   res.json({ message: "This is a protected route", user: req.user });
+// });
 /**
  * @swagger
  * /api/auth/login:
@@ -110,7 +118,6 @@ router.post("/register", validateRequest(signupSchema), register);
  */
 router.post("/login", login);
 
-
 // Route for Password reset routes
 router.post("/request-reset", requestReset);
 router.patch("/reset-password", resetController);
@@ -119,5 +126,4 @@ router.patch("/reset-password", resetController);
 // router.get("/profile", authenticate, (req, res) => {
 //   res.json({ message: "This is a protected route", user: req.user });
 // });
-
 export default router;

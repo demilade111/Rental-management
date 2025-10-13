@@ -6,6 +6,7 @@ import "./prisma/client.js";
 import authRoutes from "./routes/authRoute.js";
 import userRoutes from "./routes/userRoutes.js";
 import listingRoutes from "./routes/listingRoute.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 import { specs } from "./config/swagger.js";
 
 const require = createRequire(import.meta.url);
@@ -17,9 +18,10 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-app.use("/api/user", userRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/listings", listingRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/listings", listingRoutes);
+app.use("/api/v1/upload", uploadRoutes);
 
 // Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
