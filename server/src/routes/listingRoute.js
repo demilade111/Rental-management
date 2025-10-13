@@ -3,6 +3,7 @@ import {
   createListing,
   fetchAllListings,
   fetchListingById,
+  deleteListing,
   updateListing, // ✅ added
 } from "../controllers/listingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
@@ -41,6 +42,7 @@ const router = Router();
  *         name: id
  *         required: true
  *         schema:
+ *           type: integer
  *           type: string
  *         description: The listing ID
  *     responses:
@@ -48,6 +50,10 @@ const router = Router();
  *         description: Listing found
  *       404:
  *         description: Listing not found
+ */
+
+
+
  *   put:
  *     summary: Update an existing listing by ID
  *     tags: [Listings]
@@ -73,5 +79,6 @@ router.post("/", authenticate, authorize(["ADMIN"]), createListing);
 router.get("/", authenticate, authorize(["ADMIN"]), fetchAllListings);
 router.get("/:id", authenticate, authorize(["ADMIN"]), fetchListingById);
 router.put("/:id", authenticate, authorize(["ADMIN"]), updateListing); // ✅ added
+router.delete("/:id", authenticate, authorize(["ADMIN"]), deleteListing);
 
 export default router;

@@ -92,6 +92,34 @@ async function getListingById(listingId) {
 
   return listing;
 }
+async function deleteListingById(listingId, landlordId) {
+  // Verifying the listing exists and belongs to the landlord
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: { id: true, landlordId: true },
+  });
+
+  if (!listing) {
+    const err = new Error("Listing not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (listing.landlordId !== landlordId) {
+    const err = new Error("Unauthorized: cannot delete this listing");
+    err.status = 403;
+    throw err;
+  }
+
+  // Delete the listing
+  await prisma.listing.delete({
+    where: { id: listingId },
+  });
+
+  return { message: "Listing deleted successfully" };
+}
+
+export { createListings, getAllListings, getListingById, deleteListingById, };
 
 async function updateListingById(id, userId, updates) {
   const listing = await prisma.listing.findUnique({ where: { id } });
