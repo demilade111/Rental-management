@@ -7,20 +7,16 @@ services:
     container_name: rental-backend
     restart: unless-stopped
     env_file:
-      - ./server/.env # backend env file
+      - ./server/.env
     ports:
       - "4000:4000"
     volumes:
-      - ./server/src:/app/src
-      - ./server/prisma:/app/prisma
-      - ./server/package.json:/app/package.json
-      - ./server/package-lock.json:/app/package-lock.json
+      - ./server:/app
       - /app/node_modules
     networks:
       - rental-network
     command: >
-      sh -c "npx prisma migrate deploy &&
-             npx prisma generate &&
+      sh -c "npx prisma generate &&
              npm run dev"
 
   frontend:
@@ -31,16 +27,11 @@ services:
     container_name: rental-frontend
     restart: unless-stopped
     env_file:
-      - ./client/.env # frontend env file
+      - ./client/.env
     ports:
       - "5173:5173"
-      - "80:80"
     volumes:
-      - ./client/src:/app/src
-      - ./client/public:/app/public
-      - ./client/package.json:/app/package.json
-      - ./client/package-lock.json:/app/package-lock.json
-      - ./client/vite.config.js:/app/vite.config.js
+      - ./client:/app
       - /app/node_modules
     depends_on:
       - backend

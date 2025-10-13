@@ -1,5 +1,7 @@
 import { prisma } from "../prisma/client.js";
+
 import sanitizeHtml from "sanitize-html";
+import { NotFoundError, ForbiddenError } from "../utils/httpResponse.js";
 
 const dedupe = (arr) => Array.from(new Set(arr));
 const toLower = (arr) => arr.map((s) => s.toLowerCase());
@@ -65,13 +67,11 @@ async function getAllListings() {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: { createdAt: "desc" },
   });
-
   return listings;
 }
+
 async function getListingById(listingId) {
   const listing = await prisma.listing.findUnique({
     where: { id: listingId },
@@ -120,3 +120,21 @@ async function deleteListingById(listingId, landlordId) {
 }
 
 export { createListings, getAllListings, getListingById, deleteListingById, };
+
+async function updateListingById(id, userId, updates) {
+  const listing = await prisma.listing.findUnique({ where: { id } });
+
+  if (!listing) throw new NotFoundError("Listing not found");
+
+  if (listing.landlordId !== userId)
+    throw new ForbiddenError("You are not authorized to update this listing");
+
+  const updatedListing = await prisma.listing.update({
+    where: { id },
+    data: updates,
+  });
+
+  return updatedListing;
+}
+
+export { createListings, getAllListings, getListingById, updateListingById };
