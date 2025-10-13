@@ -131,10 +131,4 @@ async function updateListingById(id, userId, updates) {
   return updatedListing;
 }
 
-export {
-  createListings,
-  getAllListings,
-  getListingById,
-  deleteListingById,
-  updateListingById,
-};
+export { createListings, getAllListings, getListingById, updateListingById, deleteListingById };

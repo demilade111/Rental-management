@@ -6,11 +6,7 @@ import {
   deleteListingById,
   updateListingById,
 } from "../services/listingService.js";
-import {
-  CreatedResponse,
-  SuccessResponse,
-  HandleError,
-} from "../utils/httpResponse.js";
+import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
 
 async function createListing(req, res) {
   try {
@@ -73,10 +69,4 @@ async function updateListing(req, res) {
   }
 }
 
-export {
-  createListing,
-  fetchAllListings,
-  fetchListingById,
-  deleteListing,
-  updateListing,
-};
+export { createListing, fetchAllListings, fetchListingById, deleteListing, updateListing };
