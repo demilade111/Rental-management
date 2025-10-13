@@ -19,7 +19,7 @@ export const login = async (req, res) => {
   }
 };
 
-//Controller for requesting password reset
+
 export const requestReset = async (req, res) => {
     try {
         const { email } = req.body;
@@ -34,7 +34,7 @@ export const requestReset = async (req, res) => {
     }
      };
 
-//Controller for resetting password using the token
+
 export const resetController = async (req, res) => {
     try {
         const { token, newPassword } = req.body;

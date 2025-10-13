@@ -50,10 +50,6 @@ const router = Router();
  *         description: Listing found
  *       404:
  *         description: Listing not found
- */
-
-
-
  *   put:
  *     summary: Update an existing listing by ID
  *     tags: [Listings]
