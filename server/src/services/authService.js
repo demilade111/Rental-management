@@ -78,7 +78,7 @@ export const loginUser = async ({ email, password }) => {
   return { user: buildSafeUser(user), token };
 };
 
-//Functonality for requesting reset password token.
+
 export const requestPasswordReset = async (email) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw new Error("User not found. Please check the email you provided.");
@@ -93,7 +93,7 @@ export const requestPasswordReset = async (email) => {
     return resetToken;
 };
 
-//Functionality for resetting password using the token.
+
 export const resetPassword = async (token, newPassword) => {
     const user = await prisma.user.findFirst({
         where: {
