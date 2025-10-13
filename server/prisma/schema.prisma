@@ -8,20 +8,6 @@ datasource db {
   directUrl  = env("DIRECT_URL")
 }
 
-<<<<<<< HEAD
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  firstName String?
-  lastName  String?
-  phone     String?
-  role      UserRole @default(TENANT)
-  resetToken String?
-  resetTokenExpiry DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-=======
 enum PropertyCategory {
   RESIDENTIAL
   COMMERCIAL
@@ -87,7 +73,7 @@ model User {
   phone        String?
   role         UserRole   @default(TENANT)
   resetToken   String?
-  resetTokenExpiry DateTime
+  resetTokenExpiry DateTime?
   profileImage String?
 
   listings     Listing[]              @relation("LandlordListings")
