@@ -3,8 +3,13 @@ import {
   createListings,
   getAllListings,
   getListingById,
+  updateListingById,
 } from "../services/listingService.js";
-import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
+import {
+  CreatedResponse,
+  SuccessResponse,
+  HandleError,
+} from "../utils/httpResponse.js";
 
 async function createListing(req, res) {
   try {
@@ -37,4 +42,23 @@ async function fetchListingById(req, res) {
   }
 }
 
-export { createListing, fetchAllListings, fetchListingById };
+async function updateListing(req, res) {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const userId = req.user.id;
+
+    const updatedListing = await updateListingById(id, userId, updates);
+
+    return SuccessResponse(
+      res,
+      200,
+      "Listing updated successfully",
+      updatedListing
+    );
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+export { createListing, fetchAllListings, fetchListingById, updateListing };

@@ -1,137 +1,140 @@
-
 const validateResponseObject = (res) => {
-  if (!res || typeof res !== 'object') {
-    throw new Error('Invalid response object: must be an object');
+  if (!res || typeof res !== "object") {
+    throw new Error("Invalid response object: must be an object");
   }
 
-  if (typeof res.status !== 'function' || typeof res.json !== 'function') {
-    throw new Error('Invalid response object: missing required Express methods (status, json)');
+  if (typeof res.status !== "function" || typeof res.json !== "function") {
+    throw new Error(
+      "Invalid response object: missing required Express methods (status, json)"
+    );
   }
 
   return true;
 };
 
-
 const validateStatusCode = (statusCode) => {
-  if (typeof statusCode !== 'number') {
-    throw new Error('Status code must be a number');
+  if (typeof statusCode !== "number") {
+    throw new Error("Status code must be a number");
   }
 
   if (statusCode < 100 || statusCode > 599) {
-    throw new Error('Status code must be between 100 and 599');
+    throw new Error("Status code must be between 100 and 599");
   }
 
   return true;
 };
 
-
 const sanitizeErrorMessage = (message) => {
-  if (typeof message !== 'string') {
-    return 'Unknown error occurred';
+  if (typeof message !== "string") {
+    return "Unknown error occurred";
   }
 
   // Remove potential HTML/script tags
-  return message.replace(/<[^>]*>/g, '').trim();
+  return message.replace(/<[^>]*>/g, "").trim();
 };
-
 
 const extractValidationError = (validationErrors) => {
   if (Array.isArray(validationErrors)) {
-
-    const errorWithMessage = validationErrors.find(err =>
-      err && typeof err === 'object' && err.message
+    const errorWithMessage = validationErrors.find(
+      (err) => err && typeof err === "object" && err.message
     );
-    return errorWithMessage?.message ||
-           (typeof validationErrors[0] === 'string' ? validationErrors[0] : 'Validation failed');
+    return (
+      errorWithMessage?.message ||
+      (typeof validationErrors[0] === "string"
+        ? validationErrors[0]
+        : "Validation failed")
+    );
   }
 
-  if (validationErrors && typeof validationErrors === 'object') {
-    return validationErrors.message ||
-           validationErrors.msg ||
-           'Validation failed';
+  if (validationErrors && typeof validationErrors === "object") {
+    return (
+      validationErrors.message || validationErrors.msg || "Validation failed"
+    );
   }
 
-  if (typeof validationErrors === 'string') {
+  if (typeof validationErrors === "string") {
     return validationErrors;
   }
 
-  return 'Validation failed';
+  return "Validation failed";
 };
-
 
 const analyzeError = (error) => {
   const defaultError = {
     statusCode: 500,
-    message: 'Internal server error',
-    details: null
+    message: "Internal server error",
+    details: null,
   };
 
-  if (!error || typeof error !== 'object') {
+  if (!error || typeof error !== "object") {
     return defaultError;
   }
 
- 
   const statusCode = error.statusCode || error.status;
-  if (statusCode && typeof statusCode === 'number' && statusCode >= 400 && statusCode < 600) {
+  if (
+    statusCode &&
+    typeof statusCode === "number" &&
+    statusCode >= 400 &&
+    statusCode < 600
+  ) {
     return {
       statusCode,
-      message: sanitizeErrorMessage(error.message || 'Request failed'),
-      details: error.details || null
+      message: sanitizeErrorMessage(error.message || "Request failed"),
+      details: error.details || null,
     };
   }
-
 
   const errorType = error.constructor?.name?.toLowerCase();
 
   switch (errorType) {
-    case 'validationerror':
-    case 'zoderror':
+    case "validationerror":
+    case "zoderror":
       return {
         statusCode: 400,
-        message: 'Validation failed',
-        details: sanitizeErrorMessage(error.message)
+        message: "Validation failed",
+        details: sanitizeErrorMessage(error.message),
       };
 
-    case 'authenticationerror':
-    case 'unauthorizederror':
+    case "authenticationerror":
+    case "unauthorizederror":
       return {
         statusCode: 401,
-        message: 'Authentication required',
-        details: sanitizeErrorMessage(error.message)
+        message: "Authentication required",
+        details: sanitizeErrorMessage(error.message),
       };
 
-    case 'forbiddenerror':
+    case "forbiddenerror":
       return {
         statusCode: 403,
-        message: 'Access denied',
-        details: sanitizeErrorMessage(error.message)
+        message: "Access denied",
+        details: sanitizeErrorMessage(error.message),
       };
 
-    case 'notfounderror':
+    case "notfounderror":
       return {
         statusCode: 404,
-        message: 'Resource not found',
-        details: sanitizeErrorMessage(error.message)
+        message: "Resource not found",
+        details: sanitizeErrorMessage(error.message),
       };
 
-    case 'conflicterror':
+    case "conflicterror":
       return {
         statusCode: 409,
-        message: 'Resource conflict',
-        details: sanitizeErrorMessage(error.message)
+        message: "Resource conflict",
+        details: sanitizeErrorMessage(error.message),
       };
 
     default:
       return {
         statusCode: 500,
-        message: 'Internal server error',
-        details: process.env.NODE_ENV === 'development'
-          ? sanitizeErrorMessage(error.message)
-          : null
+        message: "Internal server error",
+        details:
+          process.env.NODE_ENV === "development"
+            ? sanitizeErrorMessage(error.message)
+            : null,
       };
   }
 };
-
 
 export const SuccessResponse = (
   res,
@@ -146,9 +149,10 @@ export const SuccessResponse = (
 
     const response = {
       success: true,
-      message: typeof message === 'string' ? message.trim() : "Operation successful",
+      message:
+        typeof message === "string" ? message.trim() : "Operation successful",
       timestamp: new Date().toISOString(),
-      ...meta
+      ...meta,
     };
 
     if (data !== null && data !== undefined) {
@@ -158,15 +162,14 @@ export const SuccessResponse = (
     return res.status(statusCode).json(response);
   } catch (error) {
     // Fallback for utility function failures
-    console.error('SuccessResponse utility error:', error);
+    console.error("SuccessResponse utility error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Response formatting error',
-      timestamp: new Date().toISOString()
+      message: "Response formatting error",
+      timestamp: new Date().toISOString(),
     });
   }
 };
-
 
 export const ErrorResponse = (
   res,
@@ -180,8 +183,8 @@ export const ErrorResponse = (
 
     const response = {
       success: false,
-      message: typeof message === 'string' ? message.trim() : "Request failed",
-      timestamp: new Date().toISOString()
+      message: typeof message === "string" ? message.trim() : "Request failed",
+      timestamp: new Date().toISOString(),
     };
 
     if (details !== null && details !== undefined) {
@@ -191,21 +194,19 @@ export const ErrorResponse = (
     return res.status(statusCode).json(response);
   } catch (error) {
     // Fallback for utility function failures
-    console.error('ErrorResponse utility error:', error);
+    console.error("ErrorResponse utility error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Response formatting error',
-      timestamp: new Date().toISOString()
+      message: "Response formatting error",
+      timestamp: new Date().toISOString(),
     });
   }
 };
 
-
 export const ValidationError = (res, validationErrors) => {
   const errorMessage = extractValidationError(validationErrors);
-  return ErrorResponse(res, 400, 'Validation failed', errorMessage);
+  return ErrorResponse(res, 400, "Validation failed", errorMessage);
 };
-
 
 export const CreatedResponse = (
   res,
@@ -216,26 +217,21 @@ export const CreatedResponse = (
   return SuccessResponse(res, 201, message, data, meta);
 };
 
-
 export const BadRequest = (res, message = "Bad request", details = null) => {
   return ErrorResponse(res, 400, message, details);
 };
-
 
 export const Unauthorized = (res, message = "Authentication required") => {
   return ErrorResponse(res, 401, message);
 };
 
-
 export const Forbidden = (res, message = "Access denied") => {
   return ErrorResponse(res, 403, message);
 };
 
-
 export const NotFound = (res, message = "Resource not found") => {
   return ErrorResponse(res, 404, message);
 };
-
 
 export const Conflict = (res, message = "Resource conflict") => {
   return ErrorResponse(res, 409, message);
@@ -245,11 +241,36 @@ export const InternalServerError = (res, message = "Internal server error") => {
   return ErrorResponse(res, 500, message);
 };
 
-
 export const HandleError = (res, error) => {
+  console.error("🔥 UPDATE ERROR DETAILS:", error); // <--- ADD THIS LINE
   const errorAnalysis = analyzeError(error);
-  return ErrorResponse(res, errorAnalysis.statusCode, errorAnalysis.message, errorAnalysis.details);
+  return ErrorResponse(
+    res,
+    errorAnalysis.statusCode,
+    errorAnalysis.message,
+    errorAnalysis.details
+  );
 };
 
+export {
+  analyzeError,
+  extractValidationError,
+  validateResponseObject,
+  validateStatusCode,
+};
 
-export { analyzeError, extractValidationError, validateResponseObject, validateStatusCode };
+export class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "NotFoundError";
+    this.status = 404;
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ForbiddenError";
+    this.status = 403;
+  }
+}
