@@ -1,5 +1,4 @@
 import { Router } from "express";
-<<<<<<< HEAD
 
 import { register, login, requestReset, resetController } from "../controllers/authController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
@@ -111,7 +110,7 @@ router.post("/register", validateRequest(signupSchema), register);
  */
 router.post("/login", login);
 
-<<<<<<< HEAD
+
 // Route for Password reset routes
 router.post("/request-reset", requestReset);
 router.patch("/reset-password", resetController);
@@ -121,6 +120,4 @@ router.patch("/reset-password", resetController);
 //   res.json({ message: "This is a protected route", user: req.user });
 // });
 
-=======
->>>>>>> ab169bc58cbaf43b97d647f2743e928b5f6e50c1
 export default router;
