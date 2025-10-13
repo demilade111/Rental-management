@@ -12,10 +12,15 @@ export default function PublicRoute({ children }) {
         );
     }
 
-    if (user) {
-        // Redirect authenticated users to dashboard or home
-        return <Navigate to="/dashboard" replace />;
-    }
+    // if (user) {
+    //     // Check if user has completed onboarding
+    //     if (!user.onboardingCompleted) {
+    //         // Redirect to onboarding based on role
+    //         return <Navigate to={user.role === 'TENANT' ? '/onboarding/tenant' : '/onboarding/landlord'} replace />;
+    //     }
+    //     // Otherwise, go to dashboard
+    //     return <Navigate to="/dashboard" replace />;
+    // }
 
     // If not logged in, allow access to public pages (signup, login, etc.)
     return children;
