@@ -8,12 +8,12 @@ const prisma = new PrismaClient();
 export const registerUser = async (data) => {
     const { email, password, firstName, lastName, phone, role } = data;
 
-    // ensure role is valid
+
     if (!Object.values(UserRole).includes(role)) {
         throw new Error("Invalid role. Allowed values: TENANT or ADMIN");
     }
 
-    // check if email already exists
+
     const existingUser = await prisma.user.findUnique({
         where: { email },
     });
