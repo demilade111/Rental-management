@@ -131,4 +131,39 @@ async function updateListingById(id, userId, updates) {
   return updatedListing;
 }
 
-export { createListings, getAllListings, getListingById, updateListingById, deleteListingById };
+// Adding a new amenity to a listing functionality
+async function addAmenityToListing(listingId, name) {
+  if (!name || !name.trim()) {
+    const err = new Error("Amenity name cannot be empty");
+    err.status = 400;
+    throw err;
+  }
+  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+  if (!listing) {
+    const err = new Error("Listing not found");
+    err.status = 404;
+    throw err;
+  }
+  const amenity = await prisma.amenity.create({
+    data: { listingId, name: name.trim().toLowerCase() },
+  });
+  return amenity;
+}
+
+// Functionality to remove a specific amenity
+async function removeAmenityFromListing(amenityId) {
+  const amenity = await prisma.listingAmenity.findUnique({ where: { id: amenityId } });
+
+  if (!amenity) {
+    const err = new Error("Amenity not found");
+    err.status = 404;
+    throw err;
+  }
+
+  await prisma.listingAmenity.delete({ where: { id: amenityId } });
+
+  return { message: "Amenity removed successfully!" };
+
+}
+
+export { createListings, getAllListings, getListingById, updateListingById, deleteListingById, addAmenityToListing, removeAmenityFromListing };
