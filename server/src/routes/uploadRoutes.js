@@ -1,6 +1,6 @@
 import express from "express";
 import { getawsS3PresignedUrl } from "../controllers/uploadController.js";
-import { authenticate } from "../middleware/authMiddleware.js";
+import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
 
 const router = express.Router();
