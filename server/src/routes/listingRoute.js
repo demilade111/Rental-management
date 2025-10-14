@@ -5,6 +5,8 @@ import {
   fetchListingById,
   deleteListing,
   updateListing, // ✅ added
+  addListingAmenity,
+  deleteListingAmenity,
 } from "../controllers/listingController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -76,5 +78,68 @@ router.get("/", authenticate, authorize(["ADMIN"]), fetchAllListings);
 router.get("/:id", authenticate, authorize(["ADMIN"]), fetchListingById);
 router.put("/:id", authenticate, authorize(["ADMIN"]), updateListing); // ✅ added
 router.delete("/:id", authenticate, authorize(["ADMIN"]), deleteListing);
+
+/**
+ * @swagger
+ * /api/listings/{listingId}/amenities:
+ *   post:
+ *     summary: Add an amenity to a listing
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the listing to which the amenity will be added
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Pool
+ *     responses:
+ *       201:
+ *         description: Amenity added successfully
+ *       404:
+ *         description: Listing not found
+ *
+ * /api/listings/{listingId}/amenities/{amenityId}:
+ *   delete:
+ *     summary: Remove an amenity from a listing
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: amenityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Amenity removed successfully
+ *       404:
+ *         description: Amenity not found
+ */
+
+router.post(
+  "/:listingId/amenities", authenticate, authorize(["ADMIN", "LANDLORD"]), addListingAmenity
+);
+
+router.delete(
+  "/:listingId/amenities/:amenityId", authenticate, authorize(["ADMIN", "LANDLORD"]), deleteListingAmenity
+);
 
 export default router;
