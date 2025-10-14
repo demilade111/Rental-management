@@ -5,6 +5,8 @@ import {
   getListingById,
   deleteListingById,
   updateListingById,
+  addAmenityToListing,
+  removeAmenityFromListing,
 } from "../services/listingService.js";
 import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
 
@@ -69,4 +71,29 @@ async function updateListing(req, res) {
   }
 }
 
-export { createListing, fetchAllListings, fetchListingById, deleteListing, updateListing };
+// Exporting the controller functions for Add and Remove Amenity
+async function addListingAmenity(req, res) {
+  try {
+    const { listingId} = req.params;
+    const { name } = req.body;
+    const amenity = await addAmenityToListing(listingId, name);
+
+    return CreatedResponse(res, "Amenity added successfully", amenity);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+async function deleteListingAmenity(req, res) {
+  try {
+    const { amenityId } = req.params;
+
+    const result = await removeAmenityFromListing(amenityId);
+
+    return SuccessResponse(res, 200, result.message);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+export { createListing, fetchAllListings, fetchListingById, deleteListing, updateListing, addListingAmenity, deleteListingAmenity };
