@@ -1,3 +1,4 @@
+
 import { Router } from "express";
 import {
   createListing,
@@ -74,10 +75,30 @@ const router = Router();
  */
 
 router.post("/", authenticate, authorize(["ADMIN", "LANDLORD"]), createListing);
-router.get("/", authenticate, authorize(["ADMIN", "LANDLORD"]), fetchAllListings);
-router.get("/:id", authenticate, authorize(["ADMIN", "LANDLORD"]), fetchListingById);
-router.put("/:id", authenticate, authorize(["ADMIN", "LANDLORD"]), updateListing); // ✅ added
-router.delete("/:id", authenticate, authorize(["ADMIN", "LANDLORD"]), deleteListing);
+router.get(
+  "/",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  fetchAllListings
+);
+router.get(
+  "/:id",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  fetchListingById
+);
+router.put(
+  "/:id",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  updateListing
+); // ✅ added
+router.delete(
+  "/:id",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  deleteListing
+);
 
 /**
  * @swagger
@@ -135,11 +156,17 @@ router.delete("/:id", authenticate, authorize(["ADMIN", "LANDLORD"]), deleteList
  */
 
 router.post(
-  "/:listingId/amenities", authenticate, authorize(["ADMIN", "LANDLORD"]), addListingAmenity
+  "/:listingId/amenities",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  addListingAmenity
 );
 
 router.delete(
-  "/:listingId/amenities/:amenityId", authenticate, authorize(["ADMIN", "LANDLORD"]), deleteListingAmenity
+  "/:listingId/amenities/:amenityId",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  deleteListingAmenity
 );
 
 export default router;
