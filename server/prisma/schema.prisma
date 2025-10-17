@@ -80,7 +80,6 @@ model User {
   maintenanceRequests MaintenanceRequest[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-
   @@map("users")
 }
 model Listing {
@@ -185,4 +184,3 @@ model MaintenanceRequest {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
