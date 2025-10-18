@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum PropertyCategory {
@@ -43,6 +43,13 @@ enum UserRole {
   TENANT
 }
 
+enum LeaseStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
 enum MaintenanceStatus {
   OPEN
   IN_PROGRESS
@@ -57,93 +64,88 @@ enum MaintenancePriority {
   URGENT
 }
 
-enum LeaseStatus {
-  DRAFT
-  ACTIVE
-  EXPIRED
-  TERMINATED
-}
-
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   password     String
   firstName    String?
   lastName     String?
   phone        String?
-  role         UserRole   @default(TENANT)
+  role         UserRole @default(TENANT)
   profileImage String?
 
-  listings     Listing[]              @relation("LandlordListings")
-  tenantLeases Lease[]                @relation("TenantLeases")
-  landlordLeases Lease[]              @relation("LandlordLeases")
+  listings            Listing[]            @relation("LandlordListings")
+  tenantLeases        Lease[]              @relation("TenantLeases")
+  landlordLeases      Lease[]              @relation("LandlordLeases")
   maintenanceRequests MaintenanceRequest[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("users")
 }
+
 model Listing {
-  id               String   @id @default(cuid())
-  landlordId       String
-  title            String
-  description      String?
-  category         PropertyCategory
-  residentialType  ResidentialType?
-  commercialType   CommercialType?
-  address          String
-  city             String
-  state            String
-  country          String
-  zipCode          String?
-  bedrooms         Int?
-  bathrooms        Int?
-  size             Int?
-  yearBuilt        Int?
-  rentAmount       Float
-  rentCycle        RentCycle
-  securityDeposit  Float?
-  availableDate    DateTime
-  landlord         User      @relation("LandlordListings", fields: [landlordId], references: [id])
-  amenities        ListingAmenity[]
-  images           ListingImage[]
-  leases           Lease[]
+  id              String           @id @default(cuid())
+  landlordId      String
+  title           String
+  description     String?
+  category        PropertyCategory
+  residentialType ResidentialType?
+  commercialType  CommercialType?
+  address         String
+  city            String
+  state           String
+  country         String
+  zipCode         String?
+  bedrooms        Int?
+  bathrooms       Int?
+  size            Int?
+  yearBuilt       Int?
+  rentAmount      Float
+  rentCycle       RentCycle
+  securityDeposit Float?
+  availableDate   DateTime
+
+  landlord            User                 @relation("LandlordListings", fields: [landlordId], references: [id])
+  amenities           ListingAmenity[]
+  images              ListingImage[]
+  leases              Lease[]
   maintenanceRequests MaintenanceRequest[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([landlordId])
   @@index([city, category])
   @@index([rentCycle])
 }
 
-
 model ListingAmenity {
-  id         String   @id @default(cuid())
-  listingId  String
-  name       String
-  listing    Listing  @relation(fields: [listingId], references: [id])
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  listingId String
+  name      String
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  createdAt DateTime @default(now())
 
   @@unique([listingId, name])
   @@index([listingId])
 }
 
 model ListingImage {
-  id         String   @id @default(cuid())
-  listingId  String
-  url        String
-  isPrimary  Boolean  @default(false)
-
-  listing    Listing  @relation(fields: [listingId], references: [id])
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  listingId String
+  url       String
+  isPrimary Boolean  @default(false)
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  createdAt DateTime @default(now())
 
   @@unique([listingId, url])
   @@index([listingId])
 }
 
-
 model Lease {
-  id               String   @id @default(cuid())
+  id               String      @id @default(cuid())
   listingId        String
   tenantId         String
   landlordId       String
@@ -158,29 +160,37 @@ model Lease {
   signedContract   String?
   notes            String?
 
-  listing          Listing  @relation(fields: [listingId], references: [id])
-  tenant           User     @relation("TenantLeases", fields: [tenantId], references: [id])
-  landlord         User     @relation("LandlordLeases", fields: [landlordId], references: [id])
+  listing  Listing @relation(fields: [listingId], references: [id])
+  tenant   User    @relation("TenantLeases", fields: [tenantId], references: [id])
+  landlord User    @relation("LandlordLeases", fields: [landlordId], references: [id])
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  maintenanceRequests MaintenanceRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId])
   @@index([landlordId])
 }
 
-
 model MaintenanceRequest {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   listingId   String
   tenantId    String
+  leaseId     String?
   description String
-  status      MaintenanceStatus @default(OPEN)
-  priority    MaintenancePriority?
+  status      MaintenanceStatus   @default(OPEN)
+  priority    MaintenancePriority @default(MEDIUM)
 
-  listing     Listing  @relation(fields: [listingId], references: [id])
-  tenant      User     @relation(fields: [tenantId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+  tenant  User    @relation(fields: [tenantId], references: [id])
+  lease   Lease?  @relation(fields: [leaseId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([listingId, createdAt])
+  @@index([status, priority, createdAt])
+  @@index([createdAt])
 }
