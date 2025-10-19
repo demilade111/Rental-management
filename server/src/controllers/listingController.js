@@ -4,9 +4,6 @@ import {
   getAllListings,
   getListingById,
   deleteListingById,
-} from "../services/listingService.js";
-import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
-
   updateListingById,
 } from "../services/listingService.js";
 import {
@@ -53,6 +50,11 @@ async function deleteListing(req, res) {
 
     const result = await deleteListingById(id, userId);
     return SuccessResponse(res, 200, result.message);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
 async function updateListing(req, res) {
   try {
     const { id } = req.params;
@@ -72,5 +74,10 @@ async function updateListing(req, res) {
   }
 }
 
-export { createListing, fetchAllListings, fetchListingById , deleteListing, updateListing};
-
+export {
+  createListing,
+  fetchAllListings,
+  fetchListingById,
+  deleteListing,
+  updateListing,
+};

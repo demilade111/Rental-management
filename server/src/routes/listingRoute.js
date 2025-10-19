@@ -50,7 +50,7 @@ const router = Router();
  *         description: Listing found
  *       404:
  *         description: Listing not found
- */
+ *
 
 
 
@@ -78,7 +78,7 @@ const router = Router();
 router.post("/", authenticate, authorize(["ADMIN"]), createListing);
 router.get("/", authenticate, authorize(["ADMIN"]), fetchAllListings);
 router.get("/:id", authenticate, authorize(["ADMIN"]), fetchListingById);
-router.put("/:id", authenticate, authorize(["ADMIN"]), updateListing); // ✅ added
+router.put("/:id", authenticate, authorize(["ADMIN"]), updateListing); 
 router.delete("/:id", authenticate, authorize(["ADMIN"]), deleteListing);
 
 export default router;
