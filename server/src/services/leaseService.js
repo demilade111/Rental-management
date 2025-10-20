@@ -33,3 +33,45 @@ export const updateLeaseById = async (leaseId, userId, data) => {
 
   return updatedLease;
 };
+
+/*Getting all leases */
+export const getAllLeases = async () => {
+  const leases = await prisma.lease.findMany({
+    include: {
+      listing: true,
+      tenant: {
+      select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      landlord: {
+      select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return leases;
+};
+
+/*Getting specific lease by ID */
+export const getLeaseById = async (leaseId) => {
+  const lease = await prisma.lease.findUnique({
+    where: { id: leaseId },
+    include: {
+    listing: true,
+    tenant: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      landlord: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+  });
+
+  if (!lease) {
+    const err = new Error("Lease not found");
+    err.status = 404;
+    throw err;
+  }
+
+  return lease;
+};
