@@ -64,6 +64,19 @@ enum MaintenancePriority {
   URGENT
 }
 
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  APPLIANCE
+  STRUCTURAL
+  PEST_CONTROL
+  CLEANING
+  LANDSCAPING
+  SECURITY
+  OTHER
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -178,13 +191,16 @@ model MaintenanceRequest {
   listingId   String
   tenantId    String
   leaseId     String?
+  title       String
   description String
+  category    MaintenanceCategory
   status      MaintenanceStatus   @default(OPEN)
   priority    MaintenancePriority @default(MEDIUM)
 
-  listing Listing @relation(fields: [listingId], references: [id])
-  tenant  User    @relation(fields: [tenantId], references: [id])
-  lease   Lease?  @relation(fields: [leaseId], references: [id])
+  listing Listing              @relation(fields: [listingId], references: [id])
+  tenant  User                 @relation(fields: [tenantId], references: [id])
+  lease   Lease?               @relation(fields: [leaseId], references: [id])
+  images  MaintenanceImage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -192,5 +208,17 @@ model MaintenanceRequest {
   @@index([tenantId, createdAt])
   @@index([listingId, createdAt])
   @@index([status, priority, createdAt])
+  @@index([category])
   @@index([createdAt])
+}
+
+model MaintenanceImage {
+  id                   String             @id @default(cuid())
+  maintenanceRequestId String
+  url                  String
+  
+  maintenanceRequest MaintenanceRequest @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now())
+
+  @@index([maintenanceRequestId])
 }

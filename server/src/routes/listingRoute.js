@@ -4,7 +4,7 @@ import {
   fetchAllListings,
   fetchListingById,
   deleteListing,
-  updateListing, // ✅ added
+  updateListing, 
 } from "../controllers/listingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
