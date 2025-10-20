@@ -6,6 +6,8 @@ import {
   fetchListingById,
   deleteListing,
   updateListing,
+  addListingAmenity,
+  deleteListingAmenity,
 } from "../controllers/listingController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
