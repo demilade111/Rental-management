@@ -5,10 +5,7 @@ import { authorize } from "../middleware/authorizeMiddlewear.js";
 
 const router = Router();
 
-router.get("/test", (_req, res) => {
-  console.log("Test route hit");
-  res.json({ message: "Lease test route works!" });
-});
+
 
 /**
  * @swagger
