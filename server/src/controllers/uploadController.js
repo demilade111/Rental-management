@@ -1,16 +1,42 @@
-import { generateUploadUrl } from "../services/fileStorageService.js";
+import {
+  generateUploadUrl,
+  generateDownloadUrl,
+} from "../services/fileStorageService.js";
+import { SuccessResponse, HandleError } from "../utils/httpResponse.js";
 
-export async function getawsS3PresignedUrl(req, res, next) {
+export async function getawsS3PresignedUrl(req, res) {
   try {
-    const { fileName, fileType } = req.query;
+    const { fileName, fileType, category } = req.query;
 
     if (!fileName || !fileType) {
       return res.status(400).json({ message: "Missing fileName or fileType" });
     }
 
-    const { uploadURL, key } = await generateUploadUrl(fileName, fileType);
-    return res.status(200).json({ uploadURL, key });
-  } catch (err) {
-    next(err);
+    const result = await generateUploadUrl(fileName, fileType, category);
+    return SuccessResponse(
+      res,
+      200,
+      "Upload URL generated successfully",
+      result
+    );
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+export async function getawsS3DownloadUrl(req, res) {
+  try {
+    const { key } = req.query;
+
+    if (!key) {
+      return res.status(400).json({ message: "Missing file key" });
+    }
+
+    const downloadURL = await generateDownloadUrl(key);
+    return SuccessResponse(res, 200, "Download URL generated successfully", {
+      downloadURL,
+    });
+  } catch (error) {
+    return HandleError(res, error);
   }
 }
