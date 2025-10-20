@@ -147,7 +147,12 @@ const router = Router();
 router.post("/", authenticate, authorize(["TENANT"]), createMaintenance);
 router.get("/", authenticate, fetchAllMaintenanceRequests);
 router.get("/:id", authenticate, fetchMaintenanceRequestById);
-router.patch("/:id", authenticate, updateMaintenance);
+router.patch(
+  "/:id",
+  authenticate,
+  authorize(["TENANT", "ADMIN"]),
+  updateMaintenance
+);
 router.delete("/:id", authenticate, deleteMaintenance);
 
 export default router;
