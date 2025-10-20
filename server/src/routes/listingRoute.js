@@ -4,7 +4,7 @@ import {
   fetchAllListings,
   fetchListingById,
   deleteListing,
-  updateListing, 
+  updateListing,
 } from "../controllers/listingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -42,7 +42,6 @@ const router = Router();
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
  *           type: string
  *         description: The listing ID
  *     responses:

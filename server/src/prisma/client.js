@@ -1,4 +1,18 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
+
+// Prisma ships CommonJS; grab the pieces we need from the default export once.
+const {
+  PrismaClient,
+  UserRole,
+  LeaseStatus,
+  MaintenanceStatus,
+  MaintenancePriority,
+  MaintenanceCategory,
+  PropertyCategory,
+  ResidentialType,
+  CommercialType,
+  RentCycle,
+} = pkg;
 
 const prisma = new PrismaClient();
 
@@ -15,4 +29,16 @@ process.on("beforeExit", async () => {
   await prisma.$disconnect();
 });
 
-export { prisma };
+export {
+  prisma,
+  PrismaClient,
+  UserRole,
+  LeaseStatus,
+  MaintenanceStatus,
+  MaintenancePriority,
+  MaintenanceCategory,
+  PropertyCategory,
+  ResidentialType,
+  CommercialType,
+  RentCycle,
+};
