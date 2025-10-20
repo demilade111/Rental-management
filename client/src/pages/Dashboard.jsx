@@ -59,7 +59,7 @@ const Dashboard = () => {
 
     const navItems = isLandlord
         ? [
-            { label: 'Dashboard', id: 'dashboard' },
+            { label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
             { label: 'Portfolio', id: 'portfolio' },
             { label: 'Applications', id: 'applications' },
             { label: 'Maintenance', id: 'maintenance' },
@@ -75,11 +75,9 @@ const Dashboard = () => {
 
     return (
         <div className="flex h-screen bg-gray-50">
-            <Sidebar navItems={navItems} activeNav={activeNav} setActiveNav={setActiveNav} />
 
             {/* Main Content */}
             <div className="flex-1 overflow-auto">
-                <Header user={user} isLandlord={isLandlord} />
 
                 {/* Content Grid */}
                 <div className="p-8 space-y-6">
