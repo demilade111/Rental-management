@@ -1,0 +1,68 @@
+enum PropertyCategory {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum ResidentialType {
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  MULTI_FAMILY
+  SINGLE_FAMILY
+  STUDIO
+}
+
+enum CommercialType {
+  INDUSTRIAL
+  OFFICE
+  RETAIL
+  SHOPPING_CENTER
+  STORAGE
+  PARKING_SPACE
+  WAREHOUSE
+}
+
+enum RentCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum UserRole {
+  ADMIN
+  TENANT
+}
+
+enum LeaseStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  APPLIANCE
+  STRUCTURAL
+  PEST_CONTROL
+  CLEANING
+  LANDSCAPING
+  SECURITY
+  OTHER
+}
