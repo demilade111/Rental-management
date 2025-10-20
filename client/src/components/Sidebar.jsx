@@ -1,4 +1,4 @@
-import { Settings, LogOut } from 'lucide-react';
+// import { Settings, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,20 +24,20 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                         className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg transition ${activeNav === item.id ? 'bg-gray-700' : 'hover:bg-gray-700'
                             }`}
                     >
-                        <span className="text-sm">{item.label}</span>
+                        <span className="text-[16px]">{item.label}</span>
                     </button>
                 ))}
             </nav>
             <div className="space-y-2 border-t border-gray-700 pt-4">
                 <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                    <Settings size={18} />
+                    {/* <Settings size={18} /> */}
                     <span className="text-sm">Settings</span>
                 </button>
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-700 transition"
                 >
-                    <LogOut size={18} />
+                    {/* <LogOut size={18} /> */}
                     <span className="text-sm">Logout</span>
                 </button>
             </div>

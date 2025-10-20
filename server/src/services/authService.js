@@ -1,8 +1,7 @@
-import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/signJwtToken.js";
+import { prisma, UserRole } from "../prisma/client.js";
 
-const prisma = new PrismaClient();
 
 const buildSafeUser = (user) => ({
   id: user.id,

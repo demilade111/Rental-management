@@ -3,10 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
+<<<<<<< HEAD
 
 enum PropertyCategory {
   RESIDENTIAL
@@ -186,3 +187,5 @@ model MaintenanceRequest {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+=======
+>>>>>>> 93dcb882355d3863d8d111bef230af360c7bc9fc

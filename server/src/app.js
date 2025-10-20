@@ -7,7 +7,9 @@ import authRoutes from "./routes/authRoute.js";
 import userRoutes from "./routes/userRoutes.js";
 import listingRoutes from "./routes/listingRoute.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import maintenanceRoutes from "./routes/maintenanceRoute.js";
 import { specs } from "./config/swagger.js";
+import leaseRoutes from "./routes/leaseRoute.js";
 
 const require = createRequire(import.meta.url);
 const swaggerUi = require("swagger-ui-express");
@@ -22,6 +24,8 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/listings", listingRoutes);
 app.use("/api/v1/upload", uploadRoutes);
+app.use("/api/v1/maintenance", maintenanceRoutes);
+app.use("/api/v1/leases", leaseRoutes);
 
 // Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));

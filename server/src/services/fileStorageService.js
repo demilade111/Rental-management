@@ -1,9 +1,16 @@
 import { s3 } from "../config/aws.js";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-export async function generateUploadUrl(fileName, fileType) {
-  const Key = `listings/${Date.now()}-${fileName}`;
+export async function generateUploadUrl(
+  fileName,
+  fileType,
+  category = "general"
+) {
+  const folder = category || "general";
+  const sanitizedFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "");
+
+  const Key = `${sanitizedFolder}/${Date.now()}-${fileName}`;
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET,
     Key,
@@ -14,5 +21,20 @@ export async function generateUploadUrl(fileName, fileType) {
     expiresIn: Number(process.env.AWS_SIGNED_URL_EXPIRATION),
   });
 
-  return { uploadURL, key: Key };
+  const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${Key}`;
+
+  return { uploadURL, key: Key, fileUrl };
+}
+
+export async function generateDownloadUrl(key) {
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_S3_BUCKET,
+    Key: key,
+  });
+
+  const downloadURL = await getSignedUrl(s3, command, {
+    expiresIn: Number(process.env.AWS_SIGNED_URL_EXPIRATION),
+  });
+
+  return downloadURL;
 }
