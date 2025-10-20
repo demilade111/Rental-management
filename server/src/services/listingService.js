@@ -1,5 +1,4 @@
 import { prisma } from "../prisma/client.js";
-
 import sanitizeHtml from "sanitize-html";
 import { NotFoundError, ForbiddenError } from "../utils/httpResponse.js";
 
@@ -92,8 +91,8 @@ async function getListingById(listingId) {
 
   return listing;
 }
+
 async function deleteListingById(listingId, landlordId) {
-  // Verifying the listing exists and belongs to the landlord
   const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     select: { id: true, landlordId: true },
@@ -111,23 +110,18 @@ async function deleteListingById(listingId, landlordId) {
     throw err;
   }
 
-  // Delete the listing
-  await prisma.listing.delete({
-    where: { id: listingId },
-  });
-
+  await prisma.listing.delete({ where: { id: listingId } });
   return { message: "Listing deleted successfully" };
 }
-
-export { createListings, getAllListings, getListingById, deleteListingById, };
 
 async function updateListingById(id, userId, updates) {
   const listing = await prisma.listing.findUnique({ where: { id } });
 
   if (!listing) throw new NotFoundError("Listing not found");
 
-  if (listing.landlordId !== userId)
+  if (listing.landlordId !== userId) {
     throw new ForbiddenError("You are not authorized to update this listing");
+  }
 
   const updatedListing = await prisma.listing.update({
     where: { id },
@@ -137,4 +131,4 @@ async function updateListingById(id, userId, updates) {
   return updatedListing;
 }
 
-export { createListings, getAllListings, getListingById, updateListingById };
+export { createListings, getAllListings, getListingById, updateListingById, deleteListingById };

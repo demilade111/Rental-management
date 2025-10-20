@@ -6,11 +6,7 @@ import {
   deleteListingById,
   updateListingById,
 } from "../services/listingService.js";
-import {
-  CreatedResponse,
-  SuccessResponse,
-  HandleError,
-} from "../utils/httpResponse.js";
+import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
 
 async function createListing(req, res) {
   try {
@@ -47,8 +43,8 @@ async function deleteListing(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-
     const result = await deleteListingById(id, userId);
+
     return SuccessResponse(res, 200, result.message);
   } catch (error) {
     return HandleError(res, error);
@@ -60,7 +56,6 @@ async function updateListing(req, res) {
     const { id } = req.params;
     const updates = req.body;
     const userId = req.user.id;
-
     const updatedListing = await updateListingById(id, userId, updates);
 
     return SuccessResponse(
@@ -74,10 +69,4 @@ async function updateListing(req, res) {
   }
 }
 
-export {
-  createListing,
-  fetchAllListings,
-  fetchListingById,
-  deleteListing,
-  updateListing,
-};
+export { createListing, fetchAllListings, fetchListingById, deleteListing, updateListing };

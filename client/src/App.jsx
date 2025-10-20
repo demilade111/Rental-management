@@ -7,7 +7,8 @@ import PublicRoute from './components/PublicRoute';
 import SignUp from './pages/auth/SignUp';
 import TenantOnboarding from './pages/onboarding/TenantOnboarding';
 import LandlordOnboarding from './pages/onboarding/LandlordOnboarding';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/landlord/dashboard/Dashboard';
+import MainLayout from './layouts/MainLayout';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -54,12 +55,12 @@ function App() {
             }
           />
 
-          {/* protected Dashboard */}
+          {/* All dashboard routes */}
           <Route
-            path="/dashboard"
+            path="/*"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <MainLayout />
               </ProtectedRoute>
             }
           />
