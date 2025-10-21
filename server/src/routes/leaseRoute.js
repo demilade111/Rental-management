@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateLease } from "../controllers/leaseController.js";
+import { createLeaseController, updateLease } from "../controllers/leaseController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
 
@@ -42,7 +42,8 @@ const router = Router();
  *       404:
  *         description: Lease not found
  */
-
+router.post("/", authenticate, authorize(["ADMIN"]), createLeaseController);
 router.put("/:id", authenticate, authorize(["ADMIN"]), updateLease);
+
 
 export default router;
