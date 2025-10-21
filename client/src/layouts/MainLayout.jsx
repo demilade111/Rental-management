@@ -61,7 +61,7 @@ const MainLayout = () => {
 
         <div className="px-4 md:px-8 bg-white pb-10">
           <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/landlord/dashboard" element={<Dashboard />} />
             <Route path="/analytics" element={<Analytics />} />
           </Routes>
         </div>

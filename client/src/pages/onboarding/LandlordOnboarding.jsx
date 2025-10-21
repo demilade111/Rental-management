@@ -127,7 +127,7 @@ export default function LandlordOnboarding() {
 
                     <button
                         onClick={handleSubmit}
-                        className="w-full bg-green-500 text-white p-3 rounded hover:bg-green-600 font-medium"
+                        className="w-full bg-gray-500 text-white p-3 rounded hover:bg-green-600 font-medium"
                     >
                         Complete Profile & Go to Dashboard
                     </button>

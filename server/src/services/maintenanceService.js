@@ -101,7 +101,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
           state: true,
         },
       },
-      images: true,
+      // images: false,
     },
     orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
   });
