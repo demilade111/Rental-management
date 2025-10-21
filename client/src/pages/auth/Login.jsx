@@ -3,16 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 
-export default function SignUpPage() {
+export default function LoginPage() {
     const navigate = useNavigate();
     const { login } = useAuthStore();
     const [formData, setFormData] = useState({
         email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        phone: '',
-        role: 'TENANT'
+        password: ''
     });
 
     const handleChange = (e) => {
@@ -24,9 +20,9 @@ export default function SignUpPage() {
     };
 
     // TanStack Query mutation
-    const registerMutation = useMutation({
+    const loginMutation = useMutation({
         mutationFn: async (data) => {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/register`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
@@ -34,7 +30,7 @@ export default function SignUpPage() {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'Registration failed');
+                throw new Error(error.message || 'Login failed');
             }
 
             return response.json();
@@ -42,17 +38,18 @@ export default function SignUpPage() {
         onSuccess: (data) => {
             setTimeout(() => {
                 login(data.data.user, data.data.token);
-                navigate(formData.role === 'TENANT' ? '/onboarding/tenant' : '/onboarding/landlord');
+                // Navigate based on user role
+                navigate(data.data.user.role === 'TENANT' ? '/tenant/dashboard' : '/landlord/dashboard');
             }, 1500);
         }
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        registerMutation.mutate(formData);
+        loginMutation.mutate(formData);
     };
 
-    const { isPending, error, isSuccess } = registerMutation;
+    const { isPending, error, isSuccess } = loginMutation;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -60,7 +57,7 @@ export default function SignUpPage() {
                 {/* Success message */}
                 {isSuccess && (
                     <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
-                        Registration successful!
+                        Login successful!
                     </div>
                 )}
 
@@ -72,33 +69,7 @@ export default function SignUpPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
-                    <h1 className="text-2xl font-bold text-center mb-6">Sign Up</h1>
-                    <div className="mb-4">
-                        <label className="block mb-1">First Name</label>
-                        <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            required
-                            disabled={isPending}
-                            className="w-full p-2 border rounded disabled:opacity-50"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block mb-1">Last Name</label>
-                        <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            required
-                            disabled={isPending}
-                            className="w-full p-2 border rounded disabled:opacity-50"
-                        />
-                    </div>
-
+                    <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
                     <div className="mb-4">
                         <label className="block mb-1">Email</label>
                         <input
@@ -125,50 +96,22 @@ export default function SignUpPage() {
                         />
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block mb-1">Phone</label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            required
-                            disabled={isPending}
-                            className="w-full p-2 border rounded disabled:opacity-50"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block mb-1">Role</label>
-                        <select
-                            name="role"
-                            value={formData.role}
-                            onChange={handleChange}
-                            required
-                            disabled={isPending}
-                            className="w-full p-2 border rounded disabled:opacity-50"
-                        >
-                            <option value="TENANT">Tenant</option>
-                            <option value="ADMIN">Landlord</option>
-                        </select>
-                    </div>
-
                     <button
                         type="submit"
                         disabled={isPending}
                         className="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isPending ? 'Signing up...' : 'Sign Up'}
+                        {isPending ? 'Logging in...' : 'Login'}
                     </button>
 
                     <div className="mt-4 text-center text-sm text-gray-600">
-                        Already have an account?{' '}
+                        Don't have an account?{' '}
                         <button
                             type="button"
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate('/signup')}
                             className="text-blue-500 hover:underline"
                         >
-                            Login
+                            Sign up
                         </button>
                     </div>
                 </form>
