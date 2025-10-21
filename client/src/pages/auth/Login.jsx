@@ -54,8 +54,6 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
             <div className="w-full max-w-md">
-                <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-
                 {/* Success message */}
                 {isSuccess && (
                     <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
@@ -71,6 +69,7 @@ export default function LoginPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+                    <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
                     <div className="mb-4">
                         <label className="block mb-1">Email</label>
                         <input

@@ -73,31 +73,33 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                 <ChevronLeft size={20} />
               </button>
             </div>
-            <nav className="flex-1 space-y-0 overflow-y-auto">
+            <nav className="flex-1 space-y-1 overflow-y-auto">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 transition cursor-pointer ${
-                    activeNav === item.id ? "bg-gray-400/10 rounded-lg" : "hover:bg-gray-700"
+                  className={`w-full flex items-center space-x-3 px-4 py-2 transition cursor-pointer rounded-lg ${
+                    activeNav === item.id ? "bg-gray-400/10" : "hover:bg-gray-400/10"
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-gray-400 flex-shrink-0"></div>
-                  <span className="text-[18px] whitespace-nowrap">
+                  <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                  <span className="text-[16px] whitespace-nowrap">
                     {item.label}
                   </span>
                 </button>
               ))}
             </nav>
             <div className="space-y-2 border-t border-gray-700 pt-4 mt-4">
-              <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-700 transition cursor-pointer">
-                <span className="text-sm">Settings</span>
+              <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-400/10 transition cursor-pointer">
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <span className="text-[16px]">Settings</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-700 transition cursor-pointer"
+                className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-400/10 transition cursor-pointer"
               >
-                <span className="text-sm">Logout</span>
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <span className="text-[16px]">Logout</span>
               </button>
             </div>
           </>

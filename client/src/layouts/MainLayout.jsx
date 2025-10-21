@@ -20,12 +20,12 @@ const MainLayout = () => {
 
   const navItems = isLandlord
     ? [
-        { label: "Dashboard", id: "dashboard", path: "/dashboard" },
+        { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
         { label: "Portfolio", id: "portfolio", path: "/portfolio" },
         { label: "Applications", id: "applications", path: "/applications" },
         { label: "Maintenance", id: "maintenance", path: "/maintenance" },
         { label: "Accounting", id: "accounting", path: "/accounting" },
-        { label: "Analytics", id: "analytics", path: "/analytics" },
+        { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/dashboard" },
@@ -62,7 +62,7 @@ const MainLayout = () => {
         <div className="px-4 md:px-8 bg-white pb-10">
           <Routes>
             <Route path="/landlord/dashboard" element={<Dashboard />} />
-            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/landlord/analytics" element={<Analytics />} />
           </Routes>
         </div>
       </div>
