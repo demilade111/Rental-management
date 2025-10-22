@@ -61,6 +61,7 @@ async function createListings(landlordId, data) {
       rentCycle: data.rentCycle,
       rentAmount: data.rentAmount,
       securityDeposit: data.securityDeposit ?? null,
+      petDeposit: data.petDeposit ?? null,
       availableDate: new Date(data.availableDate),
       
       // Description

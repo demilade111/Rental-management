@@ -38,6 +38,7 @@ export const createListingSchema = z.object({
   }),
   rentAmount: z.number().positive("Rent amount must be positive"),
   securityDeposit: z.number().nonnegative().optional(),
+  petDeposit: z.number().nonnegative().optional(),
   availableDate: z.coerce.date(),
 
   // Description Section

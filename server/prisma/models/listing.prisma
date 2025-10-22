@@ -23,7 +23,8 @@ model Listing {
   // Rental Information Section
   rentCycle       RentCycle                
   rentAmount      Float                     
-  securityDeposit Float?                    
+  securityDeposit Float?                      
+  petDeposit Float?                   
   availableDate   DateTime                  
   
   // Description Section
