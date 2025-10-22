@@ -41,7 +41,7 @@ const Dashboard = () => {
 
     return (
         <>
-            <div className="flex gap-6">
+            <div className="flex gap-6 p-4 md:p-8">
                 <div className="w-3/4 grid grid-cols-2 gap-6">
                     <AccountingCard />
 
