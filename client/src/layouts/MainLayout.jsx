@@ -10,6 +10,7 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Dashboard from "../pages/landlord/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
+import PropertyPortfolio from "@/pages/landlord/PropertyPortfolio";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -21,10 +22,10 @@ const MainLayout = () => {
   const navItems = isLandlord
     ? [
         { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
-        { label: "Portfolio", id: "portfolio", path: "/portfolio" },
-        { label: "Applications", id: "applications", path: "/applications" },
-        { label: "Maintenance", id: "maintenance", path: "/maintenance" },
-        { label: "Accounting", id: "accounting", path: "/accounting" },
+        { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
+        // { label: "Applications", id: "applications", path: "/applications" },
+        // { label: "Maintenance", id: "maintenance", path: "/maintenance" },
+        // { label: "Accounting", id: "accounting", path: "/accounting" },
         { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
@@ -59,9 +60,10 @@ const MainLayout = () => {
       <div className="flex-1 overflow-auto">
         <Header user={user} isLandlord={isLandlord} />
 
-        <div className="px-4 md:px-8 bg-white pb-10">
+        <div className="bg-white pb-10">
           <Routes>
             <Route path="/landlord/dashboard" element={<Dashboard />} />
+            <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
             <Route path="/landlord/analytics" element={<Analytics />} />
           </Routes>
         </div>
