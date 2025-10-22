@@ -65,11 +65,11 @@ model Lease {
   tenantFullName   String?
   tenantEmail      String?
   tenantPhone      String?
-  additionalTenants Json? // array of { name, email, phone }
+
 
 
   allowsOccupants  Boolean @default(false)
-  occupants        Json? // array of { name, email, phone }
+
   numberOfOccupants Int?
 
 
