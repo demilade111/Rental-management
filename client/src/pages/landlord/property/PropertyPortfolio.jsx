@@ -7,10 +7,12 @@ import PropertyList from './PropertyList';
 import LoadingState from '../../../components/shared/LoadingState';
 import ErrorState from '../../../components/shared/ErrorState';
 import EmptyState from '../../../components/shared/EmptyState';
+import NewListingModal from './NewListingModal';
 
 const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState('rentals');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const token = useAuthStore((state) => state.token);
 
   const { data: properties = [], isLoading, isError, error } = useQuery({
@@ -51,7 +53,11 @@ const PropertyPortfolio = () => {
       </div>
 
       <PropertyTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-      <PropertySearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <PropertySearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onNewListing={() => setIsModalOpen(true)}
+      />
 
       {isLoading && <LoadingState message="Loading properties..." />}
       {isError && <ErrorState message={error.message} />}
@@ -59,6 +65,11 @@ const PropertyPortfolio = () => {
       {!isLoading && !isError && filteredProperties.length > 0 && (
         <PropertyList properties={filteredProperties} />
       )}
+
+      <NewListingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };
