@@ -6,52 +6,90 @@ const dedupe = (arr) => Array.from(new Set(arr));
 const toLower = (arr) => arr.map((s) => s.toLowerCase());
 
 async function createListings(landlordId, data) {
+  // Verify landlord exists and has correct role
   const landlord = await prisma.user.findUnique({
     where: { id: landlordId },
     select: { id: true, role: true },
   });
+  
   if (!landlord || landlord.role !== "ADMIN") {
     const err = new Error("Unauthorized: only landlords can create listings");
     err.status = 403;
     throw err;
   }
 
+  // Sanitize description
   const cleanDescription = sanitizeHtml(data.description || "", {
     allowedTags: [],
     allowedAttributes: {},
   });
 
+  // Dedupe and clean amenities (now simple strings)
   const amenities = dedupe(
-    toLower((data.amenities || []).map((a) => a.trim()).filter(Boolean))
+    toLower((data.amenities || []).map((name) => name.trim()).filter(Boolean))
   );
+  
+  // Dedupe and clean images (now simple URL strings)
   const images = dedupe(
-    (data.images || []).map((u) => u.trim()).filter(Boolean)
+    (data.images || [])
+      .map((url) => (typeof url === 'string' ? url.trim() : null))
+      .filter(Boolean)
   );
 
+  // Create listing with nested relations
   const listing = await prisma.listing.create({
     data: {
       landlordId,
+      
+      // Property Details
       title: data.title.trim(),
-      description: cleanDescription,
-      category: data.category,
-      residentialType: data.residentialType || null,
-      commercialType: data.commercialType || null,
-      address: data.address.trim(),
-      city: data.city.trim(),
-      state: data.state.trim(),
-      country: data.country.trim(),
-      zipCode: data.zipCode || null,
+      propertyType: data.propertyType,
+      propertyOwner: data.propertyOwner?.trim() || null,
       bedrooms: data.bedrooms ?? null,
       bathrooms: data.bathrooms ?? null,
-      size: data.size ?? null,
+      totalSquareFeet: data.totalSquareFeet ?? null,
       yearBuilt: data.yearBuilt ?? null,
-      rentAmount: data.rentAmount,
+      
+      // Address
+      country: data.country.trim(),
+      state: data.state.trim(),
+      city: data.city.trim(),
+      streetAddress: data.streetAddress.trim(),
+      zipCode: data.zipCode?.trim() || null,
+      
+      // Rental Information
       rentCycle: data.rentCycle,
+      rentAmount: data.rentAmount,
       securityDeposit: data.securityDeposit ?? null,
-      availableDate: data.availableDate,
-      amenities: { create: amenities.map((name) => ({ name })) },
-      images: { create: images.map((url) => ({ url })) },
+      availableDate: new Date(data.availableDate),
+      
+      // Description
+      description: cleanDescription || null,
+      
+      // Contact Information
+      contactName: data.contactName?.trim() || null,
+      phoneNumber: data.phoneNumber?.trim() || null,
+      email: data.email?.trim() || null,
+      
+      // Notes
+      notes: data.notes?.trim() || null,
+      
+      // Nested relations - amenities as simple strings
+      amenities: { 
+        create: amenities.map((name) => ({ name })) 
+      },
+      // Images as simple URLs - first one is primary
+      images: { 
+        create: images.map((url, index) => ({
+          url,
+          isPrimary: index === 0
+        }))
+      },
     },
+    include: {
+      amenities: true,
+      images: true,
+    }
   });
 
   return listing;

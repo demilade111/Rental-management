@@ -25,7 +25,7 @@ export default function LandlordOnboarding() {
         setError('');
 
         try {
-            navigate('/dashboard');
+            navigate('/landlord/dashboard');
         } catch (err) {
             setError(err.message);
         }
