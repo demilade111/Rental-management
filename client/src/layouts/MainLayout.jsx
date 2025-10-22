@@ -10,7 +10,7 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Dashboard from "../pages/landlord/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
-import PropertyPortfolio from "@/pages/landlord/PropertyPortfolio";
+import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 
 const MainLayout = () => {
   const navigate = useNavigate();
