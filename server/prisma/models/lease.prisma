@@ -3,8 +3,6 @@ model Lease {
   listingId        String
   tenantId         String
   landlordId       String
-
-
   startDate        DateTime
   endDate          DateTime
   rentAmount       Float
@@ -15,8 +13,6 @@ model Lease {
   leaseDocument    String?
   signedContract   String?
   notes            String?
-
-
   propertyCategory PropertyCategory?
   residentialType  ResidentialType?
   commercialType   CommercialType?
@@ -25,26 +21,16 @@ model Lease {
   propertyState    String?
   propertyCountry  String?
   propertyZipCode  String?
-
-
   leaseTermType    LeaseTermType?
-
-
-  paymentDay       Int? // due day (1–31)
-
-  
+  paymentDay       Int? 
   acceptsCash        Boolean @default(false)
   acceptsCheque      Boolean @default(false)
   acceptsDirectDebit Boolean @default(false)
   acceptsETransfer   Boolean @default(false)
   acceptsOther       Boolean @default(false)
   customPaymentInfo  String?
-
-
   rentIncreaseNoticeType     NoticeType?
   customRentIncreaseNoticeDays Int?
-
-
   hasSecurityDeposit     Boolean @default(false)
   discloseBankInfo       Boolean @default(false)
   depositAmount          Float?
@@ -52,33 +38,21 @@ model Lease {
   depositAccountInfo     String?
   depositReturnNoticeType DepositNoticeType?
   customDepositNoticeDays Int?
-
-
   landlordType       LandlordType?
   landlordFullName   String?
   landlordEmail      String?
   landlordPhone      String?
   landlordAddress    String?
-  additionalLandlords Json? // array of { name, email, role }
-
-
+  additionalLandlords Json? 
   tenantFullName   String?
   tenantEmail      String?
   tenantPhone      String?
-
-
-
   allowsOccupants  Boolean @default(false)
-
   numberOfOccupants Int?
-
-
   listing   Listing  @relation(fields: [listingId], references: [id])
   tenant    User     @relation("TenantLeases", fields: [tenantId], references: [id])
   landlord  User     @relation("LandlordLeases", fields: [landlordId], references: [id])
   maintenanceRequests MaintenanceRequest[]
-
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
