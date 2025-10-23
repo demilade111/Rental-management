@@ -1,20 +1,18 @@
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  password     String
-  firstName    String?
-  lastName     String?
-  phone        String?
-  role         UserRole @default(TENANT)
-  profileImage String?
-
-  listings            Listing[]            @relation("LandlordListings")
-  tenantLeases        Lease[]              @relation("TenantLeases")
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  password            String
+  firstName           String?
+  lastName            String?
+  phone               String?
+  role                UserRole             @default(TENANT)
+  profileImage        String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   landlordLeases      Lease[]              @relation("LandlordLeases")
+  tenantLeases        Lease[]              @relation("TenantLeases")
+  listings            Listing[]            @relation("LandlordListings")
   maintenanceRequests MaintenanceRequest[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@map("users")
 }

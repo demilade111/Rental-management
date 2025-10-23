@@ -59,17 +59,17 @@ model Lease {
   landlordEmail      String?
   landlordPhone      String?
   landlordAddress    String?
-  additionalLandlords Json? // array of { name, email, role }
+  additionalLandlords Json? 
 
 
   tenantFullName   String?
   tenantEmail      String?
   tenantPhone      String?
-  additionalTenants Json? // array of { name, email, phone }
+  additionalTenants Json? 
 
 
   allowsOccupants  Boolean @default(false)
-  occupants        Json? // array of { name, email, phone }
+  occupants        Json?
   numberOfOccupants Int?
 
 
@@ -78,14 +78,6 @@ model Lease {
   landlord  User     @relation("LandlordLeases", fields: [landlordId], references: [id])
   maintenanceRequests MaintenanceRequest[]
 
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-
   @@index([tenantId])
   @@index([landlordId])
-  @@index([listingId])
-  @@index([leaseStatus])
-  @@index([startDate, endDate])
 }

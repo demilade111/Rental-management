@@ -1,66 +1,43 @@
 model Listing {
-  id              String           @id @default(cuid())
-  landlordId      String
-
-
-  // Property Details Section
-  title           String                    
-  propertyType    PropertyType          
-  propertyOwner   String?                   
-  bedrooms        Int?                      
-  bathrooms       Int?                      
-  totalSquareFeet Int?                      
-  yearBuilt       Int?                      
-
-
-  // Address Section
-  country         String                   
-  state           String                   
-  city            String                   
-  streetAddress   String                    
-  zipCode         String?                   
-
-  // Rental Information Section
-  rentCycle       RentCycle                
-  rentAmount      Float                     
-  securityDeposit Float?                      
-  petDeposit Float?                   
-  availableDate   DateTime                  
-  
-  // Description Section
-  description     String?                   
-  
-  // Contact Information Section
-  contactName     String?                   
-  phoneNumber     String?                   
-  email           String?                   
-  
-  // Notes Section (private to landlord)
-  notes           String?                   
-
-  // Relations
-  landlord            User                 @relation("LandlordListings", fields: [landlordId], references: [id], onDelete: Cascade)
+  id                  String               @id @default(cuid())
+  landlordId          String
+  title               String
+  description         String?
+  category            PropertyCategory
+  residentialType     ResidentialType?
+  commercialType      CommercialType?
+  address             String
+  city                String
+  state               String
+  country             String
+  zipCode             String?
+  bedrooms            Int?
+  bathrooms           Int?
+  size                Int?
+  yearBuilt           Int?
+  rentAmount          Float
+  rentCycle           RentCycle
+  securityDeposit     Float?
+  availableDate       DateTime
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  leases              Lease[]
+  landlord            User                 @relation("LandlordListings", fields: [landlordId], references: [id])
   amenities           ListingAmenity[]
   images              ListingImage[]
-  leases              Lease[]
   maintenanceRequests MaintenanceRequest[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
   @@index([landlordId])
-  @@index([city, propertyType])
   @@index([rentCycle])
-  @@index([availableDate])
+  @@index([city, category])
 }
 
 model ListingAmenity {
   id        String   @id @default(cuid())
   listingId String
   name      String
-
-  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id])
 
   @@unique([listingId, name])
   @@index([listingId])
@@ -71,8 +48,8 @@ model ListingImage {
   listingId String
   url       String
   isPrimary Boolean  @default(false)
-  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id])
 
   @@unique([listingId, url])
   @@index([listingId])
