@@ -11,5 +11,5 @@ README.md
 .DS_Store
 dist
 build
-*.log
+*log
 

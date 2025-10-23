@@ -71,7 +71,7 @@ export const createListingSchema = z.object({
   phoneNumber: z
     .string()
     .trim()
-    .regex(/^[0-9\s\-\+\(\)]+$/, "Invalid phone number format")
+    .regex(/^(?!-)[0-9\s\-\+\(\)]+$/, "Invalid phone number format")
     .optional(),
 
   email: z.string().trim().email("Invalid email format").optional(),

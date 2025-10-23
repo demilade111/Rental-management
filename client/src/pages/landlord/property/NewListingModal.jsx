@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,12 +17,24 @@ import { format } from "date-fns";
 import { AmenitiesSection } from './AmenitiesSection';
 import PhotoUploadSection from './PhotoUploadSection';
 import { useAuthStore } from '../../../store/authStore';
-import { getPropertyCategory, PROPERTY_CATEGORY_NAMES, PROPERTY_DISPLAY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
+import { PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
+import { RENTCYCLE_OPTIONS } from '@/constants/rentCycles';
+import { Country, State, City } from 'country-state-city';
 
 const NewListingModal = ({ isOpen, onClose }) => {
     const token = useAuthStore((state) => state.token);
     const [fieldErrors, setFieldErrors] = useState({});
     const queryClient = useQueryClient();
+
+    // Inside your component:
+    const [countries, setCountries] = useState([]);
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+
+    // Populate countries once
+    useEffect(() => {
+        setCountries(Country.getAllCountries());
+    }, []);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -70,6 +82,54 @@ const NewListingModal = ({ isOpen, onClose }) => {
             ...prev,
             images: images
         }));
+    };
+
+    // Handle country change
+    const handleCountryChange = (e) => {
+        const selectedCountryCode = e.target.value;
+        const selectedCountry = Country.getCountryByCode(selectedCountryCode);
+
+        setFormData(prev => ({
+            ...prev,
+            country: selectedCountryCode,
+            state: '',
+            city: ''
+        }));
+
+        // Load states for selected country
+        setStates(State.getStatesOfCountry(selectedCountryCode));
+        setCities([]); // reset cities
+    };
+
+    // Handle state change
+    const handleStateChange = (e) => {
+        const selectedStateCode = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            state: selectedStateCode,
+            city: ''
+        }));
+
+        // Load cities for selected state
+        if (formData.country && selectedStateCode) {
+            setCities(City.getCitiesOfState(formData.country, selectedStateCode));
+        } else {
+            setCities([]);
+        }
+    };
+
+    // Handle city change
+    const handleCityChange = (e) => {
+        setFormData(prev => ({
+            ...prev,
+            city: e.target.value
+        }));
+    };
+
+    const handleClose = () => {
+        setFieldErrors({});
+        resetForm();
+        onClose();
     };
 
     const createListingMutation = useMutation({
@@ -224,7 +284,12 @@ const NewListingModal = ({ isOpen, onClose }) => {
     const { isPending, error } = createListingMutation;
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog
+            onOpenChange={(open) => {
+                if (open === false) return;
+                onClose();
+            }}
+            modal open={isOpen}>
             <DialogContent showCloseButton={false} className="max-w-2xl max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="p-6 pb-4 border-b">
                     <div className="flex items-center justify-between">
@@ -262,20 +327,23 @@ const NewListingModal = ({ isOpen, onClose }) => {
                                     className="w-full text-gray-600 text-sm p-2 border border-gray-300 rounded-md"
                                 >
                                     <option value="">Select property type</option>
+
                                     {Object.entries(PROPERTY_OPTIONS).map(([category, types]) => (
                                         <optgroup key={category} label={PROPERTY_CATEGORY_NAMES[category]}>
-                                            {types.map((type) => (
-                                                <option key={type} value={type}>
-                                                    {PROPERTY_DISPLAY_NAMES[type]}
+                                            {types.map(({ value, label }) => (
+                                                <option key={value} value={value}>
+                                                    {label}
                                                 </option>
                                             ))}
                                         </optgroup>
                                     ))}
                                 </select>
+
                                 {fieldErrors.propertyType && (
                                     <p className="mt-1 text-red-400 text-sm">{fieldErrors.propertyType}</p>
                                 )}
                             </div>
+
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">Property Owner</label>
@@ -370,13 +438,15 @@ const NewListingModal = ({ isOpen, onClose }) => {
                                 <select
                                     name="country"
                                     value={formData.country}
-                                    onChange={handleChange}
+                                    onChange={handleCountryChange}
                                     className="w-full text-sm p-2 border border-gray-300 rounded-md"
                                     required
                                     disabled={isPending}
                                 >
                                     <option value="" disabled>Select country</option>
-                                    <option value="Canada">Canada</option>
+                                    {countries.map((c) => (
+                                        <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+                                    ))}
                                 </select>
                                 {fieldErrors.country && (
                                     <p className="mt-1 text-red-400 text-sm">{fieldErrors.country}</p>
@@ -389,13 +459,15 @@ const NewListingModal = ({ isOpen, onClose }) => {
                                     <select
                                         name="state"
                                         value={formData.state}
-                                        onChange={handleChange}
+                                        onChange={handleStateChange}
                                         className="w-full p-2 text-sm border border-gray-300 rounded-md"
                                         required
-                                        disabled={isPending}
+                                        disabled={!formData.country || isPending}
                                     >
                                         <option value="" disabled>Select state</option>
-                                        <option value="BC">BC</option>
+                                        {states.map((s) => (
+                                            <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                        ))}
                                     </select>
                                     {fieldErrors.state && (
                                         <p className="mt-1 text-red-400 text-sm">{fieldErrors.state}</p>
@@ -406,13 +478,15 @@ const NewListingModal = ({ isOpen, onClose }) => {
                                     <select
                                         name="city"
                                         value={formData.city}
-                                        onChange={handleChange}
+                                        onChange={handleCityChange}
                                         className="w-full text-sm p-2 border border-gray-300 rounded-md"
                                         required
-                                        disabled={isPending}
+                                        disabled={!formData.state || isPending}
                                     >
                                         <option value="" disabled>Select city</option>
-                                        <option value="Vancouver">Vancouver</option>
+                                        {cities.map((c) => (
+                                            <option key={c.name} value={c.name}>{c.name}</option>
+                                        ))}
                                     </select>
                                     {fieldErrors.city && (
                                         <p className="mt-1 text-red-400 text-sm">{fieldErrors.city}</p>
@@ -464,9 +538,16 @@ const NewListingModal = ({ isOpen, onClose }) => {
                                     required
                                     disabled={isPending}
                                 >
-                                    <option value="" disabled>Select rent cycle</option>
-                                    <option value="MONTHLY">Month to Month</option>
+                                    <option value="" disabled>
+                                        Select rent cycle
+                                    </option>
+                                    {RENTCYCLE_OPTIONS.map(({ value, label }) => (
+                                        <option key={value} value={value}>
+                                            {label}
+                                        </option>
+                                    ))}
                                 </select>
+
                                 {fieldErrors.rentCycle && (
                                     <p className="mt-1 text-red-400 text-sm">{fieldErrors.rentCycle}</p>
                                 )}
@@ -612,7 +693,6 @@ const NewListingModal = ({ isOpen, onClose }) => {
                                     required
                                     disabled={isPending}
                                     onWheel={(e) => e.target.blur()}
-                                    min={0}
                                 />
                                 {fieldErrors.phoneNumber && (
                                     <p className="mt-1 text-red-400 text-sm">{fieldErrors.phoneNumber}</p>
@@ -661,7 +741,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={onClose}
+                                onClick={handleClose}
                                 className="border-0 text-gray-700 shadow-none"
                                 disabled={isPending}
                             >
