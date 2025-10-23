@@ -1,9 +1,131 @@
 import { Router } from "express";
-import { createLeaseController, updateLease } from "../controllers/leaseController.js";
+import {
+  createLeaseController,
+  getAllLeasesController,
+  getLeaseByIdController,
+  updateLeaseController,
+  deleteLeaseController,
+} from "../controllers/leaseController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
 
 const router = Router();
+
+/**
+ * @swagger
+ * /api/v1/leases:
+ *   post:
+ *     summary: Create a new lease
+ *     tags: [Leases]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - listingId
+ *               - tenantId
+ *               - startDate
+ *               - endDate
+ *               - rentAmount
+ *               - paymentFrequency
+ *             properties:
+ *               listingId:
+ *                 type: string
+ *               tenantId:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *               rentAmount:
+ *                 type: number
+ *               paymentFrequency:
+ *                 type: string
+ *                 enum: [WEEKLY, BI_WEEKLY, MONTHLY, QUARTERLY, YEARLY]
+ *               securityDeposit:
+ *                 type: number
+ *               paymentMethod:
+ *                 type: string
+ *               leaseStatus:
+ *                 type: string
+ *                 enum: [DRAFT, ACTIVE, EXPIRED, TERMINATED]
+ *               leaseDocument:
+ *                 type: string
+ *               signedContract:
+ *                 type: string
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Lease created successfully
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: Listing or tenant not found
+ */
+router.post(
+  "/",
+  authenticate,
+  authorize(["LANDLORD", "ADMIN"]),
+  createLeaseController
+);
+
+/**
+ * @swagger
+ * /api/v1/leases:
+ *   get:
+ *     summary: Get all leases (filtered by user role)
+ *     tags: [Leases]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: leaseStatus
+ *         schema:
+ *           type: string
+ *           enum: [DRAFT, ACTIVE, EXPIRED, TERMINATED]
+ *         description: Filter by lease status
+ *       - in: query
+ *         name: listingId
+ *         schema:
+ *           type: string
+ *         description: Filter by listing ID
+ *     responses:
+ *       200:
+ *         description: Leases retrieved successfully
+ */
+router.get("/", authenticate, getAllLeasesController);
+
+/**
+ * @swagger
+ * /api/v1/leases/{id}:
+ *   get:
+ *     summary: Get a single lease by ID
+ *     tags: [Leases]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The lease ID
+ *     responses:
+ *       200:
+ *         description: Lease retrieved successfully
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: Lease not found
+ */
+router.get("/:id", authenticate, getLeaseByIdController);
 
 /**
  * @swagger
@@ -32,18 +154,67 @@ const router = Router();
  *                 format: date
  *               rentAmount:
  *                 type: number
+ *               paymentFrequency:
+ *                 type: string
+ *                 enum: [WEEKLY, BI_WEEKLY, MONTHLY, QUARTERLY, YEARLY]
+ *               securityDeposit:
+ *                 type: number
+ *               paymentMethod:
+ *                 type: string
  *               leaseStatus:
+ *                 type: string
+ *                 enum: [DRAFT, ACTIVE, EXPIRED, TERMINATED]
+ *               leaseDocument:
+ *                 type: string
+ *               signedContract:
  *                 type: string
  *               notes:
  *                 type: string
  *     responses:
  *       200:
  *         description: Lease updated successfully
+ *       403:
+ *         description: Unauthorized
  *       404:
  *         description: Lease not found
  */
-router.post("/", authenticate, authorize(["ADMIN"]), createLeaseController);
-router.put("/:id", authenticate, authorize(["ADMIN"]), updateLease);
+router.put(
+  "/:id",
+  authenticate,
+  authorize(["LANDLORD", "ADMIN"]),
+  updateLeaseController
+);
 
+/**
+ * @swagger
+ * /api/v1/leases/{id}:
+ *   delete:
+ *     summary: Delete a lease
+ *     tags: [Leases]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The lease ID
+ *     responses:
+ *       200:
+ *         description: Lease deleted successfully
+ *       400:
+ *         description: Cannot delete active lease
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: Lease not found
+ */
+router.delete(
+  "/:id",
+  authenticate,
+  authorize(["LANDLORD", "ADMIN"]),
+  deleteLeaseController
+);
 
 export default router;

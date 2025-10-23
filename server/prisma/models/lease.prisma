@@ -1,65 +1,25 @@
 model Lease {
-  id               String      @id @default(cuid())
-  listingId        String
-  tenantId         String
-  landlordId       String
-  startDate        DateTime
-  endDate          DateTime
-  rentAmount       Float
-  paymentFrequency RentCycle
-  securityDeposit  Float?
-  paymentMethod    String?
-  leaseStatus      LeaseStatus @default(DRAFT)
-  leaseDocument    String?
-  signedContract   String?
-  notes            String?
-  propertyCategory PropertyCategory?
-  residentialType  ResidentialType?
-  commercialType   CommercialType?
-  propertyAddress  String?
-  propertyCity     String?
-  propertyState    String?
-  propertyCountry  String?
-  propertyZipCode  String?
-  leaseTermType    LeaseTermType?
-  paymentDay       Int? 
-  acceptsCash        Boolean @default(false)
-  acceptsCheque      Boolean @default(false)
-  acceptsDirectDebit Boolean @default(false)
-  acceptsETransfer   Boolean @default(false)
-  acceptsOther       Boolean @default(false)
-  customPaymentInfo  String?
-  rentIncreaseNoticeType     NoticeType?
-  customRentIncreaseNoticeDays Int?
-  hasSecurityDeposit     Boolean @default(false)
-  discloseBankInfo       Boolean @default(false)
-  depositAmount          Float?
-  depositBankName        String?
-  depositAccountInfo     String?
-  depositReturnNoticeType DepositNoticeType?
-  customDepositNoticeDays Int?
-  landlordType       LandlordType?
-  landlordFullName   String?
-  landlordEmail      String?
-  landlordPhone      String?
-  landlordAddress    String?
-  additionalLandlords Json? 
-  tenantFullName   String?
-  tenantEmail      String?
-  tenantPhone      String?
-  allowsOccupants  Boolean @default(false)
-  numberOfOccupants Int?
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  tenant    User     @relation("TenantLeases", fields: [tenantId], references: [id])
-  landlord  User     @relation("LandlordLeases", fields: [landlordId], references: [id])
+  id                  String               @id @default(cuid())
+  listingId           String
+  tenantId            String
+  landlordId          String
+  startDate           DateTime
+  endDate             DateTime
+  rentAmount          Float
+  paymentFrequency    RentCycle
+  securityDeposit     Float?
+  paymentMethod       String?
+  leaseStatus         LeaseStatus          @default(ACTIVE)
+  leaseDocument       String?
+  signedContract      String?
+  notes               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  landlord            User                 @relation("LandlordLeases", fields: [landlordId], references: [id])
+  listing             Listing              @relation(fields: [listingId], references: [id])
+  tenant              User                 @relation("TenantLeases", fields: [tenantId], references: [id])
   maintenanceRequests MaintenanceRequest[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
 
   @@index([tenantId])
   @@index([landlordId])
-  @@index([listingId])
-  @@index([leaseStatus])
-  @@index([startDate, endDate])
 }
