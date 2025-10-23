@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CloudUpload } from "lucide-react";
 
-export default function PhotoUploadSection() {
-    const [file, setFile] = useState(null);
+export default function PhotoUploadSection({ images = [], onImagesChange, disabled }) {
+    const fileInputRef = useRef(null);
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
-            setFile(e.target.files[0]);
+            const file = e.target.files[0];
+            const newImage = URL.createObjectURL(file);
+            onImagesChange([...images, newImage]);
         }
     };
 
@@ -19,19 +21,21 @@ export default function PhotoUploadSection() {
 
             {/* Middle Text */}
             <p className="text-center text-gray-600">
-                {file ? file.name : "Choose photo of your property"}
+                {images.length > 0 ? `${images.length} photo(s) selected` : "Choose photo of your property"}
             </p>
 
             {/* Bottom Button */}
             <label htmlFor="file-upload">
-                <Input
+                <input
+                    ref={fileInputRef}
                     type="file"
-                    id="file-upload"
-                    className="hidden"
-                    onChange={handleFileChange}
+                    multiple
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => onImagesChange(Array.from(e.target.files))}
                 />
-                <Button variant="outline" className="w-full">
-                    {file ? "Change Photo" : "Choose Photo"}
+                <Button onClick={() => fileInputRef.current.click()} variant="outline" className="w-full" disabled={disabled}>
+                    {images.length > 0 ? "Change Photo" : "Choose Photo"}
                 </Button>
             </label>
         </div>
