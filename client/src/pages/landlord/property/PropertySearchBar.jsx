@@ -3,7 +3,7 @@ import { Search, Plus, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-const PropertySearchBar = ({ searchQuery, setSearchQuery }) => (
+const PropertySearchBar = ({ searchQuery, setSearchQuery, onNewListing }) => (
     <div className="flex flex-col md:flex-row gap-3 mb-6 md:justify-between">
         <div className="flex gap-3 flex-1 md:max-w-md">
             <div className="relative flex-1">
@@ -20,7 +20,7 @@ const PropertySearchBar = ({ searchQuery, setSearchQuery }) => (
                 <SlidersHorizontal className="w-4 h-4" />
             </Button>
         </div>
-        <Button className="bg-black text-white hover:bg-gray-800">
+        <Button className="bg-black text-white hover:bg-gray-800" onClick={onNewListing}>
             <Plus className="w-4 h-4 mr-2" />
             New Listing
         </Button>

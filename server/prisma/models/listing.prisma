@@ -5,7 +5,7 @@ model Listing {
 
   // Property Details Section
   title           String                    
-  propertyType    PropertyCategory          
+  propertyType    PropertyType          
   propertyOwner   String?                   
   bedrooms        Int?                      
   bathrooms       Int?                      

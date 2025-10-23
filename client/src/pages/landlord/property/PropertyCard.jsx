@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Home, DollarSign } from 'lucide-react';
+import { getPropertyCategory, PROPERTY_CATEGORY_NAMES, PROPERTY_DISPLAY_NAMES } from '@/constants/propertyTypes';
 
 const PropertyCard = ({ property }) => {
     return (
@@ -23,7 +24,7 @@ const PropertyCard = ({ property }) => {
                     </div>
 
                     {/* Financial Info */}
-                    <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-center">
+                    <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-start">
                         <div className="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center flex-shrink-0">
                             <DollarSign className="w-5 h-5" />
                         </div>
@@ -43,12 +44,18 @@ const PropertyCard = ({ property }) => {
                     </div>
 
                     {/* Property Type */}
-                    <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-center">
+                    <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-start">
                         <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
                             <Home className="w-8 h-8" />
                         </div>
                         <div className="space-y-1">
-                            <p className="text-sm font-bold whitespace-nowrap">{property.propertyType}</p>
+                            <p className="text-sm whitespace-nowrap">
+                                <span className='font-bold'>
+                                    {PROPERTY_CATEGORY_NAMES[getPropertyCategory(property.propertyType)]}: {" "}
+                                </span>
+                                {PROPERTY_DISPLAY_NAMES[property.propertyType]}
+                            </p>
+
                             <p className="text-sm whitespace-nowrap">
                                 <span className="font-bold">Size:</span> {property.totalSquareFeet} sq ft
                             </p>
