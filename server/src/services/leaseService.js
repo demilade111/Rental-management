@@ -38,16 +38,22 @@ export const updateLeaseById = async (leaseId, userId, data) => {
 export const getAllLeases = async () => {
   const leases = await prisma.lease.findMany({
     include: {
-      listing: true,
-      tenant: {
-      select: { id: true, firstName: true, lastName: true, email: true },
+      listingId: true,
+      tenantId: {
+        select: { id: true, firstName: true, lastName: true, email: true },
       },
-      landlord: {
-      select: { id: true, firstName: true, lastName: true, email: true },
+      landlordId: {
+        select: { id: true, firstName: true, lastName: true, email: true },
       },
     },
     orderBy: { createdAt: "desc" },
   });
+  if (!leases) {
+    const err = new Error("No leases found");
+    err.status = 404;
+    throw err;
+  }
+
 
   return leases;
 };
