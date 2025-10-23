@@ -1,20 +1,3 @@
-// ========== PROPERTY & LEASE ENUMS ==========
-enum PropertyType {
-  APARTMENT
-  CONDO
-  TOWNHOUSE
-  MULTI_FAMILY
-  SINGLE_FAMILY
-  STUDIO
-  INDUSTRIAL
-  OFFICE
-  RETAIL
-  SHOPPING_CENTER
-  STORAGE
-  PARKING_SPACE
-  WAREHOUSE
-}
-
 enum PropertyCategory {
   RESIDENTIAL
   COMMERCIAL
@@ -52,34 +35,11 @@ enum LeaseStatus {
   TERMINATED
 }
 
-enum LeaseTermType {
-  LONG_TERM
-  MONTH_TO_MONTH
-  YEAR_TO_YEAR
-}
-
-enum NoticeType {
-  LEGAL_MINIMUM
-  MORE_THAN_MINIMUM
-}
-
-enum DepositNoticeType {
-  LEGAL_MAXIMUM
-  LESS_THAN_MINIMUM
-}
-
-enum LandlordType {
-  INDIVIDUAL
-  CORPORATION
-}
-
-// ========== USER & ROLES ==========
 enum UserRole {
   ADMIN
   TENANT
 }
 
-// ========== MAINTENANCE ==========
 enum MaintenanceStatus {
   OPEN
   IN_PROGRESS
