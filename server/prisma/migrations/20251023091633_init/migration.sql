@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "PropertyType" AS ENUM ('APARTMENT', 'CONDO', 'TOWNHOUSE', 'MULTI_FAMILY', 'SINGLE_FAMILY', 'STUDIO', 'INDUSTRIAL', 'OFFICE', 'RETAIL', 'SHOPPING_CENTER', 'STORAGE', 'PARKING_SPACE', 'WAREHOUSE');
+
+-- CreateEnum
 CREATE TYPE "PropertyCategory" AS ENUM ('RESIDENTIAL', 'COMMERCIAL');
 
 -- CreateEnum
@@ -102,7 +105,7 @@ CREATE TABLE "Listing" (
     "id" TEXT NOT NULL,
     "landlordId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
-    "propertyType" "PropertyCategory" NOT NULL,
+    "propertyType" "PropertyType" NOT NULL,
     "propertyOwner" TEXT,
     "bedrooms" INTEGER,
     "bathrooms" INTEGER,
@@ -116,6 +119,7 @@ CREATE TABLE "Listing" (
     "rentCycle" "RentCycle" NOT NULL,
     "rentAmount" DOUBLE PRECISION NOT NULL,
     "securityDeposit" DOUBLE PRECISION,
+    "petDeposit" DOUBLE PRECISION,
     "availableDate" TIMESTAMP(3) NOT NULL,
     "description" TEXT,
     "contactName" TEXT,
@@ -265,10 +269,10 @@ ALTER TABLE "Lease" ADD CONSTRAINT "Lease_landlordId_fkey" FOREIGN KEY ("landlor
 ALTER TABLE "Listing" ADD CONSTRAINT "Listing_landlordId_fkey" FOREIGN KEY ("landlordId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ListingAmenity" ADD CONSTRAINT "ListingAmenity_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ListingAmenity" ADD CONSTRAINT "ListingAmenity_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ListingImage" ADD CONSTRAINT "ListingImage_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ListingImage" ADD CONSTRAINT "ListingImage_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "MaintenanceRequest" ADD CONSTRAINT "MaintenanceRequest_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
