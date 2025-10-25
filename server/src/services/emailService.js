@@ -1,9 +1,8 @@
-import nodemailer from 'nodemailer';
-
+import nodemailer from "nodemailer";
 
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
@@ -11,16 +10,15 @@ const createTransporter = () => {
   });
 };
 
-
 export const sendPasswordResetEmail = async (email, resetToken) => {
   const transporter = createTransporter();
-  
-  const resetUrl = `${process.env.VITE_APP_URL}/reset-password?token=${resetToken}`;
-  
+
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+
   const mailOptions = {
     from: `"Rental Management" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: 'Password Reset Request',
+    subject: "Password Reset Request",
     html: `
       <!DOCTYPE html>
       <html>
@@ -82,8 +80,7 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
     await transporter.sendMail(mailOptions);
     console.log(`Password reset email sent to ${email}`);
   } catch (error) {
-    console.error('Error sending email:', error);
-    throw new Error('Failed to send password reset email');
+    console.error("Error sending email:", error);
+    throw new Error("Failed to send password reset email");
   }
 };
-
