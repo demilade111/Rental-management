@@ -51,13 +51,13 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                     transform transition-all duration-300 ease-in-out
                     ${
                       isMobileMenuOpen
-                        ? "translate-x-0 w-64"
+                        ? "translate-x-0 w-56"
                         : "-translate-x-full lg:translate-x-0"
                     }
                     ${
                       isCollapsed
                         ? "lg:w-0 lg:p-0 lg:overflow-hidden"
-                        : "lg:w-[232px]"
+                        : "lg:w-[200px]"
                     }
                 `}
         style={{ backgroundColor: "#3B3B3B" }}
@@ -79,7 +79,9 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   className={`w-full flex items-center space-x-3 px-4 py-2 transition cursor-pointer rounded-lg ${
-                    activeNav === item.id ? "bg-gray-400/10" : "hover:bg-gray-400/10"
+                    activeNav === item.id
+                      ? "bg-gray-400/10"
+                      : "hover:bg-gray-400/10"
                   }`}
                 >
                   <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
