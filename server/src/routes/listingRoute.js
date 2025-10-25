@@ -73,6 +73,7 @@ const router = Router();
  *         description: Listing not found
  */
 
+<<<<<<< HEAD
 router.post("/", authenticate, authorize(["ADMIN", "LANDLORD"]), createListing);
 router.get(
   "/",
@@ -167,5 +168,12 @@ router.delete(
   authorize(["ADMIN", "LANDLORD"]),
   deleteListingAmenity
 );
+=======
+router.post("/", authenticate, authorize(["ADMIN"]), createListing);
+router.get("/", authenticate, authorize(["ADMIN"]), fetchAllListings);
+router.get("/:id", authenticate, authorize(["ADMIN"]), fetchListingById);
+router.put("/:id", authenticate, authorize(["ADMIN"]), updateListing);
+router.delete("/:id", authenticate, authorize(["ADMIN"]), deleteListing);
+>>>>>>> d61f7579554acc6e41dfbd608b083716cef88585
 
 export default router;

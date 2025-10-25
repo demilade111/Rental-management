@@ -5,6 +5,7 @@ import { useAuthStore } from "./store/authStore";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import SignUp from "./pages/auth/SignUp";
+import Login from "./pages/auth/Login";
 import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
 import Dashboard from "./pages/landlord/dashboard/Dashboard";
@@ -23,7 +24,17 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/signup" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+
           <Route
             path="/signup"
             element={

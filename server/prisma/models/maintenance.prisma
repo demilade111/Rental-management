@@ -2,20 +2,18 @@ model MaintenanceRequest {
   id          String              @id @default(cuid())
   listingId   String
   tenantId    String
-  leaseId     String?
-  title       String
   description String
-  category    MaintenanceCategory
   status      MaintenanceStatus   @default(OPEN)
   priority    MaintenancePriority @default(MEDIUM)
-
-  listing Listing            @relation(fields: [listingId], references: [id])
-  tenant  User               @relation(fields: [tenantId], references: [id])
-  lease   Lease?             @relation(fields: [leaseId], references: [id])
-  images  MaintenanceImage[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  leaseId     String?
+  category    MaintenanceCategory
+  title       String
+  images      MaintenanceImage[]
+  lease       Lease?              @relation(fields: [leaseId], references: [id])
+  listing     Listing             @relation(fields: [listingId], references: [id])
+  tenant      User                @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId, createdAt])
   @@index([listingId, createdAt])
@@ -25,12 +23,11 @@ model MaintenanceRequest {
 }
 
 model MaintenanceImage {
-  id                   String @id @default(cuid())
+  id                   String             @id @default(cuid())
   maintenanceRequestId String
   url                  String
-
-  maintenanceRequest MaintenanceRequest @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
-  createdAt          DateTime           @default(now())
+  createdAt            DateTime           @default(now())
+  maintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
 
   @@index([maintenanceRequestId])
 }

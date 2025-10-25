@@ -10,6 +10,7 @@ async function createListings(landlordId, data) {
     where: { id: landlordId },
     select: { id: true, role: true },
   });
+  
   if (!landlord || landlord.role !== "ADMIN") {
     const err = new Error("Unauthorized: only landlords can create listings");
     err.status = 403;
@@ -22,36 +23,55 @@ async function createListings(landlordId, data) {
   });
 
   const amenities = dedupe(
-    toLower((data.amenities || []).map((a) => a.trim()).filter(Boolean))
+    toLower((data.amenities || []).map((name) => name.trim()).filter(Boolean))
   );
+  
+
   const images = dedupe(
-    (data.images || []).map((u) => u.trim()).filter(Boolean)
+    (data.images || [])
+      .map((url) => (typeof url === 'string' ? url.trim() : null))
+      .filter(Boolean)
   );
 
   const listing = await prisma.listing.create({
     data: {
       landlordId,
       title: data.title.trim(),
-      description: cleanDescription,
-      category: data.category,
-      residentialType: data.residentialType || null,
-      commercialType: data.commercialType || null,
-      address: data.address.trim(),
-      city: data.city.trim(),
-      state: data.state.trim(),
-      country: data.country.trim(),
-      zipCode: data.zipCode || null,
+      propertyType: data.propertyType,
+      propertyOwner: data.propertyOwner?.trim() || null,
       bedrooms: data.bedrooms ?? null,
       bathrooms: data.bathrooms ?? null,
-      size: data.size ?? null,
+      totalSquareFeet: data.totalSquareFeet ?? null,
       yearBuilt: data.yearBuilt ?? null,
-      rentAmount: data.rentAmount,
+      country: data.country.trim(),
+      state: data.state.trim(),
+      city: data.city.trim(),
+      streetAddress: data.streetAddress.trim(),
+      zipCode: data.zipCode?.trim() || null,
       rentCycle: data.rentCycle,
+      rentAmount: data.rentAmount,
       securityDeposit: data.securityDeposit ?? null,
-      availableDate: data.availableDate,
-      amenities: { create: amenities.map((name) => ({ name })) },
-      images: { create: images.map((url) => ({ url })) },
+      petDeposit: data.petDeposit ?? null,
+      availableDate: new Date(data.availableDate),
+      description: cleanDescription || null,
+      contactName: data.contactName?.trim() || null,
+      phoneNumber: data.phoneNumber?.trim() || null,
+      email: data.email?.trim() || null,
+      notes: data.notes?.trim() || null,
+      amenities: { 
+        create: amenities.map((name) => ({ name })) 
+      },
+      images: { 
+        create: images.map((url, index) => ({
+          url,
+          isPrimary: index === 0
+        }))
+      },
     },
+    include: {
+      amenities: true,
+      images: true,
+    }
   });
 
   return listing;

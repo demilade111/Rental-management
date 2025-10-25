@@ -35,7 +35,7 @@ export const registerUser = async ({
       Number(process.env.SALT_ROUNDS) || 12
     );
 
-    const user = await prisma.user.create({
+    const user = await prisma.user.create({ 
       data: {
         email: email.toLowerCase().trim(),
         password: hashedPassword,

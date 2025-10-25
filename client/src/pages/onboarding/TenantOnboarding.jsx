@@ -114,7 +114,7 @@ export default function TenantOnboarding() {
 
                     <button
                         onClick={handleSubmit}
-                        className="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600 font-medium"
+                        className="w-full bg-gray-700 text-white p-3 rounded hover:bg-gray-800 font-medium"
                     >
                         Complete Profile & Go to Dashboard
                     </button>

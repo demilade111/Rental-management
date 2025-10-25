@@ -1,7 +1,182 @@
 import { prisma } from "../prisma/client.js";
 
+export const createLease = async (landlordId, data) => {
+  const listing = await prisma.listing.findUnique({
+    where: { id: data.listingId },
+    include: { landlord: true },
+  });
+
+  if (!listing) {
+    const err = new Error("Listing not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (listing.landlordId !== landlordId) {
+    const err = new Error("Unauthorized: You do not own this property");
+    err.status = 403;
+    throw err;
+  }
+
+  const tenant = await prisma.user.findUnique({
+    where: { id: data.tenantId },
+  });
+
+  if (!tenant) {
+    const err = new Error("Tenant not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const lease = await prisma.lease.create({
+    data: {
+      listingId: data.listingId,
+      tenantId: data.tenantId,
+      landlordId,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      rentAmount: data.rentAmount,
+      paymentFrequency: data.paymentFrequency,
+      securityDeposit: data.securityDeposit,
+      paymentMethod: data.paymentMethod,
+      leaseStatus: data.leaseStatus || "ACTIVE",
+      leaseDocument: data.leaseDocument,
+      signedContract: data.signedContract,
+      notes: data.notes,
+    },
+    include: {
+      tenant: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      landlord: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          address: true,
+          city: true,
+          state: true,
+          country: true,
+        },
+      },
+    },
+  });
+
+  return lease;
+};
+
+export const getAllLeases = async (userId, userRole, filters = {}) => {
+  const where = {};
+
+  if (userRole === "LANDLORD") {
+    where.landlordId = userId;
+  } else if (userRole === "TENANT") {
+    where.tenantId = userId;
+  }
+
+  if (filters.leaseStatus) {
+    where.leaseStatus = filters.leaseStatus;
+  }
+  if (filters.listingId) {
+    where.listingId = filters.listingId;
+  }
+
+  const leases = await prisma.lease.findMany({
+    where,
+    include: {
+      tenant: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      landlord: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          address: true,
+          city: true,
+          state: true,
+          country: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return leases;
+};
+
+export const getLeaseById = async (leaseId, userId, userRole) => {
+  const lease = await prisma.lease.findUnique({
+    where: { id: leaseId },
+    include: {
+      tenant: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+        },
+      },
+      landlord: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+        },
+      },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          address: true,
+          city: true,
+          state: true,
+          country: true,
+          zipCode: true,
+        },
+      },
+      maintenanceRequests: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
+  if (!lease) {
+    const err = new Error("Lease not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (userRole === "LANDLORD" && lease.landlordId !== userId) {
+    const err = new Error("Unauthorized: You do not have access to this lease");
+    err.status = 403;
+    throw err;
+  }
+
+  if (userRole === "TENANT" && lease.tenantId !== userId) {
+    const err = new Error("Unauthorized: You do not have access to this lease");
+    err.status = 403;
+    throw err;
+  }
+
+  return lease;
+};
+
 export const updateLeaseById = async (leaseId, userId, data) => {
-  // finding lease
   const lease = await prisma.lease.findUnique({
     where: { id: leaseId },
   });
@@ -12,28 +187,49 @@ export const updateLeaseById = async (leaseId, userId, data) => {
     throw err;
   }
 
-
-  //verification that landlord is the owner of the lease
   if (lease.landlordId !== userId) {
     const err = new Error("Unauthorized: you cannot update this lease");
     err.status = 403;
     throw err;
   }
 
-  // update lease record
   const updatedLease = await prisma.lease.update({
     where: { id: leaseId },
     data: {
-      endDate: data.endDate ?? lease.endDate,
-      rentAmount: data.rentAmount ?? lease.rentAmount,
-      leaseStatus: data.leaseStatus ?? lease.leaseStatus,
-      notes: data.notes ?? lease.notes,
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
+      rentAmount: data.rentAmount,
+      paymentFrequency: data.paymentFrequency,
+      securityDeposit: data.securityDeposit,
+      paymentMethod: data.paymentMethod,
+      leaseStatus: data.leaseStatus,
+      leaseDocument: data.leaseDocument,
+      signedContract: data.signedContract,
+      notes: data.notes,
+    },
+    include: {
+      tenant: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      landlord: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          address: true,
+          city: true,
+          state: true,
+          country: true,
+        },
+      },
     },
   });
 
   return updatedLease;
 };
 
+<<<<<<< HEAD
 /*Getting all leases */
 export const getAllLeases = async () => {
   const leases = await prisma.lease.findMany({
@@ -71,6 +267,11 @@ export const getLeaseById = async (leaseId) => {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
     },
+=======
+export const deleteLeaseById = async (leaseId, userId) => {
+  const lease = await prisma.lease.findUnique({
+    where: { id: leaseId },
+>>>>>>> d61f7579554acc6e41dfbd608b083716cef88585
   });
 
   if (!lease) {
@@ -79,5 +280,28 @@ export const getLeaseById = async (leaseId) => {
     throw err;
   }
 
+<<<<<<< HEAD
   return lease;
 };
+=======
+  if (lease.landlordId !== userId) {
+    const err = new Error("Unauthorized: you cannot delete this lease");
+    err.status = 403;
+    throw err;
+  }
+
+  if (lease.leaseStatus === "ACTIVE") {
+    const err = new Error(
+      "Cannot delete an active lease. Please terminate it first."
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  await prisma.lease.delete({
+    where: { id: leaseId },
+  });
+
+  return { message: "Lease deleted successfully" };
+};
+>>>>>>> d61f7579554acc6e41dfbd608b083716cef88585

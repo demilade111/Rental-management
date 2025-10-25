@@ -1,45 +1,43 @@
 model Listing {
-  id              String           @id @default(cuid())
-  landlordId      String
-  title           String
-  description     String?
-  category        PropertyCategory
-  residentialType ResidentialType?
-  commercialType  CommercialType?
-  address         String
-  city            String
-  state           String
-  country         String
-  zipCode         String?
-  bedrooms        Int?
-  bathrooms       Int?
-  size            Int?
-  yearBuilt       Int?
-  rentAmount      Float
-  rentCycle       RentCycle
-  securityDeposit Float?
-  availableDate   DateTime
-
+  id                  String               @id @default(cuid())
+  landlordId          String
+  title               String
+  description         String?
+  category            PropertyCategory
+  residentialType     ResidentialType?
+  commercialType      CommercialType?
+  address             String
+  city                String
+  state               String
+  country             String
+  zipCode             String?
+  bedrooms            Int?
+  bathrooms           Int?
+  size                Int?
+  yearBuilt           Int?
+  rentAmount          Float
+  rentCycle           RentCycle
+  securityDeposit     Float?
+  availableDate       DateTime
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  leases              Lease[]
   landlord            User                 @relation("LandlordListings", fields: [landlordId], references: [id])
   amenities           ListingAmenity[]
   images              ListingImage[]
-  leases              Lease[]
   maintenanceRequests MaintenanceRequest[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
   @@index([landlordId])
-  @@index([city, category])
   @@index([rentCycle])
+  @@index([city, category])
 }
 
 model ListingAmenity {
   id        String   @id @default(cuid())
   listingId String
   name      String
-  listing   Listing  @relation(fields: [listingId], references: [id])
   createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id])
 
   @@unique([listingId, name])
   @@index([listingId])
@@ -50,8 +48,8 @@ model ListingImage {
   listingId String
   url       String
   isPrimary Boolean  @default(false)
-  listing   Listing  @relation(fields: [listingId], references: [id])
   createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id])
 
   @@unique([listingId, url])
   @@index([listingId])
