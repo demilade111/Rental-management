@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
+import { fetchWithAuth } from '@/api/auth';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -22,18 +23,10 @@ export default function LoginPage() {
     // TanStack Query mutation
     const loginMutation = useMutation({
         mutationFn: async (data) => {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
+            return fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Login failed');
-            }
-
-            return response.json();
         },
         onSuccess: (data) => {
             setTimeout(() => {

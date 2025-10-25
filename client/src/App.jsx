@@ -8,7 +8,6 @@ import SignUp from "./pages/auth/SignUp";
 import Login from "./pages/auth/Login";
 import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
-import Dashboard from "./pages/landlord/dashboard/Dashboard";
 import MainLayout from "./layouts/MainLayout";
 
 const queryClient = new QueryClient();
