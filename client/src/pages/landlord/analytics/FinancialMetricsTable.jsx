@@ -60,7 +60,7 @@ const FinancialMetricsTable = ({ properties }) => {
   };
 
   return (
-    <div className="bg-white overflow-hidden mb-8">
+    <div className="bg-white overflow-hidden mb-4">
       <Table>
         <TableHeader
           className="bg-gray-800"
@@ -72,7 +72,7 @@ const FinancialMetricsTable = ({ properties }) => {
           }}
         >
           <TableRow className="hover:bg-gray-800 border-b-0">
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left text-white">
               <button
                 onClick={() => handleSort("name")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -82,7 +82,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="name" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left hidden md:table-cell text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left hidden md:table-cell text-white">
               <button
                 onClick={() => handleSort("address")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -91,7 +91,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="address" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left text-white">
               <button
                 onClick={() => handleSort("gri")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -101,7 +101,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="gri" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left hidden lg:table-cell text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left hidden lg:table-cell text-white">
               <button
                 onClick={() => handleSort("expenses")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -112,7 +112,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="expenses" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left text-white">
               <button
                 onClick={() => handleSort("noi")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -122,7 +122,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="noi" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left hidden sm:table-cell text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left hidden sm:table-cell text-white">
               <button
                 onClick={() => handleSort("capRate")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -132,7 +132,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="capRate" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left text-white">
               <button
                 onClick={() => handleSort("rent")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -142,7 +142,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 <SortIcon columnKey="rent" />
               </button>
             </TableHead>
-            <TableHead className="px-3 md:px-6 py-3 md:py-4 text-left hidden lg:table-cell text-white">
+            <TableHead className="px-2 md:px-4 py-2 md:py-3 text-left hidden lg:table-cell text-white">
               <button
                 onClick={() => handleSort("expenseRatio")}
                 className="flex items-center gap-1 md:gap-2 hover:text-gray-200"
@@ -159,43 +159,43 @@ const FinancialMetricsTable = ({ properties }) => {
           {sortedProperties.map((property, idx) => (
             <TableRow key={idx} className="border-b border-gray-400">
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center"
+                className="px-2 md:px-4 py-2 md:py-3 text-center"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {property.name}
               </TableCell>
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center hidden md:table-cell"
+                className="px-2 md:px-4 py-2 md:py-3 text-center hidden md:table-cell"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {property.address}
               </TableCell>
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center"
+                className="px-2 md:px-4 py-2 md:py-3 text-center"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {formatCurrency(property.gri)}
               </TableCell>
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center hidden lg:table-cell"
+                className="px-2 md:px-4 py-2 md:py-3 text-center hidden lg:table-cell"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {formatCurrency(property.expenses)}
               </TableCell>
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center"
+                className="px-2 md:px-4 py-2 md:py-3 text-center"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {formatCurrency(property.noi)}
               </TableCell>
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center hidden sm:table-cell"
+                className="px-2 md:px-4 py-2 md:py-3 text-center hidden sm:table-cell"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {property.capRate} %
               </TableCell>
               <TableCell
-                className={`px-3 md:px-6 py-3 md:py-4 text-center ${
+                className={`px-2 md:px-4 py-2 md:py-3 text-center ${
                   property.rent >= 0 ? "text-green-600" : "text-red-600"
                 }`}
                 style={{ fontSize: "14px", fontWeight: 400 }}
@@ -203,7 +203,7 @@ const FinancialMetricsTable = ({ properties }) => {
                 {formatPercent(property.rent)}
               </TableCell>
               <TableCell
-                className="px-3 md:px-6 py-3 md:py-4 text-center hidden lg:table-cell"
+                className="px-2 md:px-4 py-2 md:py-3 text-center hidden lg:table-cell"
                 style={{ color: "#000", fontSize: "14px", fontWeight: 400 }}
               >
                 {property.expenseRatio} %

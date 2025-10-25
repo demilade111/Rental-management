@@ -1,4 +1,10 @@
-import { registerUser, loginUser } from "../services/authService.js";
+import { 
+  registerUser, 
+  loginUser, 
+  requestPasswordReset, 
+  resetPassword, 
+  refreshToken 
+} from "../services/authService.js";
 import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
 
 export const register = async (req, res) => {
@@ -21,30 +27,31 @@ export const login = async (req, res) => {
 
 
 export const requestReset = async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ error: "Email is required" });
-
-        const token = await requestPasswordReset(email);
-        res.json({ message: "Password reset token generated", token });
-    } catch (err) {
-
-        return res.status(400).json({ error: err.message });
-        
-    }
-     };
-
+  try {
+    const { email } = req.body;
+    const result = await requestPasswordReset(email);
+    return SuccessResponse(res, 200, result.message);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+};
 
 export const resetController = async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-        if (!token || !newPassword) {
-            return res.status(400).json({ error: "Token and new password are required" });
-        }   
+  try {
+    const { token, newPassword } = req.body;
+    const result = await resetPassword(token, newPassword);
+    return SuccessResponse(res, 200, result.message);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+};
 
-        await resetPassword(token, newPassword);
-        res.json({ message: "Password has been reset successfully" });
-    } catch (err) {
-        return res.status(400).json({ error: err.message });
-    }
+export const refreshTokenController = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "") || req.body.token;
+    const result = await refreshToken(token);
+    return SuccessResponse(res, 200, "Token refreshed successfully", result);
+  } catch (error) {
+    return HandleError(res, error);
+  }
 };

@@ -1,7 +1,17 @@
 import { Router } from "express";
-import { register, login, requestReset, resetController } from "../controllers/authController.js";
+import { 
+  register, 
+  login, 
+  requestReset, 
+  resetController, 
+  refreshTokenController 
+} from "../controllers/authController.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { signupSchema } from "../validations/authValidation.js";
+import { 
+  requestResetSchema, 
+  resetPasswordSchema 
+} from "../validations/passwordResetValidation.js";
 
 const router = Router();
 
@@ -63,9 +73,12 @@ const router = Router();
  */
 router.post("/register", validateRequest(signupSchema), register);
 
-// Route for Password reset routes
-router.post("/request-reset", requestReset);
-router.patch("/reset-password", resetController);
+// Password reset routes
+router.post("/request-reset", validateRequest(requestResetSchema), requestReset);
+router.patch("/reset-password", validateRequest(resetPasswordSchema), resetController);
+
+// Token refresh route
+router.post("/refresh-token", refreshTokenController);
 
 // protected route
 // router.get("/profile", authenticate, (req, res) => {

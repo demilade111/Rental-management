@@ -8,7 +8,8 @@ import LoadingState from '../../../components/shared/LoadingState';
 import ErrorState from '../../../components/shared/ErrorState';
 import EmptyState from '../../../components/shared/EmptyState';
 import NewListingModal from './NewListingModal';
-import { fetchWithAuth } from '@/api/auth';
+import api from '../../../lib/axios';
+import API_ENDPOINTS from '../../../lib/apiEndpoints';
 
 const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState('rentals');
@@ -19,8 +20,8 @@ const PropertyPortfolio = () => {
   const { data: properties = [], isLoading, isError, error } = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
-      const result = await fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/v1/listings`);
-      return result.data || result;
+      const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
+      return response.data.data || response.data;
     },
     enabled: !!token,
     retry: false,
