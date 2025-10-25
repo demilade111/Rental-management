@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -156,6 +157,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
       }
     },
     onSuccess: () => {
+      toast.success("Property added successfully!");
       queryClient.invalidateQueries(["listings"]);
       resetForm();
       onClose();
@@ -190,11 +192,55 @@ const NewListingModal = ({ isOpen, onClose }) => {
     });
   };
 
+  const validateForm = () => {
+    const errors = [];
+    const requiredFields = {
+      title: "Property Title",
+      propertyType: "Property Type",
+      bedrooms: "Bedrooms",
+      bathrooms: "Bathrooms",
+      totalSquareFeet: "Total Square Feet",
+      yearBuilt: "Year Built",
+      country: "Country",
+      state: "State",
+      city: "City",
+      streetAddress: "Street Address",
+      zipCode: "Zip Code",
+      rentCycle: "Rent Cycle",
+      rentAmount: "Rent Amount",
+      securityDeposit: "Security Deposit",
+      contactName: "Contact Name",
+      phoneNumber: "Phone Number",
+      email: "Email",
+    };
+
+    for (const [field, label] of Object.entries(requiredFields)) {
+      if (!formData[field] || formData[field].toString().trim() === "") {
+        errors.push(label);
+      }
+    }
+
+    if (!formData.availableDate) {
+      errors.push("Available Date");
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!token) {
-      alert("Token missing, please login again");
+      toast.error("Token missing, please login again");
+      return;
+    }
+
+    // Validate form
+    const missingFields = validateForm();
+    if (missingFields.length > 0) {
+      missingFields.forEach((field) => {
+        toast.error(`${field} is required`);
+      });
       return;
     }
 
@@ -255,17 +301,18 @@ const NewListingModal = ({ isOpen, onClose }) => {
             error.details.forEach((item) => {
               if (item.path && item.path.length > 0) {
                 fieldErrors[item.path[0]] = item.message;
+                toast.error(item.message);
               }
             });
             setFieldErrors(fieldErrors);
           } else {
-            alert(error.message);
+            toast.error(error.message);
           }
         },
       });
     } catch (err) {
       console.error("Image upload or listing creation failed:", err);
-      alert(err.message);
+      toast.error(err.message || "Failed to upload images");
     }
   };
 
