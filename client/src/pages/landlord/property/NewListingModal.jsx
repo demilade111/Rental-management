@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -9,26 +8,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CalendarIcon } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { AmenitiesSection } from "./AmenitiesSection";
 import PhotoUploadSection from "./PhotoUploadSection";
 import { useAuthStore } from "../../../store/authStore";
-import {
-  PROPERTY_CATEGORY_NAMES,
-  PROPERTY_OPTIONS,
-} from "@/constants/propertyTypes";
-import { RENTCYCLE_OPTIONS } from "@/constants/rentCycles";
 import { Country, State, City } from "country-state-city";
 import api from "../../../lib/axios";
 import API_ENDPOINTS from "../../../lib/apiEndpoints";
+import {
+  PropertyDetailsSection,
+  PropertyAddressSection,
+  RentalInformationSection,
+  ContactInformationSection,
+} from "./sections";
 
 const NewListingModal = ({ isOpen, onClose }) => {
   const token = useAuthStore((state) => state.token);
@@ -304,409 +295,36 @@ const NewListingModal = ({ isOpen, onClose }) => {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-10 py-6">
           <div className="space-y-6 pb-6">
-            {/* property details section */}
-            <div className="border-b border-gray-300 space-y-6 pb-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Property Title
-                </label>
-                <Input
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="Enter property name"
-                  className="w-full"
-                  required
-                  disabled={isPending}
-                />
-                {fieldErrors.title && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.title}
-                  </p>
-                )}
-              </div>
+            <PropertyDetailsSection
+              formData={formData}
+              fieldErrors={fieldErrors}
+              handleChange={handleChange}
+              setFormData={setFormData}
+              isPending={isPending}
+            />
 
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Property Type
-                </label>
-                <select
-                  name="propertyType"
-                  value={formData.propertyType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, propertyType: e.target.value })
-                  }
-                  className="w-full text-gray-600 text-sm p-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">Select property type</option>
+            <PropertyAddressSection
+              formData={formData}
+              fieldErrors={fieldErrors}
+              handleChange={handleChange}
+              countries={countries}
+              states={states}
+              cities={cities}
+              handleCountryChange={handleCountryChange}
+              handleStateChange={handleStateChange}
+              handleCityChange={handleCityChange}
+              isPending={isPending}
+            />
 
-                  {Object.entries(PROPERTY_OPTIONS).map(([category, types]) => (
-                    <optgroup
-                      key={category}
-                      label={PROPERTY_CATEGORY_NAMES[category]}
-                    >
-                      {types.map(({ value, label }) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+            <RentalInformationSection
+              formData={formData}
+              fieldErrors={fieldErrors}
+              handleChange={handleChange}
+              setFormData={setFormData}
+              isPending={isPending}
+            />
 
-                {fieldErrors.propertyType && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.propertyType}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Property Owner
-                </label>
-                <Input
-                  name="propertyOwner"
-                  value={formData.propertyOwner}
-                  onChange={handleChange}
-                  placeholder="Enter full legal name"
-                  className="w-full"
-                  required
-                  disabled={isPending}
-                />
-                {fieldErrors.propertyOwner && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.propertyOwner}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Bedrooms
-                  </label>
-                  <Input
-                    type="number"
-                    name="bedrooms"
-                    value={formData.bedrooms}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full"
-                    disabled={isPending}
-                    onWheel={(e) => e.target.blur()}
-                  />
-                  {fieldErrors.bedrooms && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.bedrooms}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Bathrooms
-                  </label>
-                  <Input
-                    type="number"
-                    name="bathrooms"
-                    value={formData.bathrooms}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full"
-                    disabled={isPending}
-                    onWheel={(e) => e.target.blur()}
-                  />
-                  {fieldErrors.bathrooms && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.bathrooms}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Total Square Feet
-                  </label>
-                  <Input
-                    type="number"
-                    name="totalSquareFeet"
-                    value={formData.totalSquareFeet}
-                    onChange={handleChange}
-                    className="w-full"
-                    disabled={isPending}
-                    onWheel={(e) => e.target.blur()}
-                  />
-                  {fieldErrors.totalSquareFeet && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.totalSquareFeet}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Year Built
-                  </label>
-                  <Input
-                    type="number"
-                    name="yearBuilt"
-                    value={formData.yearBuilt}
-                    onChange={handleChange}
-                    className="w-full"
-                    disabled={isPending}
-                    onWheel={(e) => e.target.blur()}
-                  />
-                  {fieldErrors.yearBuilt && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.yearBuilt}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* property address section */}
-            <div className="border-b border-gray-300 space-y-6 pb-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Country
-                </label>
-                <select
-                  name="country"
-                  value={formData.country}
-                  onChange={handleCountryChange}
-                  className="w-full text-sm p-2 border border-gray-300 rounded-md"
-                  required
-                  disabled={isPending}
-                >
-                  <option value="" disabled>
-                    Select country
-                  </option>
-                  {countries.map((c) => (
-                    <option key={c.isoCode} value={c.isoCode}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                {fieldErrors.country && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.country}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    State
-                  </label>
-                  <select
-                    name="state"
-                    value={formData.state}
-                    onChange={handleStateChange}
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md"
-                    required
-                    disabled={!formData.country || isPending}
-                  >
-                    <option value="" disabled>
-                      Select state
-                    </option>
-                    {states.map((s) => (
-                      <option key={s.isoCode} value={s.isoCode}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.state && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.state}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">City</label>
-                  <select
-                    name="city"
-                    value={formData.city}
-                    onChange={handleCityChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-md"
-                    required
-                    disabled={!formData.state || isPending}
-                  >
-                    <option value="" disabled>
-                      Select city
-                    </option>
-                    {cities.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.city && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.city}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Street Address
-                </label>
-                <textarea
-                  name="streetAddress"
-                  value={formData.streetAddress}
-                  onChange={handleChange}
-                  className="w-full text-sm p-2 border border-gray-300 bg-gray-100 rounded-md min-h-[120px]"
-                  placeholder="Enter full address.."
-                  required
-                  disabled={isPending}
-                />
-                {fieldErrors.streetAddress && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.streetAddress}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">ZIP</label>
-                <Input
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  className="w-1/2"
-                  required
-                  disabled={isPending}
-                />
-                {fieldErrors.zipCode && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.zipCode}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* rental information section */}
-            <div className="border-b border-gray-300 space-y-6 pb-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Rent Cycle
-                </label>
-                <select
-                  name="rentCycle"
-                  value={formData.rentCycle}
-                  onChange={handleChange}
-                  className="w-full text-sm p-2 border border-gray-300 rounded-md"
-                  required
-                  disabled={isPending}
-                >
-                  <option value="" disabled>
-                    Select rent cycle
-                  </option>
-                  {RENTCYCLE_OPTIONS.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-
-                {fieldErrors.rentCycle && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.rentCycle}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rent</label>
-                  <Input
-                    name="rentAmount"
-                    value={formData.rentAmount}
-                    onChange={handleChange}
-                    placeholder="$ 1,200"
-                    className="w-full text-sm"
-                    required
-                    disabled={isPending}
-                  />
-                  {fieldErrors.rentAmount && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.rentAmount}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Security Deposit
-                  </label>
-                  <Input
-                    name="securityDeposit"
-                    value={formData.securityDeposit}
-                    onChange={handleChange}
-                    placeholder="$ 600"
-                    className="w-full text-sm"
-                    required
-                    disabled={isPending}
-                  />
-                  {fieldErrors.securityDeposit && (
-                    <p className="mt-1 text-red-400 text-sm">
-                      {fieldErrors.securityDeposit}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* available date picker */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Available From
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        "w-1/2 justify-start text-left font-normal border-gray-300 hover:bg-gray-50",
-                        !formData.availableDate && "text-gray-600"
-                      )}
-                      disabled={isPending}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.availableDate ? (
-                        format(formData.availableDate, "PPP")
-                      ) : (
-                        <span>Select date</span>
-                      )}{" "}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={formData.availableDate}
-                      onSelect={(date) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          availableDate: date,
-                        }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                {fieldErrors.availableDate && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.availableDate}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* property description section */}
+            {/* Property Description */}
             <div className="border-b border-gray-300 space-y-6 pb-8">
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -728,7 +346,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* amenities section */}
+            {/* Amenities */}
             <div className="border-b border-gray-300 space-y-6 pb-8">
               <label className="block text-sm font-medium mb-2">
                 Amenities
@@ -745,7 +363,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            {/* photos upload section */}
+            {/* Photos */}
             <div className="border-b border-gray-300 space-y-6 pb-8">
               <label className="block text-sm font-medium mb-2">Photos</label>
               <PhotoUploadSection
@@ -760,72 +378,14 @@ const NewListingModal = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            {/* contact infos section */}
-            <div className="border-b border-gray-300 space-y-6 pb-8">
-              <label className="block text-sm font-medium mb-2">
-                Contact Information
-              </label>
-              <div>
-                <label className="block text-sm font-medium mb-2">Name</label>
-                <Input
-                  name="contactName"
-                  value={formData.contactName}
-                  onChange={handleChange}
-                  placeholder="Enter your name or property manager"
-                  className="w-full"
-                  required
-                  disabled={isPending}
-                />
-                {fieldErrors.contactName && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.contactName}
-                  </p>
-                )}
-              </div>
+            <ContactInformationSection
+              formData={formData}
+              fieldErrors={fieldErrors}
+              handleChange={handleChange}
+              isPending={isPending}
+            />
 
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Phone Number
-                </label>
-                <Input
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  placeholder=""
-                  type="number"
-                  className="w-full"
-                  required
-                  disabled={isPending}
-                  onWheel={(e) => e.target.blur()}
-                />
-                {fieldErrors.phoneNumber && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.phoneNumber}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <Input
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="contact@example.com"
-                  type="email"
-                  className="w-full"
-                  required
-                  disabled={isPending}
-                />
-                {fieldErrors.email && (
-                  <p className="mt-1 text-red-400 text-sm">
-                    {fieldErrors.email}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* property notes section */}
+            {/* Notes */}
             <div>
               <label className="block text-sm font-medium mb-2">Notes</label>
               <textarea
@@ -833,7 +393,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
                 value={formData.notes}
                 onChange={handleChange}
                 className="w-full p-2 text-sm border border-gray-300 bg-gray-100 rounded-md min-h-[120px]"
-                placeholder="Leave a not about this listing that only you can see.."
+                placeholder="Leave a note about this listing that only you can see.."
                 disabled={isPending}
               />
               {fieldErrors.notes && (
