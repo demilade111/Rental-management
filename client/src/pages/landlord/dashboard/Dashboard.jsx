@@ -109,26 +109,31 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="flex gap-6 p-4 md:p-8">
-        <div className="w-3/4 grid grid-cols-2 gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 p-4 md:p-6 lg:p-8">
+        {/* Main Content Grid */}
+        <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <AccountingCard />
 
           {/* Applicants */}
-          <div className="bg-white rounded-lg border border-gray-400 p-6 flex flex-col">
-            <h3 className="text-[32px] font-bold mb-4">Applicants</h3>
-            <div className="flex-1 overflow-y-auto">
-              <table className="w-full">
+          <div className="bg-white rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col">
+            <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4">
+              Applicants
+            </h3>
+            <div className="flex-1 overflow-x-auto overflow-y-auto">
+              <table className="w-full min-w-[400px]">
                 <tbody className="max-h-64 overflow-y-auto">
                   {applications.map((app, idx) => (
                     <tr
                       key={idx}
                       className="border-b border-gray-300 last:border-0"
                     >
-                      <td className="text-sm font-semibold text-gray-900 py-3">
+                      <td className="text-xs sm:text-sm font-semibold text-gray-900 py-2 sm:py-3">
                         {app.address}
                       </td>
-                      <td className="text-xs text-gray-500 py-3">{app.time}</td>
-                      <td className="text-right py-3">
+                      <td className="text-xs text-gray-500 py-2 sm:py-3 whitespace-nowrap">
+                        {app.time}
+                      </td>
+                      <td className="text-right py-2 sm:py-3">
                         <span
                           className={`text-xs font-semibold px-2 py-1 rounded ${getStatusColor(
                             app.status
@@ -148,31 +153,34 @@ const Dashboard = () => {
           <RentersInsuranceCard />
         </div>
 
-        <div className="w-1/4">
-          <div className="bg-white rounded-lg border border-gray-400 p-6 max-h-[calc(100vh-120px)] flex flex-col sticky top-6">
-            <h3 className="text-[32px] font-bold mb-4">Maintenance</h3>
+        {/* Maintenance Sidebar */}
+        <div className="w-full lg:w-1/4">
+          <div className="bg-white rounded-lg border border-gray-400 p-4 md:p-6 max-h-[500px] lg:max-h-[calc(100vh-120px)] flex flex-col lg:sticky lg:top-6">
+            <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4">
+              Maintenance
+            </h3>
 
             {/* Scrollable table */}
-            <div className="flex-1 overflow-y-auto">
-              <table className="w-full border-collapse">
+            <div className="flex-1 overflow-x-auto overflow-y-auto">
+              <table className="w-full border-collapse min-w-[300px]">
                 <tbody className="divide-y divide-gray-100">
                   {maintenance.map((item, idx) => (
                     <React.Fragment key={idx}>
                       <tr className="border-b-0">
                         {/* Address */}
-                        <td className="text-sm font-semibold text-gray-900 pt-3">
+                        <td className="text-xs sm:text-sm font-semibold text-gray-900 pt-3">
                           {item.address}
                         </td>
 
                         {/* Time */}
-                        <td className="text-xs text-gray-500 text-right pt-3">
+                        <td className="text-xs text-gray-500 text-right pt-3 whitespace-nowrap">
                           {item.time}
                         </td>
 
                         {/* Status */}
                         <td className="text-right pt-3">
                           <span
-                            className={`text-xs font-semibold px-2 py-1 rounded ${getStatusColor(
+                            className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${getStatusColor(
                               item.status
                             )}`}
                           >
@@ -200,7 +208,7 @@ const Dashboard = () => {
             <div className="mt-4 text-center">
               <button
                 type="button"
-                className="text-[16px] font-semibold"
+                className="text-sm md:text-base font-semibold hover:underline"
                 onClick={() => console.log("View all maintenance clicked")}
               >
                 View All
