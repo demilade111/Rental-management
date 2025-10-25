@@ -10,7 +10,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
-import Dashboard from "./pages/landlord/dashboard/Dashboard";
 import MainLayout from "./layouts/MainLayout";
 
 const queryClient = new QueryClient();

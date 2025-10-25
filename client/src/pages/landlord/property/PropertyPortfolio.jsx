@@ -23,7 +23,8 @@ const PropertyPortfolio = () => {
       const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
       return response.data.data || response.data;
     },
-    enabled: !!token
+    enabled: !!token,
+    retry: false,
   });
 
   const filteredProperties = properties.filter((prop) => {
