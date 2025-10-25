@@ -2,10 +2,17 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Home, DollarSign } from 'lucide-react';
 import { getPropertyCategory, PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
+import { useNavigate } from 'react-router-dom';
 
 const PropertyCard = ({ property }) => {
+    const navigate = useNavigate();
+    
+    const handleClick = () => {
+        navigate(`/landlord/portfolio/${property.id}`);
+    };
+
     return (
-        <Card className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
+        <Card onClick={handleClick} className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
             <div className="flex flex-col md:flex-row">
    
                 <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0">
