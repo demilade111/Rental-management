@@ -11,7 +11,7 @@ import Header from "../components/Header";
 import Dashboard from "../pages/landlord/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
 import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
-import Maintenance from "@/pages/landlord/Maintenance";
+import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -70,6 +70,7 @@ const MainLayout = () => {
             <Route path="/landlord/dashboard" element={<Dashboard />} />
             <Route path="/landlord/maintenance" element={<Maintenance />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
+            <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
             <Route path="/landlord/analytics" element={<Analytics />} />
           </Routes>
         </div>

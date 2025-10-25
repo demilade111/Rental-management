@@ -20,6 +20,7 @@ import { useAuthStore } from '../../../store/authStore';
 import { PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
 import { RENTCYCLE_OPTIONS } from '@/constants/rentCycles';
 import { Country, State, City } from 'country-state-city';
+import { fetchWithAuth } from '@/api/auth';
 
 const NewListingModal = ({ isOpen, onClose }) => {
     const token = useAuthStore((state) => state.token);
@@ -134,34 +135,10 @@ const NewListingModal = ({ isOpen, onClose }) => {
 
     const createListingMutation = useMutation({
         mutationFn: async (data) => {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/listings`, {
+            return fetchWithAuth(`${import.meta.env.VITE_API_URL}/api/v1/listings`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(data),
             });
-
-            if (!response.ok) {
-                const error = await response.json();
-                console.log("Create listing error:", error);
-
-                // Parse details into array
-                let parsedDetails = [];
-                try {
-                    parsedDetails = JSON.parse(error.details || "[]");
-                } catch (e) {
-                    console.error("Failed to parse error details", e);
-                }
-
-                throw {
-                    message: error.message || "Failed to create listing",
-                    details: parsedDetails,
-                };
-            }
-
-            return response.json();
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['listings']);
