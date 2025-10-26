@@ -106,3 +106,10 @@ enum MaintenanceCategory {
   SECURITY
   OTHER
 }
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
