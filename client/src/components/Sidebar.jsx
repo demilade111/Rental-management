@@ -19,7 +19,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
     setIsMobileMenuOpen(false);
   };
 
-  const sidebarWidth = isCollapsed ? "w-[70px]" : "w-[220px]";
+  // const sidebarWidth = isCollapsed ? "w-[70px]" : "w-[220px]";
 
   return (
     <>
