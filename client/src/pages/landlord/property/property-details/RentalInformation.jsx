@@ -1,3 +1,4 @@
+import { formatReadableDate } from '@/utils/helpers';
 import React from 'react';
 
 const RentalInformation = ({ term, rent, available, deposit }) => {
@@ -17,12 +18,12 @@ const RentalInformation = ({ term, rent, available, deposit }) => {
                 </div>
                 <div>
                     <p className="text-[16px] text-gray-600">
-                        <span className='font-semibold'>Available</span>: {available}
+                        <span className='font-semibold'>Available</span>: {formatReadableDate(available)}
                     </p>
                 </div>
                 <div>
                     <p className="text-[16px] text-gray-600">
-                        <span className='font-semibold'>Deposit</span>: {deposit}
+                        <span className='font-semibold'>Deposit</span>: $ {deposit}
                     </p>
                 </div>
             </div>
