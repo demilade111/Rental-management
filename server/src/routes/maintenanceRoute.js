@@ -144,13 +144,13 @@ const router = Router();
  *         description: Cannot delete request in current status
  */
 
-router.post("/", authenticate, authorize(["TENANT"]), createMaintenance);
+router.post("/", authenticate, authorize(["ADMIN"]), createMaintenance);
 router.get("/", authenticate, fetchAllMaintenanceRequests);
 router.get("/:id", authenticate, fetchMaintenanceRequestById);
 router.patch(
   "/:id",
   authenticate,
-  authorize(["TENANT", "ADMIN"]),
+  authorize(["ADMIN", "ADMIN"]),
   updateMaintenance
 );
 router.delete("/:id", authenticate, deleteMaintenance);

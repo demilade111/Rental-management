@@ -27,12 +27,10 @@ const NewListingModal = ({ isOpen, onClose }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const queryClient = useQueryClient();
 
-  // Inside your component:
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
 
-  // Populate countries once
   useEffect(() => {
     setCountries(Country.getAllCountries());
   }, []);
@@ -69,6 +67,15 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleAmenitiesChange = (selectedAmenities) => {
@@ -76,6 +83,14 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       amenities: selectedAmenities,
     }));
+    
+    if (fieldErrors.amenities) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.amenities;
+        return newErrors;
+      });
+    }
   };
 
   const handleImagesChange = (images) => {
@@ -83,9 +98,16 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       images: images,
     }));
+    
+    if (fieldErrors.images) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.images;
+        return newErrors;
+      });
+    }
   };
 
-  // Handle country change
   const handleCountryChange = (e) => {
     const selectedCountryCode = e.target.value;
 
@@ -96,12 +118,18 @@ const NewListingModal = ({ isOpen, onClose }) => {
       city: "",
     }));
 
-    // Load states for selected country
     setStates(State.getStatesOfCountry(selectedCountryCode));
-    setCities([]); // reset cities
+    setCities([]);
+    
+    if (fieldErrors.country) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.country;
+        return newErrors;
+      });
+    }
   };
 
-  // Handle state change
   const handleStateChange = (e) => {
     const selectedStateCode = e.target.value;
     setFormData((prev) => ({
@@ -110,20 +138,34 @@ const NewListingModal = ({ isOpen, onClose }) => {
       city: "",
     }));
 
-    // Load cities for selected state
     if (formData.country && selectedStateCode) {
       setCities(City.getCitiesOfState(formData.country, selectedStateCode));
     } else {
       setCities([]);
     }
+    
+    if (fieldErrors.state) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.state;
+        return newErrors;
+      });
+    }
   };
 
-  // Handle city change
   const handleCityChange = (e) => {
     setFormData((prev) => ({
       ...prev,
       city: e.target.value,
     }));
+    
+    if (fieldErrors.city) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.city;
+        return newErrors;
+      });
+    }
   };
 
   const handleClose = () => {
@@ -190,41 +232,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
       amenities: [],
       images: [],
     });
-  };
-
-  const validateForm = () => {
-    const errors = [];
-    const requiredFields = {
-      title: "Property Title",
-      propertyType: "Property Type",
-      bedrooms: "Bedrooms",
-      bathrooms: "Bathrooms",
-      totalSquareFeet: "Total Square Feet",
-      yearBuilt: "Year Built",
-      country: "Country",
-      state: "State",
-      city: "City",
-      streetAddress: "Street Address",
-      zipCode: "Zip Code",
-      rentCycle: "Rent Cycle",
-      rentAmount: "Rent Amount",
-      securityDeposit: "Security Deposit",
-      contactName: "Contact Name",
-      phoneNumber: "Phone Number",
-      email: "Email",
-    };
-
-    for (const [field, label] of Object.entries(requiredFields)) {
-      if (!formData[field] || formData[field].toString().trim() === "") {
-        errors.push(label);
-      }
-    }
-
-    if (!formData.availableDate) {
-      errors.push("Available Date");
-    }
-
-    return errors;
+    setFieldErrors({});
   };
 
   const handleSubmit = async (e) => {
@@ -232,15 +240,6 @@ const NewListingModal = ({ isOpen, onClose }) => {
 
     if (!token) {
       toast.error("Token missing, please login again");
-      return;
-    }
-
-    // Validate form
-    const missingFields = validateForm();
-    if (missingFields.length > 0) {
-      missingFields.forEach((field) => {
-        toast.error(`${field} is required`);
-      });
       return;
     }
 
@@ -297,14 +296,14 @@ const NewListingModal = ({ isOpen, onClose }) => {
           console.error("Backend error object:", error);
 
           if (error.details) {
-            const fieldErrors = {};
+            const backendErrors = {};
             error.details.forEach((item) => {
               if (item.path && item.path.length > 0) {
-                fieldErrors[item.path[0]] = item.message;
-                toast.error(item.message);
+                backendErrors[item.path[0]] = item.message;
               }
             });
-            setFieldErrors(fieldErrors);
+            setFieldErrors(backendErrors);
+            toast.error("Please fix the errors in the form");
           } else {
             toast.error(error.message);
           }
@@ -339,7 +338,6 @@ const NewListingModal = ({ isOpen, onClose }) => {
           </div>
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-10 py-6">
           <div className="space-y-6 pb-6">
             <PropertyDetailsSection
@@ -352,6 +350,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
 
             <PropertyAddressSection
               formData={formData}
+              setFormData={setFormData}
               fieldErrors={fieldErrors}
               handleChange={handleChange}
               countries={countries}
@@ -371,7 +370,6 @@ const NewListingModal = ({ isOpen, onClose }) => {
               isPending={isPending}
             />
 
-            {/* Property Description */}
             <div className="border-b border-gray-300 space-y-6 pb-8">
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -381,19 +379,22 @@ const NewListingModal = ({ isOpen, onClose }) => {
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full p-2 text-sm border border-gray-300 bg-gray-100 rounded-md min-h-[120px]"
+                  className={`w-full p-2 text-sm border rounded-md min-h-[120px] ${
+                    fieldErrors.description 
+                      ? 'border-red-400 bg-red-50' 
+                      : 'border-gray-300 bg-gray-100'
+                  }`}
                   placeholder="Describe your property, its features and amenities etc.."
                   disabled={isPending}
                 />
                 {fieldErrors.description && (
-                  <p className="mt-1 text-red-400 text-sm">
+                  <p className="mt-1 text-red-500 text-sm">
                     {fieldErrors.description}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Amenities */}
             <div className="border-b border-gray-300 space-y-6 pb-8">
               <label className="block text-sm font-medium mb-2">
                 Amenities
@@ -404,13 +405,12 @@ const NewListingModal = ({ isOpen, onClose }) => {
                 disabled={isPending}
               />
               {fieldErrors.amenities && (
-                <p className="mt-1 text-red-400 text-sm">
+                <p className="mt-1 text-red-500 text-sm">
                   {fieldErrors.amenities}
                 </p>
               )}
             </div>
 
-            {/* Photos */}
             <div className="border-b border-gray-300 space-y-6 pb-8">
               <label className="block text-sm font-medium mb-2">Photos</label>
               <PhotoUploadSection
@@ -419,7 +419,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
                 disabled={isPending}
               />
               {fieldErrors.images && (
-                <p className="mt-1 text-red-400 text-sm">
+                <p className="mt-1 text-red-500 text-sm">
                   {fieldErrors.images}
                 </p>
               )}
@@ -432,19 +432,22 @@ const NewListingModal = ({ isOpen, onClose }) => {
               isPending={isPending}
             />
 
-            {/* Notes */}
             <div>
               <label className="block text-sm font-medium mb-2">Notes</label>
               <textarea
                 name="notes"
                 value={formData.notes}
                 onChange={handleChange}
-                className="w-full p-2 text-sm border border-gray-300 bg-gray-100 rounded-md min-h-[120px]"
+                className={`w-full p-2 text-sm border rounded-md min-h-[120px] ${
+                  fieldErrors.notes 
+                    ? 'border-red-400 bg-red-50' 
+                    : 'border-gray-300 bg-gray-100'
+                }`}
                 placeholder="Leave a note about this listing that only you can see.."
                 disabled={isPending}
               />
               {fieldErrors.notes && (
-                <p className="mt-1 text-red-400 text-sm">{fieldErrors.notes}</p>
+                <p className="mt-1 text-red-500 text-sm">{fieldErrors.notes}</p>
               )}
             </div>
           </div>

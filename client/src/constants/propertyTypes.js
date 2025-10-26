@@ -30,3 +30,13 @@ export const getPropertyCategory = (typeValue) => {
   }
   return null;
 };
+
+export const getPropertyLabel = (options, value) => {
+  if (!options || !value) return value;
+
+  const flatOptions = Array.isArray(options)
+    ? options
+    : Object.values(options).flat();
+
+  return flatOptions.find((opt) => opt.value === value)?.label || value;
+};

@@ -19,8 +19,11 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
     setIsMobileMenuOpen(false);
   };
 
+  const sidebarWidth = isCollapsed ? "w-[70px]" : "w-[220px]";
+
   return (
     <>
+      {/* Mobile menu button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg shadow-lg"
@@ -28,6 +31,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
+      {/* Overlay for mobile */}
       {isMobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -35,78 +39,98 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         />
       )}
 
+      {/* Collapsed expand button */}
       {isCollapsed && (
         <button
           onClick={() => setIsCollapsed(false)}
-          className="hidden lg:block fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg shadow-lg hover:bg-gray-700 transition cursor-pointer"
+          className="hidden lg:flex fixed top-4 left-4 z-40 p-2 bg-gray-800 text-white rounded-lg shadow-lg hover:bg-gray-700 transition cursor-pointer"
         >
           <ChevronRight size={20} />
         </button>
       )}
 
+      {/* Sidebar container */}
       <div
         className={`
-                    fixed lg:static inset-y-0 left-0 z-40
-                    text-white p-6 flex flex-col
-                    transform transition-all duration-300 ease-in-out
-                    ${
-                      isMobileMenuOpen
-                        ? "translate-x-0 w-56"
-                        : "-translate-x-full lg:translate-x-0"
-                    }
-                    ${
-                      isCollapsed
-                        ? "lg:w-0 lg:p-0 lg:overflow-hidden"
-                        : "lg:w-[200px]"
-                    }
-                `}
-        style={{ backgroundColor: "#3B3B3B" }}
+          fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
+          text-white transform transition-all duration-300 ease-in-out
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        `}
+        style={{
+          backgroundColor: "#3B3B3B",
+          width: isCollapsed ? "70px" : "220px",
+        }}
       >
-        {!isCollapsed && (
-          <>
+        {/* Top section */}
+        <div className="p-4">
+          {!isCollapsed && (
             <div className="mb-8 flex items-center justify-between">
-              <h1 className="text-lg font-semibold text-gray-400">PropEase</h1>
+              <h1 className="text-lg font-semibold text-gray-300 whitespace-nowrap">
+                PropEase
+              </h1>
               <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:block p-2 hover:bg-gray-700 rounded-lg transition cursor-pointer"
+                onClick={() => setIsCollapsed(true)}
+                className="hidden lg:block p-2 hover:bg-gray-700 rounded-lg transition"
               >
                 <ChevronLeft size={20} />
               </button>
             </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavClick(item.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-2 transition cursor-pointer rounded-lg ${
-                    activeNav === item.id
-                      ? "bg-gray-400/10"
-                      : "hover:bg-gray-400/10"
-                  }`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+          )}
+
+          {/* Nav Items */}
+          <nav className="flex-1 space-y-1 overflow-y-auto">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                className={`w-full flex items-center ${
+                  isCollapsed ? "justify-center" : "space-x-3"
+                } px-3 py-2 rounded-lg transition cursor-pointer ${
+                  activeNav === item.id
+                    ? "bg-gray-400/10"
+                    : "hover:bg-gray-400/10"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                {!isCollapsed && (
                   <span className="text-[16px] whitespace-nowrap">
                     {item.label}
                   </span>
-                </button>
-              ))}
-            </nav>
-            <div className="space-y-2 border-t border-gray-700 pt-4 mt-4">
-              <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-400/10 transition cursor-pointer">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
-                <span className="text-[16px]">Settings</span>
+                )}
               </button>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-400/10 transition cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
-                <span className="text-[16px]">Logout</span>
-              </button>
-            </div>
-          </>
-        )}
+            ))}
+          </nav>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="border-t border-gray-700 pt-4 mt-auto p-4 space-y-2">
+          <button
+            className={`w-full flex items-center ${
+              isCollapsed ? "justify-center" : "space-x-3"
+            } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+            {!isCollapsed && <span className="text-[16px]">Settings</span>}
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center ${
+              isCollapsed ? "justify-center" : "space-x-3"
+            } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+            {!isCollapsed && <span className="text-[16px]">Logout</span>}
+          </button>
+        </div>
       </div>
+
+      {/* Content wrapper with proper left margin on desktop */}
+      <div
+        className={`transition-all duration-300 ease-in-out lg:ml-[${
+          isCollapsed ? "70px" : "220px"
+        }]`}
+      />
     </>
   );
 };
