@@ -25,12 +25,8 @@ const MainLayout = () => {
     ? [
         { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
         { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
-        // { label: "Applications", id: "applications", path: "/applications" },
-        {
-          label: "Maintenance",
-          id: "maintenance",
-          path: "/landlord/maintenance",
-        },
+        { label: "Applications", id: "applications", path: "/applications" },
+        { label: "Maintenance", id: "maintenance", path: "/maintenance" },
         // { label: "Accounting", id: "accounting", path: "/accounting" },
         { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]

@@ -3,8 +3,6 @@ model Lease {
   listingId        String
   tenantId         String
   landlordId       String
-
-
   startDate        DateTime
   endDate          DateTime
   rentAmount       Float
@@ -73,10 +71,11 @@ model Lease {
   numberOfOccupants Int?
 
 
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  tenant    User     @relation("TenantLeases", fields: [tenantId], references: [id])
-  landlord  User     @relation("LandlordLeases", fields: [landlordId], references: [id])
+  listing             Listing              @relation(fields: [listingId], references: [id])
+  tenant              User                 @relation("TenantLeases", fields: [tenantId], references: [id])
+  landlord            User                 @relation("LandlordLeases", fields: [landlordId], references: [id])
   maintenanceRequests MaintenanceRequest[]
+  applications        RequestApplication[]
 
   @@index([tenantId])
   @@index([landlordId])

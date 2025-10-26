@@ -2,17 +2,55 @@ import { prisma } from "../prisma/client.js";
 
 const dedupe = (arr) => Array.from(new Set(arr));
 
-async function createMaintenanceRequest(tenantId, data) {
-  const lease = await prisma.lease.findFirst({
-    where: {
-      tenantId,
-      listingId: data.listingId,
-      leaseStatus: "ACTIVE",
-    },
+async function createMaintenanceRequest(userId, userRole, data) {
+  const listing = await prisma.listing.findUnique({
+    where: { id: data.listingId },
   });
 
-  if (!lease) {
-    const err = new Error("You do not have an active lease for this property");
+  if (!listing) {
+    const err = new Error("Listing not found");
+    err.status = 404;
+    throw err;
+  }
+
+  let leaseId = null;
+
+  if (userRole === "TENANT") {
+    const lease = await prisma.lease.findFirst({
+      where: {
+        tenantId: userId,
+        listingId: data.listingId,
+        leaseStatus: "ACTIVE",
+      },
+    });
+
+    if (!lease) {
+      const err = new Error(
+        "You do not have an active lease for this property"
+      );
+      err.status = 403;
+      throw err;
+    }
+
+    leaseId = lease.id;
+  } else if (userRole === "ADMIN") {
+    if (listing.landlordId !== userId) {
+      const err = new Error("You do not own this property");
+      err.status = 403;
+      throw err;
+    }
+    const activeLease = await prisma.lease.findFirst({
+      where: {
+        listingId: data.listingId,
+        leaseStatus: "ACTIVE",
+      },
+    });
+
+    if (activeLease) {
+      leaseId = activeLease.id;
+    }
+  } else {
+    const err = new Error("Unauthorized to create maintenance request");
     err.status = 403;
     throw err;
   }
@@ -23,9 +61,9 @@ async function createMaintenanceRequest(tenantId, data) {
 
   const maintenanceRequest = await prisma.maintenanceRequest.create({
     data: {
-      tenantId,
+      userId,
       listingId: data.listingId,
-      leaseId: lease.id,
+      leaseId,
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -36,13 +74,14 @@ async function createMaintenanceRequest(tenantId, data) {
           : undefined,
     },
     include: {
-      tenant: {
+      user: {
         select: {
           id: true,
           firstName: true,
           lastName: true,
           email: true,
           phone: true,
+          role: true,
         },
       },
       listing: {
@@ -68,7 +107,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
   let whereClause = {};
 
   if (userRole === "TENANT") {
-    whereClause.tenantId = userId;
+    whereClause.userId = userId;
   } else if (userRole === "ADMIN") {
     whereClause.listing = {
       landlordId: userId,
@@ -83,13 +122,14 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
   const maintenanceRequests = await prisma.maintenanceRequest.findMany({
     where: whereClause,
     include: {
-      tenant: {
+      user: {
         select: {
           id: true,
           firstName: true,
           lastName: true,
           email: true,
           phone: true,
+          role: true,
         },
       },
       listing: {
@@ -101,7 +141,12 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
           state: true,
         },
       },
-      // images: false,
+      lease: {
+        select: {
+          id: true,
+          tenantId: true,
+        },
+      },
     },
     orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
   });
@@ -113,13 +158,14 @@ async function getMaintenanceRequestById(requestId, userId, userRole) {
   const maintenanceRequest = await prisma.maintenanceRequest.findUnique({
     where: { id: requestId },
     include: {
-      tenant: {
+      user: {
         select: {
           id: true,
           firstName: true,
           lastName: true,
           email: true,
           phone: true,
+          role: true,
         },
       },
       listing: {
@@ -130,6 +176,12 @@ async function getMaintenanceRequestById(requestId, userId, userRole) {
           city: true,
           state: true,
           landlordId: true,
+        },
+      },
+      lease: {
+        select: {
+          id: true,
+          tenantId: true,
         },
       },
       images: true,
@@ -143,9 +195,10 @@ async function getMaintenanceRequestById(requestId, userId, userRole) {
   }
 
   const isLandlord = maintenanceRequest.listing.landlordId === userId;
-  const isTenant = maintenanceRequest.tenantId === userId;
+  const isCreator = maintenanceRequest.userId === userId;
+  const isTenantOfLease = maintenanceRequest.lease?.tenantId === userId;
 
-  if (!isLandlord && !isTenant) {
+  if (!isLandlord && !isCreator && !isTenantOfLease) {
     const err = new Error("Unauthorized to view this maintenance request");
     err.status = 403;
     throw err;
@@ -159,6 +212,7 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
     where: { id: requestId },
     include: {
       listing: true,
+      lease: true,
     },
   });
 
@@ -169,9 +223,10 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
   }
 
   const isLandlord = existingRequest.listing.landlordId === userId;
-  const isTenant = existingRequest.tenantId === userId;
+  const isCreator = existingRequest.userId === userId;
+  const isTenantOfLease = existingRequest.lease?.tenantId === userId;
 
-  if (!isLandlord && !isTenant) {
+  if (!isLandlord && !isCreator && !isTenantOfLease) {
     const err = new Error("Unauthorized to update this maintenance request");
     err.status = 403;
     throw err;
@@ -192,12 +247,13 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
     where: { id: requestId },
     data: allowedUpdates,
     include: {
-      tenant: {
+      user: {
         select: {
           id: true,
           firstName: true,
           lastName: true,
           email: true,
+          role: true,
         },
       },
       listing: {
@@ -206,6 +262,12 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
           title: true,
           address: true,
           city: true,
+        },
+      },
+      lease: {
+        select: {
+          id: true,
+          tenantId: true,
         },
       },
       images: true,
@@ -220,6 +282,7 @@ async function deleteMaintenanceRequest(requestId, userId, userRole) {
     where: { id: requestId },
     include: {
       listing: true,
+      lease: true,
     },
   });
 
@@ -230,9 +293,9 @@ async function deleteMaintenanceRequest(requestId, userId, userRole) {
   }
 
   const isLandlord = existingRequest.listing.landlordId === userId;
-  const isTenant = existingRequest.tenantId === userId;
+  const isCreator = existingRequest.userId === userId;
 
-  if (!isLandlord && !isTenant) {
+  if (!isLandlord && !isCreator) {
     const err = new Error("Unauthorized to delete this maintenance request");
     err.status = 403;
     throw err;

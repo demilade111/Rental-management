@@ -19,7 +19,12 @@ async function createMaintenance(req, res) {
   try {
     const body = createMaintenanceRequestSchema.parse(req.body);
     const userId = req.user.id;
-    const maintenanceRequest = await createMaintenanceRequest(userId, body);
+    const userRole = req.user.role;
+    const maintenanceRequest = await createMaintenanceRequest(
+      userId,
+      userRole,
+      body
+    );
 
     return CreatedResponse(
       res,

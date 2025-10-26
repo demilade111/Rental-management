@@ -147,7 +147,11 @@ const router = Router();
 router.post(
   "/",
   authenticate,
+<<<<<<< HEAD
   authorize(["TENANT", "LANDLORD"]),
+=======
+  authorize(["ADMIN", "TENANT"]),
+>>>>>>> 513445605d0c6750bc7425d43e146737a529de7c
   createMaintenance
 );
 router.get("/", authenticate, fetchAllMaintenanceRequests);
@@ -155,7 +159,7 @@ router.get("/:id", authenticate, fetchMaintenanceRequestById);
 router.patch(
   "/:id",
   authenticate,
-  authorize(["TENANT", "ADMIN"]),
+  authorize(["ADMIN", "TENANT"]),
   updateMaintenance
 );
 router.delete("/:id", authenticate, deleteMaintenance);
