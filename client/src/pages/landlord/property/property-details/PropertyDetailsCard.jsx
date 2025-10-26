@@ -17,7 +17,7 @@ const PropertyDetailsCard = ({ type, yearBuilt, size, bedrooms, bathrooms }) => 
                 </div>
                 <div>
                     <p className="text-[16px] text-gray-600">
-                        <span className='font-semibold'>Size</span>: {size}
+                        <span className='font-semibold'>Size</span>: {size} sq ft
                     </p>
                 </div>
                 <div>

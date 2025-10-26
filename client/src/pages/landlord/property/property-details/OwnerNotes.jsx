@@ -1,6 +1,6 @@
 import React from 'react';
 
-const OwnerNotes = () => {
+const OwnerNotes = ({ notes }) => {
     const cards = [
         {
             title: 'Listing Details',
@@ -31,7 +31,7 @@ const OwnerNotes = () => {
     return (
         <div className="mt-8 p-6">
             <h2 className="text-[32px] font-bold mb-2">Owner Notes (Private Section)</h2>
-            <p className="text-[16px] text-gray-600 mb-6">This section is visible only to you.</p>
+            <p className="text-[16px] text-gray-600 mb-6">{ notes }</p>
             <p className="text-[16px] text-gray-700 mb-6">
                 Here you can review your property's tenancy history and maintenance history; these details are private and will not be shared with applicants or tenants when the listing is published.
             </p>
