@@ -89,7 +89,7 @@ const PropertyDetails = () => {
                                     </div>
                                 </div>
 
-                                <AddressCard fullAddress={property.fullAddress} />
+                                <AddressCard fullAddress={property.fullAddress} zipCode={property.zipCode} />
                                 <NeighbourhoodScore />
                             </div>
                         </div>
