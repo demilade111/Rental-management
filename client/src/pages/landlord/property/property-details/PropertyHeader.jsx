@@ -7,8 +7,8 @@ const PropertyHeader = ({ property }) => {
         <div className="px-4 md:px-8 py-4">
             <div className="flex flex-col space-y-10">
                 <div>
-                    <h1 className="text-[32px] md:text-3xl font-bold">{property.name}</h1>
-                    <p className="text-sm text-gray-600 mt-1">{property.address}</p>
+                    <h1 className="text-[32px] md:text-3xl font-bold">{property.title}</h1>
+                    <p className="text-[16px] text-gray-600 font-semibold mt-1">{property.streetAddress}</p>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <Button variant="outline" className="text-[16px] border-black rounded-2xl">

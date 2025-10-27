@@ -39,7 +39,7 @@ const PropertyPortfolio = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8">
+    <div className="min-h-screen px-4 md:px-8 py-4">
       <div className="mb-6">
         <h1 className="text-[32px] font-bold mb-1">Portfolio</h1>
         <p className="text-[16px] text-gray-600">Per Property</p>
