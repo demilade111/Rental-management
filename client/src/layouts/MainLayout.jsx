@@ -23,30 +23,27 @@ const MainLayout = () => {
 
   const navItems = isLandlord
     ? [
-        { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
-        { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
-        { label: "Applications", id: "applications", path: "/applications" },
-        {
-          label: "Maintenance",
-          id: "maintenance",
-          path: "/landlord/maintenance",
-        },
-        // { label: "Accounting", id: "accounting", path: "/accounting" },
-        { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
-      ]
+      { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
+      { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
+      { label: "Applications", id: "applications", path: "/landlord/applications" },
+      { label: "Maintenance", id: "maintenance", path: "/maintenance" },
+      // { label: "Accounting", id: "accounting", path: "/accounting" },
+      { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
+    ]
     : [
-        { label: "Dashboard", id: "dashboard", path: "/dashboard" },
-        { label: "My Lease", id: "lease", path: "/lease" },
-        { label: "Rent Payments", id: "payments", path: "/payments" },
-        {
-          label: "Maintenance Requests",
-          id: "maintenance",
-          path: "/maintenance",
-        },
-      ];
+      { label: "Dashboard", id: "dashboard", path: "/dashboard" },
+      { label: "My Lease", id: "lease", path: "/lease" },
+      { label: "Rent Payments", id: "payments", path: "/payments" },
+      {
+        label: "Maintenance Requests",
+        id: "maintenance",
+        path: "/maintenance",
+      },
+    ];
 
   const activeNav =
-    navItems.find((item) => item.path === location.pathname)?.id || "dashboard";
+    navItems.find((item) => location.pathname.startsWith(item.path))?.id ||
+    "dashboard";
 
   const handleNavChange = (id) => {
     const item = navItems.find((nav) => nav.id === id);
@@ -56,7 +53,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         navItems={navItems}
         activeNav={activeNav}
@@ -66,7 +63,7 @@ const MainLayout = () => {
       <div className="flex-1 overflow-auto">
         <Header user={user} isLandlord={isLandlord} />
 
-        <div className="bg-white pb-10">
+        <div className="pb-10">
           <Routes>
             <Route path="/landlord/dashboard" element={<Dashboard />} />
             <Route path="/landlord/maintenance" element={<Maintenance />} />

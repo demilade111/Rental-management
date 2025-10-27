@@ -33,7 +33,7 @@ const AccountingCard = ({ data }) => {
     ];
 
     return (
-        <div className="bg-white rounded-lg border border-gray-400 p-6">
+        <div className="bg-card rounded-lg border border-gray-400 p-6">
             <h3 className="text-[32px] font-bold mb-6">Accounting</h3>
             <div className="flex items-center">
                 <div className="flex-1">

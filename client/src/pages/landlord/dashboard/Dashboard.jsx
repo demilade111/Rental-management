@@ -115,7 +115,7 @@ const Dashboard = () => {
           <AccountingCard />
 
           {/* Applicants */}
-          <div className="bg-white rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col">
+          <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col">
             <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4">
               Applicants
             </h3>
@@ -155,7 +155,7 @@ const Dashboard = () => {
 
         {/* Maintenance Sidebar */}
         <div className="w-full lg:w-1/4">
-          <div className="bg-white rounded-lg border border-gray-400 p-4 md:p-6 max-h-[500px] lg:max-h-[calc(100vh-120px)] flex flex-col lg:sticky lg:top-6">
+          <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 max-h-[500px] lg:max-h-[calc(100vh-120px)] flex flex-col lg:sticky lg:top-6">
             <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4">
               Maintenance
             </h3>
