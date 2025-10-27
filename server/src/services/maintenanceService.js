@@ -67,7 +67,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
       listing: { connect: { id: data.listingId } },
       // listingId: data.listingId,
       // leaseId,
-      lease: { connect: { id: "cmh8vum010001w7rcsvoto9po" } },
+      leaseId: "cmh8vum010001w7rcsvoto9po" || null,
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -99,6 +99,13 @@ async function createMaintenanceRequest(userId, userRole, data) {
         },
       },
       images: true,
+      ...(leaseId && {
+        lease: {
+          include: {
+            tenant: true,
+          },
+        },
+      }),
     },
   });
 
