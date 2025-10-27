@@ -5,7 +5,7 @@ const Header = ({ user, isLandlord }) => {
   const showGreeting = location.pathname === "/landlord/dashboard";
 
   return (
-    <div className="bg-white px-8 py-6 flex justify-between items-center">
+    <div className="px-8 py-6 flex justify-between items-center">
       {showGreeting ? (
         <h2 className="text-[16px] text-gray-900">
           Good morning,{" "}

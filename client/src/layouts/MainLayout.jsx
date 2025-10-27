@@ -51,7 +51,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         navItems={navItems}
         activeNav={activeNav}
@@ -61,7 +61,7 @@ const MainLayout = () => {
       <div className="flex-1 overflow-auto">
         <Header user={user} isLandlord={isLandlord} />
 
-        <div className="bg-white pb-10">
+        <div className="pb-10">
           <Routes>
             <Route path="/landlord/dashboard" element={<Dashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />

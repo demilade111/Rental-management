@@ -13,7 +13,7 @@ const RentersInsuranceCard = () => {
     ];
 
     return (
-        <div className="bg-white rounded-lg border border-gray-400 p-6">
+        <div className="bg-card rounded-lg border border-gray-400 p-6">
             <h2 className="text-[32px] font-bold mb-10">Renters Insurance</h2>
             <div className="flex items-center gap-8">
                 <div className="w-38 h-64 flex-shrink-0 p-0 -ml-3">

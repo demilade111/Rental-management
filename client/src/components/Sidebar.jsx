@@ -52,12 +52,11 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
       {/* Sidebar container */}
       <div
         className={`
-          fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
+          bg-primary fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
           text-white transform transition-all duration-300 ease-in-out
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
         style={{
-          backgroundColor: "#3B3B3B",
           width: isCollapsed ? "70px" : "220px",
         }}
       >
