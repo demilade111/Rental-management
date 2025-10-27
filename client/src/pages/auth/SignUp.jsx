@@ -32,7 +32,7 @@ export default function SignUpPage() {
     },
     onSuccess: (data) => {
       setTimeout(() => {
-        login(data.data.user, data.data.token);
+        login(data.data.user, data.data.user.token);
         navigate(
           formData.role === "TENANT"
             ? "/onboarding/tenant"
