@@ -1,165 +1,5 @@
-// import { Button } from "@/components/ui/button";
-// import { Card } from "@/components/ui/card";
-// import React from "react";
-
-// function Maintenance() {
-//   return (
-//     <>
-//       <Button>Small</Button>
-//         <Card className="w-96 p-4"></Card>
-
-//     </>
-
-//   );
-// }
-
-// export default Maintenance;
-// import React, { useState } from "react";
-// import { Button } from "@/components/ui/button";
-// import {
-//   Card,
-//   CardHeader,
-//   CardTitle,
-//   CardDescription,
-//   CardContent,
-//   CardFooter,
-// } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Search,
-//   SlidersVertical,
-//   Plus,
-//   Trash2,
-//   Reply,
-//   CheckCircle2,
-//   X,
-//   Eye,
-// } from "lucide-react";
-
-// function Maintenance() {
-//   const [search, setSearch] = useState("");
-
-//   const columns = [
-//     { title: "Requests", actions: ["Cancel", "Accept"] },
-//     { title: "In Progress", actions: ["Reply", "Finish"] },
-//     { title: "Resolved", actions: ["Trash", "View"] },
-//   ];
-
-//   // Placeholder cards for demo layout
-//   const sampleCards = Array.from({ length: 3 });
-
-//   return (
-//     <div className="p-8 space-y-8">
-//       {/* Header */}
-//       <h1 className="text-2xl font-bold">Maintenance</h1>
-//       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-//         <div className="flex flex-wrap items-center gap-3">
-//           <div className="flex items-center border rounded-md px-3 py-1 w-64">
-//             <Search className="size-4 text-muted-foreground" />
-//             <Input
-//               placeholder="Search"
-//               className="border-0 focus-visible:ring-0"
-//               value={search}
-//               onChange={(e) => setSearch(e.target.value)}
-//             />
-//           </div>
-
-//           <Button variant="outline" size="sm">
-//             <SlidersVertical className="size-4 mr-2" />
-//           </Button>
-
-//           <Button
-//             variant="outline"
-//             size="sm"
-//             className="flex items-center gap-1"
-//           >
-//             Urgent <X className="w-3 h-3" />
-//           </Button>
-//           <Button
-//             variant="outline"
-//             size="sm"
-//             className="flex items-center gap-1"
-//           >
-//             Property Title <X className="w-3 h-3" />
-//           </Button>
-//           <Button
-//             variant="outline"
-//             size="sm"
-//             className="flex items-center gap-1"
-//           >
-//             Requests in 30 days <X className="w-3 h-3" />
-//           </Button>
-//         </div>
-//       </div>
-//       <Button size="sm">
-//         <Plus className="size-4 mr-2" /> New Request
-//       </Button>
-
-//       {/* Columns */}
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-//         {columns.map((col) => (
-//           <div key={col.title} className="space-y-4">
-//             <h2 className="font-semibold text-lg">{col.title}</h2>
-
-//             {sampleCards.map((_, idx) => (
-//               <Card key={idx}>
-//                 <CardHeader className="flex items-start gap-3">
-//                   <div className="w-16 h-16 bg-muted rounded-md" />
-//                   <div>
-//                     <CardTitle>Title of the property</CardTitle>
-//                     <CardDescription>
-//                       Short address of the property
-//                     </CardDescription>
-//                     <p className="text-xs text-muted-foreground mt-1">
-//                       The request day · Urgency level
-//                     </p>
-//                   </div>
-//                 </CardHeader>
-
-//                 <CardContent>
-//                   <p className="text-sm font-medium">
-//                     Short description of maintenance request from tenant or
-//                     landlord.
-//                   </p>
-//                 </CardContent>
-
-//                 <CardFooter className="flex justify-between">
-//                   {col.actions.map((action) => (
-//                     <Button
-//                       key={action}
-//                       variant={
-//                         action === "Cancel" || action === "Trash"
-//                           ? "outline"
-//                           : "default"
-//                       }
-//                       size="sm"
-//                     >
-//                       {action === "Cancel" && <X className="size-4 mr-1" />}
-//                       {action === "Accept" && (
-//                         <CheckCircle2 className="size-4 mr-1" />
-//                       )}
-//                       {action === "Reply" && <Reply className="size-4 mr-1" />}
-//                       {action === "Finish" && (
-//                         <CheckCircle2 className="size-4 mr-1" />
-//                       )}
-//                       {action === "Trash" && <Trash2 className="size-4 mr-1" />}
-//                       {action === "View" && <Eye className="size-4 mr-1" />}
-//                       {action}
-//                     </Button>
-//                   ))}
-//                 </CardFooter>
-//               </Card>
-//             ))}
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Maintenance;
-
 import React, { useState } from "react";
+import { useAuthStore } from "@/store/authStore"; // added import
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -187,12 +27,15 @@ function Maintenance() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    property: "",
+    listingId: "",
+    category: "",
     priority: "",
     date: "",
     description: "",
     image: null,
   });
+
+  const token = useAuthStore((state) => state.token); // get token from auth store
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -204,34 +47,47 @@ function Maintenance() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting form data:", formData);
     try {
-      const token = localStorage.getItem("token"); // assuming auth token
-      const data = new FormData();
-      for (const key in formData) data.append(key, formData[key]);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/v1/maintenance`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: formData.title,
+            listingId: formData.listingId,
+            priority: formData.priority,
+            category: formData.category,
+            date: formData.date,
+            description: formData.description,
+          }),
+        }
+      );
 
-      const response = await fetch("/api/v1/maintenance", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: data,
-      });
-
-      if (!response.ok) throw new Error("Failed to create request");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error:", errorData);
+        throw new Error(errorData.message || "Failed to create request");
+      }
 
       alert("Maintenance request created successfully!");
       setShowModal(false);
       setFormData({
         title: "",
-        property: "",
+        listingId: "",
         priority: "",
+        category: "",
         date: "",
         description: "",
         image: null,
       });
     } catch (error) {
       console.error(error);
-      alert("Error submitting request.");
+      alert(`Error submitting request: ${error.message}`);
     }
   };
 
@@ -249,11 +105,11 @@ function Maintenance() {
       <h1 className="text-2xl font-bold">Maintenance</h1>
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center border rounded-md px-3 py-1 w-90">
+          <div className="flex items-center border rounded-md px-3 h-12 w-90">
             <Search className="size-4 text-muted-foreground" />
             <Input
               placeholder="Search"
-              className="border-0 focus-visible:ring-0 h-10"
+              className="border-0 focus-visible:ring-0 h-full"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -374,15 +230,17 @@ function Maintenance() {
                 <div>
                   <label className="block text-sm font-medium">Property</label>
                   <select
-                    name="property"
-                    value={formData.property}
+                    name="listingId"
+                    value={formData.listingId}
                     onChange={handleChange}
                     className="border rounded-md w-full p-2"
                     required
                   >
                     <option value="">Select property</option>
-                    <option value="Sweet Home">Sweet Home</option>
-                    <option value="Downtown Loft">Downtown Loft</option>
+                    <option value="cmh6nlwy80004w7hg93n4b1hv">Building</option>
+                    <option value="LANDSCAPING">Landscaping</option>
+                    <option value="SECURITY">Security</option>
+                    <option value="OTHER">Other</option>
                   </select>
                 </div>
                 <div>
@@ -395,11 +253,35 @@ function Maintenance() {
                     required
                   >
                     <option value="">Select priority</option>
-                    <option value="Low">Low</option>
-                    <option value="Normal">Normal</option>
-                    <option value="Important">Important</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Normal</option>
+                    <option value="HIGH">Important</option>
+                    <option value="URGENT">Urgent</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Category</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="border rounded-md w-full p-2"
+                  required
+                >
+                  <option value="">Select category</option>
+                  <option value="PLUMBING">Plumbing</option>
+                  <option value="ELECTRICAL">Electrical</option>
+                  <option value="HVAC">HVAC</option>
+                  <option value="APPLIANCE">Appliance</option>
+                  <option value="STRUCTURAL">Structural</option>
+                  <option value="PEST_CONTROL">Pest Control</option>
+                  <option value="CLEANING">Cleaning</option>
+                  <option value="LANDSCAPING">Landscaping</option>
+                  <option value="SECURITY">Security</option>
+                  <option value="OTHER">Other</option>
+                </select>
               </div>
 
               <div>
