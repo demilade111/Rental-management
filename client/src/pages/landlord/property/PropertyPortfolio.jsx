@@ -15,7 +15,6 @@ const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState('rentals');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const token = useAuthStore((state) => state.token);
 
   const { data: properties = [], isLoading, isError, error } = useQuery({
     queryKey: ['listings'],
@@ -23,8 +22,6 @@ const PropertyPortfolio = () => {
       const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
       return response.data.data || response.data;
     },
-    enabled: !!token,
-    retry: false,
   });
 
   const filteredProperties = properties.filter((prop) => {

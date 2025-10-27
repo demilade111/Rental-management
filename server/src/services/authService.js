@@ -38,7 +38,7 @@ export const registerUser = async ({
       Number(process.env.SALT_ROUNDS) || 12
     );
 
-    const user = await prisma.user.create({ 
+    const user = await prisma.user.create({
       data: {
         email: email.toLowerCase().trim(),
         password: hashedPassword,
@@ -49,7 +49,9 @@ export const registerUser = async ({
       },
     });
 
-    return { user: buildSafeUser(user) };
+    const token = signToken(user);
+
+    return { user: buildSafeUser(user), token };
   } catch (err) {
     if (err.code === "P2002" && err.meta?.target.includes("email")) {
       const conflict = new Error("Email already exists");
@@ -83,7 +85,7 @@ export const loginUser = async ({ email, password }) => {
 
 export const requestPasswordReset = async (email) => {
   const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
-  
+
   if (!user) {
     const err = new Error("User not found. Please check the email you provided.");
     err.status = 404;
@@ -92,7 +94,7 @@ export const requestPasswordReset = async (email) => {
 
   const resetToken = crypto.randomBytes(32).toString("hex");
   const resetTokenExpiry = new Date(Date.now() + 1000 * 60 * 30); // 30 minutes
-  
+
   await prisma.user.update({
     where: { email: email.toLowerCase().trim() },
     data: { resetToken, resetTokenExpiry },
@@ -138,10 +140,10 @@ export const resetPassword = async (token, newPassword) => {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { 
-      password: hashedPassword, 
-      resetToken: null, 
-      resetTokenExpiry: null 
+    data: {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiry: null
     },
   });
 
@@ -158,7 +160,7 @@ export const refreshToken = async (token) => {
   try {
     // Verify the refresh token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Get user from database
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -173,9 +175,9 @@ export const refreshToken = async (token) => {
     // Generate new token
     const newToken = signToken(user);
 
-    return { 
-      token: newToken, 
-      user: buildSafeUser(user) 
+    return {
+      token: newToken,
+      user: buildSafeUser(user)
     };
   } catch (error) {
     if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
