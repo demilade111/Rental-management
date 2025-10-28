@@ -7,7 +7,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 md:p-8 bg-background min-h-screen flex flex-col items-center">
-      {/* MAIN CONTAINER (controls left alignment and overall width) */}
       <div className="w-full max-w-[1400px] flex flex-col items-start gap-10">
         {/* ===== TITLE ===== */}
         <h1 className="text-2xl font-bold text-left w-full">
@@ -47,7 +46,6 @@ const Dashboard = () => {
 
         {/* ===== MIDDLE SECTION ===== */}
         <div className="flex flex-wrap justify-start gap-[37px] w-full">
-          {/* YOUR RENT */}
           <div className="w-full lg:w-[463px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <h2 className="text-3xl font-semibold mb-4">Your Rent</h2>
             <div className="flex flex-col gap-4">
@@ -76,8 +74,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* NOTICE */}
+          {/* ===== NOTICE SECTION ===== */}
           <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-semibold">Notice</h2>
@@ -122,7 +119,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* MAINTENANCE */}
+          {/* MAINTENANCE SECTION */}
           <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <h2 className="text-3xl font-semibold mb-4">Maintenance</h2>
             <div className="flex flex-col gap-4 text-sm">
@@ -136,7 +133,7 @@ const Dashboard = () => {
                 </p>
                 <p className="text-gray-500 text-xs mt-1">
                   The kitchen sink faucet has been dripping continuously for the
-                  past week. I’ve tried tightening it...
+                  past week. I've tried tightening it...
                 </p>
               </div>
 
