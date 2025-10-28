@@ -1,17 +1,18 @@
 import {
   Routes,
   Route,
-  Navigate,
   useNavigate,
   useLocation,
 } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-import Dashboard from "../pages/landlord/dashboard/Dashboard";
+import LandlordDashboard from "../pages/landlord/dashboard/Dashboard";
+import TenantDashboard from "../pages/tenant/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
 import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
+import TenanceMaintenance from "@/pages/tenant/maintenance/Maintenance";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -30,13 +31,11 @@ const MainLayout = () => {
       { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
     ]
     : [
-      { label: "Dashboard", id: "dashboard", path: "/dashboard" },
-      { label: "My Lease", id: "lease", path: "/lease" },
-      { label: "Rent Payments", id: "payments", path: "/payments" },
+      { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
       {
-        label: "Maintenance Requests",
+        label: "Maintenance",
         id: "maintenance",
-        path: "/maintenance",
+        path: "/tenant/maintenance",
       },
     ];
 
@@ -64,10 +63,13 @@ const MainLayout = () => {
 
         <div className="pb-10">
           <Routes>
-            <Route path="/landlord/dashboard" element={<Dashboard />} />
+            <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
             <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
             <Route path="/landlord/analytics" element={<Analytics />} />
+
+            <Route path="/tenant/dashboard" element={<TenantDashboard />} />
+            <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />
           </Routes>
         </div>
       </div>

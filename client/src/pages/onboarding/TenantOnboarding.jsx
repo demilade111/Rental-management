@@ -24,7 +24,7 @@ export default function TenantOnboarding() {
         setError('');
 
         try {
-            navigate('/dashboard');
+            navigate('/tenant/dashboard');
         } catch (err) {
             setError(err.message);
         }
