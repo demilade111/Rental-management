@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore"; // added import
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +35,35 @@ function Maintenance() {
     image: null,
   });
 
-  const token = useAuthStore((state) => state.token); // get token from auth store
+  const [properties, setProperties] = useState([]);
+
+  const token = useAuthStore((state) => state.token); // getting token from auth store
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/v1/listings`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch properties");
+
+        const data = await res.json();
+        console.log("Fetched properties:", data);
+        setProperties(data.listings || data); 
+        setProperties(Array.isArray(data) ? data : data.listings || []);
+      } catch (err) {
+        console.error("Error fetching properties:", err);
+      }
+    };
+
+    fetchProperties();
+  }, [token]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -237,10 +265,11 @@ function Maintenance() {
                     required
                   >
                     <option value="">Select property</option>
-                    <option value="cmh6nlwy80004w7hg93n4b1hv">Building</option>
-                    <option value="LANDSCAPING">Landscaping</option>
-                    <option value="SECURITY">Security</option>
-                    <option value="OTHER">Other</option>
+                    {properties.map((property) => (
+                      <option key={property.id} value={property.id}>
+                        {property.title || property.name || "Untitled Property"}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>

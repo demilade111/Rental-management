@@ -71,9 +71,24 @@ const router = Router();
  */
 
 router.post("/", authenticate, authorize(["ADMIN"]), createListing);
-router.get("/", authenticate, authorize(["ADMIN"]), fetchAllListings);
-router.get("/:id", authenticate, authorize(["ADMIN"]), fetchListingById);
-router.put("/:id", authenticate, authorize(["ADMIN"]), updateListing);
+router.get(
+  "/",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  fetchAllListings
+);
+router.get(
+  "/:id",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD", "TENANT"]),
+  fetchListingById
+);
+router.put(
+  "/:id",
+  authenticate,
+  authorize(["ADMIN", "LANDLORD"]),
+  updateListing
+);
 router.delete("/:id", authenticate, authorize(["ADMIN"]), deleteListing);
 
 export default router;
