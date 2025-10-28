@@ -5,45 +5,37 @@ const Dashboard = () => {
   const { user } = useAuthStore();
 
   return (
-    <div className="p-6 md:p-8 flex flex-col items-center bg-background min-h-screen">
-      {/* Container for centered alignment */}
-      <div className="w-full max-w-[1400px] flex flex-col gap-10">
-        {/* PAGE TITLE */}
-        <h1 className="text-xl md:text-2xl font-bold mb-2">
+    <div className="p-6 md:p-8 bg-background min-h-screen flex flex-col items-center">
+      {/* Center container controlling global alignment */}
+      <div className="w-full max-w-[1400px] flex flex-col items-start gap-8">
+        {/* ===== TITLE ===== */}
+        <h1 className="text-2xl font-bold text-left w-full">
           October Rent Summary
         </h1>
 
-        {/* TOP SUMMARY CARDS */}
-        <div className="flex flex-wrap justify-center gap-[40px]">
+        {/* ===== TOP SUMMARY CARDS ===== */}
+        <div className="flex flex-wrap gap-[40px] w-full">
           {[
             { title: "Unpaid", amount: "$300" },
             { title: "Paid", amount: "$4500" },
-            {
-              title: "In Transit",
-              amount: "$1200",
-              note: "Waiting for landlord confirmation",
-            },
-            {
-              title: "Past Due",
-              amount: "$1200",
-              note: "Don’t forget to pay!",
-            },
+            { title: "In Transit", amount: "$1200" },
+            { title: "Past Due", amount: "$1200" },
             { title: "Deposit", amount: "$1500" },
           ].map((item, i) => (
             <div
               key={i}
-              className="w-full sm:w-[250px] h-[120px] rounded-[15px] border border-gray-300 shadow-sm p-4 flex flex-col justify-between bg-white"
+              className="w-[250px] h-[120px] rounded-[15px] bg-white shadow-sm border border-gray-200 p-4 flex flex-col justify-between"
             >
-              <div className="text-sm font-medium text-gray-600">
-                {item.title}
-              </div>
+              <div className="text-gray-500 text-sm font-medium">{item.title}</div>
               <div className="text-2xl font-bold">{item.amount}</div>
-              {item.note && (
-                <p className="text-xs text-gray-400">{item.note}</p>
-              )}
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+};
+
 
         {/* UPLOAD PAYMENT PROOF BUTTON */}
         <div className="flex justify-center">
