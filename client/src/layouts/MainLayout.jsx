@@ -12,6 +12,8 @@ import Dashboard from "../pages/landlord/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
 import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
+import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
+
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ const MainLayout = () => {
       { label: "Maintenance", id: "maintenance", path: "/maintenance" },
       // { label: "Accounting", id: "accounting", path: "/accounting" },
       { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
+      { label: "My Leases", id: "leases", path: "/landlord/leases" },
     ]
     : [
       { label: "Dashboard", id: "dashboard", path: "/dashboard" },
@@ -68,6 +71,8 @@ const MainLayout = () => {
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
             <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
             <Route path="/landlord/analytics" element={<Analytics />} />
+            <Route path="/landlord/leases" element={<MyLeasesTemplates />} />
+
           </Routes>
         </div>
       </div>
