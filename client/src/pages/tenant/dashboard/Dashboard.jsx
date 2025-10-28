@@ -36,7 +36,6 @@ const Dashboard = () => {
   );
 };
 
-
         {/* UPLOAD PAYMENT PROOF BUTTON */}
         <div className="flex justify-center">
           <Button
