@@ -7,12 +7,16 @@ model User {
   phone               String?
   role                UserRole             @default(TENANT)
   profileImage        String?
+  resetToken          String?
+  resetTokenExpiry    DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  landlordLeases      Lease[]              @relation("LandlordLeases")
-  tenantLeases        Lease[]              @relation("TenantLeases")
-  listings            Listing[]            @relation("LandlordListings")
-  maintenanceRequests MaintenanceRequest[]
+  landlordLeases        Lease[]              @relation("LandlordLeases")
+  tenantLeases          Lease[]              @relation("TenantLeases")
+  listings              Listing[]            @relation("LandlordListings")
+  maintenanceRequests   MaintenanceRequest[]
+  landlordApplications  RequestApplication[] @relation("LandlordApplications")
+  tenantApplications    RequestApplication[] @relation("TenantApplications")
 
   @@map("users")
 }

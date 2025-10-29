@@ -2,12 +2,19 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Home, DollarSign } from 'lucide-react';
 import { getPropertyCategory, PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
+import { useNavigate } from 'react-router-dom';
 
 const PropertyCard = ({ property }) => {
+    const navigate = useNavigate();
+    
+    const handleClick = () => {
+        navigate(`/landlord/portfolio/${property.id}`);
+    };
+
     return (
-        <Card className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
+        <Card onClick={handleClick} className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
             <div className="flex flex-col md:flex-row">
-                {/* Property Image */}
+   
                 <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0">
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                         <Home className="w-12 h-12 text-gray-400" />
@@ -16,7 +23,7 @@ const PropertyCard = ({ property }) => {
 
                 {/* Property Details */}
                 <div className="flex-1 flex flex-col md:flex-row items-start md:items-center p-4 gap-4 md:gap-6">
-                    {/* Name and Address */}
+        
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base mb-1">{property.title}</h3>
                         <p className="text-xs text-gray-600">{property.streetAddress}</p>

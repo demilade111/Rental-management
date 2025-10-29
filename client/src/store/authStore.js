@@ -31,7 +31,6 @@ export const useAuthStore = create((set) => ({
         });
     },
 
-    // Logout action
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -41,6 +40,10 @@ export const useAuthStore = create((set) => ({
         });
     },
 
-    // Set loading state
+    setToken: (token) => {
+        localStorage.setItem('token', token);
+        set({ token });
+    },
+
     setLoading: (loading) => set({ loading }),
 }));

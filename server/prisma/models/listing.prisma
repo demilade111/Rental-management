@@ -26,24 +26,17 @@ model Listing {
   securityDeposit Float?                      
   petDeposit Float?                   
   availableDate   DateTime                  
-  
-  // Description Section
   description     String?                   
-  
-  // Contact Information Section
   contactName     String?                   
   phoneNumber     String?                   
   email           String?                   
-  
-  // Notes Section (private to landlord)
   notes           String?                   
-
-  // Relations
-  landlord            User                 @relation("LandlordListings", fields: [landlordId], references: [id], onDelete: Cascade)
+  landlord            User                   @relation("LandlordListings", fields: [landlordId], references: [id], onDelete: Cascade)
   amenities           ListingAmenity[]
   images              ListingImage[]
   leases              Lease[]
   maintenanceRequests MaintenanceRequest[]
+  applications        RequestApplication[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -8,30 +8,20 @@ import LoadingState from '../../../components/shared/LoadingState';
 import ErrorState from '../../../components/shared/ErrorState';
 import EmptyState from '../../../components/shared/EmptyState';
 import NewListingModal from './NewListingModal';
+import api from '../../../lib/axios';
+import API_ENDPOINTS from '../../../lib/apiEndpoints';
 
 const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState('rentals');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const token = useAuthStore((state) => state.token);
 
   const { data: properties = [], isLoading, isError, error } = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/listings`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Failed to fetch listings');
-      }
-      const result = await response.json();
-      return result.data || result;
+      const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
+      return response.data.data || response.data;
     },
-    enabled: !!token
   });
 
   const filteredProperties = properties.filter((prop) => {
@@ -46,7 +36,7 @@ const PropertyPortfolio = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8">
+    <div className="min-h-screen px-4 md:px-8 py-4">
       <div className="mb-6">
         <h1 className="text-[32px] font-bold mb-1">Portfolio</h1>
         <p className="text-[16px] text-gray-600">Per Property</p>

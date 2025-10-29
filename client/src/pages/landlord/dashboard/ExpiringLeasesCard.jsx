@@ -61,7 +61,7 @@ const ExpiringLeasesCard = () => {
     const chartData = allData[activeFilter];
 
     return (
-        <div className="bg-white rounded-lg border border-gray-400 p-6">
+        <div className="bg-card rounded-lg border border-gray-400 p-6">
             <h3 className="text-[32px] font-bold mb-8">Expiring Leases</h3>
             {/* Filter Buttons */}
             <div className="flex gap-3 mb-8 justify-between">

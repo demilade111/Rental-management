@@ -97,8 +97,8 @@ const Analytics = () => {
   ];
 
   return (
-    <div className="py-4 md:py-8 px-2 md:px-0">
-      <div className="mb-6">
+    <div className="py-2 md:py-4 px-4 md:px-6">
+      <div className="mb-4">
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
           Financial Metrics
         </h1>

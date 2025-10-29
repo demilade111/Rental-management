@@ -55,7 +55,7 @@ export const createLease = async (landlordId, data) => {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
           state: true,
           country: true,
