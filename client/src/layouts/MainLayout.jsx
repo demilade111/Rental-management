@@ -8,7 +8,7 @@ import Analytics from "../pages/landlord/analytics/Analytics";
 import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
 import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
-import Maintenance from "../pages/landlord/Maintenance";
+import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import TenanceMaintenance from "@/pages/tenant/maintenance/Maintenance";
 
 const MainLayout = () => {
