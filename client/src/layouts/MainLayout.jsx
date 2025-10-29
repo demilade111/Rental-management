@@ -11,6 +11,7 @@ import Header from "../components/Header";
 import Dashboard from "../pages/landlord/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
 import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
+import LeasesPage from "@/pages/landlord/leases/LeasesPage"; // ✅ New import
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const MainLayout = () => {
     ? [
         { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
         { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
+        { label: "Leases", id: "leases", path: "/landlord/leases" }, // ✅ New item
         // { label: "Applications", id: "applications", path: "/applications" },
         // { label: "Maintenance", id: "maintenance", path: "/maintenance" },
         // { label: "Accounting", id: "accounting", path: "/accounting" },
@@ -64,7 +66,9 @@ const MainLayout = () => {
           <Routes>
             <Route path="/landlord/dashboard" element={<Dashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
+            <Route path="/landlord/leases" element={<LeasesPage />} /> {/* ✅ New Route */}
             <Route path="/landlord/analytics" element={<Analytics />} />
+            <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
           </Routes>
         </div>
       </div>
