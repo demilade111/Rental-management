@@ -26,7 +26,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg shadow-lg cursor-pointer"
       >
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -54,7 +54,11 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         className={`
           bg-primary fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
           text-white transform transition-all duration-300 ease-in-out
-          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${
+            isMobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          }
         `}
         style={{
           width: isCollapsed ? "70px" : "220px",

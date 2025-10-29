@@ -6,7 +6,11 @@ import {
   deleteListingById,
   updateListingById,
 } from "../services/listingService.js";
-import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResponse.js";
+import {
+  CreatedResponse,
+  SuccessResponse,
+  HandleError,
+} from "../utils/httpResponse.js";
 
 async function createListing(req, res) {
   try {
@@ -23,7 +27,14 @@ async function createListing(req, res) {
 async function fetchAllListings(req, res) {
   try {
     const listings = await getAllListings();
-    return SuccessResponse(res, 200, "Listings fetched successfully", listings);
+    const response = {
+      success: true,
+      message: "Listings fetched successfully",
+      timestamp: new Date().toISOString(),
+      listing: listings,
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
     return HandleError(res, error);
   }
@@ -69,4 +80,10 @@ async function updateListing(req, res) {
   }
 }
 
-export { createListing, fetchAllListings, fetchListingById, deleteListing, updateListing };
+export {
+  createListing,
+  fetchAllListings,
+  fetchListingById,
+  deleteListing,
+  updateListing,
+};
