@@ -8,9 +8,11 @@ import {
   MAINTENANCE_PRIORITY,
   getStatusDisplayName,
 } from "@/lib/maintenanceApi";
-import MaintenanceForm from "./maintenance/MaintenanceForm";
-import MaintenanceFilters from "./maintenance/MaintenanceFilters";
-import MaintenanceColumn from "./maintenance/MaintenanceColumn";
+import axios from "@/lib/axios";
+import API_ENDPOINTS from "@/lib/apiEndpoints";
+import MaintenanceForm from "./MaintenanceForm";
+import MaintenanceFilters from "./MaintenanceFilters";
+import MaintenanceColumn from "./MaintenanceColumn";
 
 function Maintenance() {
   const [search, setSearch] = useState("");
@@ -39,21 +41,9 @@ function Maintenance() {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/v1/listings`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!res.ok) throw new Error("Failed to fetch listings");
-
-        const data = await res.json();
-        console.log("Listings data:", data);
+        const response = await axios.get(API_ENDPOINTS.LISTINGS.GET_ALL);
+        const data = response.data;
         const listings = Array.isArray(data) ? data : data.listing || [];
-        console.log("Processed listings:", listings);
         setProperties(listings);
       } catch (err) {
         console.error("Error fetching listings:", err);
@@ -142,7 +132,6 @@ function Maintenance() {
     try {
       await maintenanceApi.updateStatus(requestId, newStatus);
 
-      // Refresh the maintenance requests list
       const updatedRequests = await maintenanceApi.getAllRequests(filters);
       setMaintenanceRequests(updatedRequests.data || updatedRequests);
 
@@ -153,7 +142,6 @@ function Maintenance() {
     }
   };
 
-  // Handle delete request
   const handleDeleteRequest = async (requestId) => {
     if (!confirm("Are you sure you want to delete this maintenance request?")) {
       return;
@@ -162,7 +150,6 @@ function Maintenance() {
     try {
       await maintenanceApi.deleteRequest(requestId);
 
-      // Refresh the maintenance requests list
       const updatedRequests = await maintenanceApi.getAllRequests(filters);
       setMaintenanceRequests(updatedRequests.data || updatedRequests);
 
@@ -173,12 +160,10 @@ function Maintenance() {
     }
   };
 
-  // Filter maintenance requests by status
   const getRequestsByStatus = (status) => {
     return maintenanceRequests.filter((request) => request.status === status);
   };
 
-  // Filter maintenance requests by search term
   const getFilteredRequests = (requests) => {
     if (!search) return requests;
 
@@ -192,7 +177,6 @@ function Maintenance() {
     );
   };
 
-  // Define columns with real status mapping
   const columns = [
     {
       title: getStatusDisplayName(MAINTENANCE_STATUS.OPEN),

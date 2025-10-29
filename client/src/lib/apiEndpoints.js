@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   LISTINGS: {
     BASE: `${API_VERSION}/listings`,
     BY_ID: (id) => `${API_VERSION}/listings/${id}`,
+    GET_ALL: `${API_VERSION}/listings`,
   },
 
   // Upload endpoints

@@ -3,7 +3,6 @@ import axios from "./axios";
 const MAINTENANCE_API_BASE = "/api/v1/maintenance";
 
 export const maintenanceApi = {
-  // Get all maintenance requests with optional filters
   getAllRequests: async (filters = {}) => {
     const params = new URLSearchParams();
 
@@ -21,19 +20,16 @@ export const maintenanceApi = {
     return response.data;
   },
 
-  // Get a specific maintenance request by ID
   getRequestById: async (id) => {
     const response = await axios.get(`${MAINTENANCE_API_BASE}/${id}`);
     return response.data;
   },
 
-  // Create a new maintenance request
   createRequest: async (requestData) => {
     const response = await axios.post(MAINTENANCE_API_BASE, requestData);
     return response.data;
   },
 
-  // Update a maintenance request
   updateRequest: async (id, updateData) => {
     const response = await axios.patch(
       `${MAINTENANCE_API_BASE}/${id}`,
@@ -42,24 +38,20 @@ export const maintenanceApi = {
     return response.data;
   },
 
-  // Delete a maintenance request
   deleteRequest: async (id) => {
     const response = await axios.delete(`${MAINTENANCE_API_BASE}/${id}`);
     return response.data;
   },
 
-  // Update maintenance request status
   updateStatus: async (id, status) => {
     return maintenanceApi.updateRequest(id, { status });
   },
 
-  // Update maintenance request priority
   updatePriority: async (id, priority) => {
     return maintenanceApi.updateRequest(id, { priority });
   },
 };
 
-// Maintenance status constants
 export const MAINTENANCE_STATUS = {
   OPEN: "OPEN",
   IN_PROGRESS: "IN_PROGRESS",
@@ -67,7 +59,6 @@ export const MAINTENANCE_STATUS = {
   CANCELLED: "CANCELLED",
 };
 
-// Maintenance priority constants
 export const MAINTENANCE_PRIORITY = {
   LOW: "LOW",
   MEDIUM: "MEDIUM",
@@ -75,7 +66,6 @@ export const MAINTENANCE_PRIORITY = {
   URGENT: "URGENT",
 };
 
-// Maintenance category constants
 export const MAINTENANCE_CATEGORY = {
   PLUMBING: "PLUMBING",
   ELECTRICAL: "ELECTRICAL",
@@ -89,7 +79,6 @@ export const MAINTENANCE_CATEGORY = {
   OTHER: "OTHER",
 };
 
-// Helper function to get status display name
 export const getStatusDisplayName = (status) => {
   const statusMap = {
     [MAINTENANCE_STATUS.OPEN]: "Requests",
@@ -100,7 +89,6 @@ export const getStatusDisplayName = (status) => {
   return statusMap[status] || status;
 };
 
-// Helper function to get priority display name
 export const getPriorityDisplayName = (priority) => {
   const priorityMap = {
     [MAINTENANCE_PRIORITY.LOW]: "Low",
@@ -111,7 +99,6 @@ export const getPriorityDisplayName = (priority) => {
   return priorityMap[priority] || priority;
 };
 
-// Helper function to get category display name
 export const getCategoryDisplayName = (category) => {
   const categoryMap = {
     [MAINTENANCE_CATEGORY.PLUMBING]: "Plumbing",
