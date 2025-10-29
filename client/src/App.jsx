@@ -12,6 +12,8 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
 import MainLayout from "./layouts/MainLayout";
+import MyLeasesTemplates from "./pages/landlord/leases/MyLeasesTemplates";
+
 
 const queryClient = new QueryClient();
 
@@ -82,7 +84,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+                
           <Route
             path="/*"
             element={

@@ -12,6 +12,8 @@ import TenantDashboard from "../pages/tenant/dashboard/Dashboard";
 import Analytics from "../pages/landlord/analytics/Analytics";
 import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
+import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
+
 import TenanceMaintenance from "@/pages/tenant/maintenance/Maintenance";
 
 const MainLayout = () => {
@@ -29,6 +31,7 @@ const MainLayout = () => {
       { label: "Maintenance", id: "maintenance", path: "/maintenance" },
       // { label: "Accounting", id: "accounting", path: "/accounting" },
       { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
+      { label: "My Leases", id: "leases", path: "/landlord/leases" },
     ]
     : [
       { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
@@ -67,6 +70,7 @@ const MainLayout = () => {
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
             <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
             <Route path="/landlord/analytics" element={<Analytics />} />
+            <Route path="/landlord/leases" element={<MyLeasesTemplates />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />
