@@ -67,7 +67,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
       listing: { connect: { id: data.listingId } },
       // listingId: data.listingId,
       // leaseId,
-      leaseId: "cmh8vum010001w7rcsvoto9po" || null,
+      leaseId: leaseId,
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -147,7 +147,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
           state: true,
         },

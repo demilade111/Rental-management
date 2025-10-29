@@ -1,49 +1,57 @@
-import {
-  Routes,
-  Route,
-  useNavigate,
-  useLocation
-} from "react-router-dom"
-import { useAuthStore } from "../store/authStore"
-import Sidebar from "../components/Sidebar"
-import Header from "../components/Header"
-import LandlordDashboard from "../pages/landlord/dashboard/Dashboard"
-import TenantDashboard from "../pages/tenant/dashboard/Dashboard"
-import Analytics from "../pages/landlord/analytics/Analytics"
-import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio"
-import PropertyDetails from "@/pages/landlord/property/PropertyDetails"
-import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates"
-import TenanceMaintenance from "@/pages/tenant/maintenance/Maintenance"
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+import Sidebar from "../components/Sidebar";
+import Header from "../components/Header";
+import LandlordDashboard from "../pages/landlord/dashboard/Dashboard";
+import TenantDashboard from "../pages/tenant/dashboard/Dashboard";
+import Analytics from "../pages/landlord/analytics/Analytics";
+import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
+import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
+import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
+import Maintenance from "../pages/landlord/Maintenance";
+import TenanceMaintenance from "@/pages/tenant/maintenance/Maintenance";
 
 const MainLayout = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { user } = useAuthStore()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuthStore();
 
-  const isLandlord = user?.role === "ADMIN"
+  const isLandlord = user?.role === "ADMIN";
 
   const navItems = isLandlord
     ? [
         { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
         { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
-        { label: "Applications", id: "applications", path: "/landlord/applications" },
-        { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
+        {
+          label: "Applications",
+          id: "applications",
+          path: "/landlord/applications",
+        },
+        {
+          label: "Maintenance",
+          id: "maintenance",
+          path: "/landlord/maintenance",
+        },
         { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
-        { label: "My Leases", id: "leases", path: "/landlord/leases" }
+        { label: "My Leases", id: "leases", path: "/landlord/leases" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
-        { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" }
-      ]
+        {
+          label: "Maintenance",
+          id: "maintenance",
+          path: "/tenant/maintenance",
+        },
+      ];
 
   const activeNav =
-    navItems.find(item => location.pathname.startsWith(item.path))?.id ||
-    "dashboard"
+    navItems.find((item) => location.pathname.startsWith(item.path))?.id ||
+    "dashboard";
 
-  const handleNavChange = id => {
-    const item = navItems.find(nav => nav.id === id)
-    if (item) navigate(item.path)
-  }
+  const handleNavChange = (id) => {
+    const item = navItems.find((nav) => nav.id === id);
+    if (item) navigate(item.path);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -60,17 +68,24 @@ const MainLayout = () => {
           <Routes>
             <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
-            <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
+            <Route
+              path="/landlord/portfolio/:id"
+              element={<PropertyDetails />}
+            />
+            <Route path="/landlord/maintenance" element={<Maintenance />} />
             <Route path="/landlord/analytics" element={<Analytics />} />
             <Route path="/landlord/leases" element={<MyLeasesTemplates />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
-            <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />
+            <Route
+              path="/tenant/maintenance"
+              element={<TenanceMaintenance />}
+            />
           </Routes>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MainLayout
+export default MainLayout;
