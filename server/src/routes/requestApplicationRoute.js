@@ -5,6 +5,7 @@ import {
   getApplicationByPublicIdController,
   updateApplicationStatusController,
   deleteApplicationController,
+  submitPublicApplicationController,
 } from "../controllers/requestApplicationController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -203,6 +204,8 @@ router.get(
   authorize(["ADMIN"]),
   getAllApplicationsController
 );
+
+router.put("/public/:publicId", submitPublicApplicationController);
 
 router.get("/:publicId", getApplicationByPublicIdController);
 router.patch(

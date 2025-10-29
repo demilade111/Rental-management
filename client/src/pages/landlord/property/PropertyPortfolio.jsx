@@ -1,15 +1,16 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "../../../store/authStore";
-import PropertyTabs from "./PropertyTabs";
-import PropertySearchBar from "./PropertySearchBar";
-import PropertyList from "./PropertyList";
-import LoadingState from "../../../components/shared/LoadingState";
-import ErrorState from "../../../components/shared/ErrorState";
-import EmptyState from "../../../components/shared/EmptyState";
-import NewListingModal from "./NewListingModal";
-import api from "../../../lib/axios";
-import API_ENDPOINTS from "../../../lib/apiEndpoints";
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '../../../store/authStore';
+import PropertyTabs from './PropertyTabs';
+import PropertySearchBar from './PropertySearchBar';
+import PropertyList from './PropertyList';
+import LoadingState from '../../../components/shared/LoadingState';
+import ErrorState from '../../../components/shared/ErrorState';
+import EmptyState from '../../../components/shared/EmptyState';
+import NewListingModal from './NewListingModal';
+import api from '../../../lib/axios';
+import API_ENDPOINTS from '../../../lib/apiEndpoints';
+import PageHeader from '@/components/shared/PageHeader';
 
 const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState("rentals");
@@ -43,10 +44,7 @@ const PropertyPortfolio = () => {
 
   return (
     <div className="min-h-screen px-4 md:px-8 py-4">
-      <div className="mb-6">
-        <h1 className="text-[32px] font-bold mb-1">Portfolio</h1>
-        <p className="text-[16px] text-gray-600">Per Property</p>
-      </div>
+      <PageHeader title="Portfolio" subtitle="Per Property" />
 
       <PropertyTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       <PropertySearchBar
