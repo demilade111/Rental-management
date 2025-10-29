@@ -43,6 +43,7 @@ async function fetchAllMaintenanceRequests(req, res) {
     const filters = {
       status: req.query.status,
       priority: req.query.priority,
+      
       category: req.query.category,
       listingId: req.query.listingId,
     };

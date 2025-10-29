@@ -3,10 +3,11 @@ import { prisma } from "../prisma/client.js";
 const dedupe = (arr) => Array.from(new Set(arr));
 
 async function createMaintenanceRequest(userId, userRole, data) {
+  console.log("Creating maintenance request with data:", data);
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
   });
-
+  console.log("Listing found:", listing);
   if (!listing) {
     const err = new Error("Listing not found");
     err.status = 404;
@@ -34,6 +35,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
 
     leaseId = lease.id;
   } else if (userRole === "ADMIN") {
+    console.log("User is ADMIN, verifying ownership of listing", listing);
     if (listing.landlordId !== userId) {
       const err = new Error("You do not own this property");
       err.status = 403;
@@ -62,8 +64,10 @@ async function createMaintenanceRequest(userId, userRole, data) {
   const maintenanceRequest = await prisma.maintenanceRequest.create({
     data: {
       userId,
-      listingId: data.listingId,
-      leaseId,
+      listing: { connect: { id: data.listingId } },
+      // listingId: data.listingId,
+      // leaseId,
+      leaseId: "cmh8vum010001w7rcsvoto9po" || null,
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -95,6 +99,13 @@ async function createMaintenanceRequest(userId, userRole, data) {
         },
       },
       images: true,
+      ...(leaseId && {
+        lease: {
+          include: {
+            tenant: true,
+          },
+        },
+      }),
     },
   });
 
