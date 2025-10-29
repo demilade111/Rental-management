@@ -1,26 +1,32 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '../../../store/authStore';
-import PropertyTabs from './PropertyTabs';
-import PropertySearchBar from './PropertySearchBar';
-import PropertyList from './PropertyList';
-import LoadingState from '../../../components/shared/LoadingState';
-import ErrorState from '../../../components/shared/ErrorState';
-import EmptyState from '../../../components/shared/EmptyState';
-import NewListingModal from './NewListingModal';
-import api from '../../../lib/axios';
-import API_ENDPOINTS from '../../../lib/apiEndpoints';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "../../../store/authStore";
+import PropertyTabs from "./PropertyTabs";
+import PropertySearchBar from "./PropertySearchBar";
+import PropertyList from "./PropertyList";
+import LoadingState from "../../../components/shared/LoadingState";
+import ErrorState from "../../../components/shared/ErrorState";
+import EmptyState from "../../../components/shared/EmptyState";
+import NewListingModal from "./NewListingModal";
+import api from "../../../lib/axios";
+import API_ENDPOINTS from "../../../lib/apiEndpoints";
 
 const PropertyPortfolio = () => {
-  const [activeTab, setActiveTab] = useState('rentals');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("rentals");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: properties = [], isLoading, isError, error } = useQuery({
-    queryKey: ['listings'],
+  const {
+    data: properties = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["listings"],
     queryFn: async () => {
       const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
-      return response.data.data || response.data;
+      const data = response.data;
+      return Array.isArray(data) ? data : data.listing || data.data || [];
     },
   });
 
@@ -51,7 +57,9 @@ const PropertyPortfolio = () => {
 
       {isLoading && <LoadingState message="Loading properties..." />}
       {isError && <ErrorState message={error.message} />}
-      {!isLoading && !isError && filteredProperties.length === 0 && <EmptyState message="No properties available" />}
+      {!isLoading && !isError && filteredProperties.length === 0 && (
+        <EmptyState message="No properties available" />
+      )}
       {!isLoading && !isError && filteredProperties.length > 0 && (
         <PropertyList properties={filteredProperties} />
       )}

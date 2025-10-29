@@ -35,12 +35,19 @@ async function createMaintenanceRequest(userId, userRole, data) {
 
     leaseId = lease.id;
   } else if (userRole === "ADMIN") {
-    console.log("User is ADMIN, verifying ownership of listing", listing);
+    console.log("User is ADMIN, verifying ownership of listing");
+    console.log("  Listing landlordId:", listing.landlordId);
+    console.log("  Current userId:", userId);
+    console.log("  Types:", typeof listing.landlordId, typeof userId);
+    console.log("  Match:", listing.landlordId === userId);
+
     if (listing.landlordId !== userId) {
+      console.error("❌ OWNERSHIP MISMATCH!");
       const err = new Error("You do not own this property");
       err.status = 403;
       throw err;
     }
+    console.log("✅ Ownership verified");
     const activeLease = await prisma.lease.findFirst({
       where: {
         listingId: data.listingId,
@@ -63,11 +70,9 @@ async function createMaintenanceRequest(userId, userRole, data) {
 
   const maintenanceRequest = await prisma.maintenanceRequest.create({
     data: {
-      userId,
+      user: { connect: { id: userId } },
       listing: { connect: { id: data.listingId } },
-      // listingId: data.listingId,
-      // leaseId,
-      leaseId: leaseId,
+      lease: leaseId ? { connect: { id: leaseId } } : undefined,
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -92,7 +97,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
           state: true,
           landlordId: true,
@@ -183,7 +188,7 @@ async function getMaintenanceRequestById(requestId, userId, userRole) {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
           state: true,
           landlordId: true,
@@ -271,7 +276,7 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
         },
       },

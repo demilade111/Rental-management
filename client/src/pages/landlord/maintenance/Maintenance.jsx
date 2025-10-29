@@ -94,6 +94,16 @@ function Maintenance() {
       return;
     }
 
+    if (formData.title.length < 3) {
+      alert("Title must be at least 3 characters");
+      return;
+    }
+
+    if (formData.description.length < 10) {
+      alert("Description must be at least 10 characters");
+      return;
+    }
+
     try {
       const requestData = {
         title: formData.title,
@@ -103,7 +113,9 @@ function Maintenance() {
         description: formData.description,
       };
 
-      await maintenanceApi.createRequest(requestData);
+      console.log("Submitting maintenance request:", requestData);
+      const response = await maintenanceApi.createRequest(requestData);
+      console.log("Maintenance request created successfully:", response);
 
       alert("Maintenance request created successfully!");
       setShowModal(false);
@@ -119,10 +131,21 @@ function Maintenance() {
       const updatedRequests = await maintenanceApi.getAllRequests(filters);
       setMaintenanceRequests(updatedRequests.data || updatedRequests);
     } catch (error) {
-      console.error("Error creating maintenance request:", error);
+      console.error("Full error object:", error);
+      console.error("Error response:", error.response);
+      console.error("Error response data:", error.response?.data);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to create request";
+      const errorDetails =
+        error.response?.data?.details || error.response?.data?.errors || "";
+
       alert(
-        `Error submitting request: ${
-          error.message || "Failed to create request"
+        `Error submitting request: ${errorMessage}${
+          errorDetails ? "\n" + JSON.stringify(errorDetails) : ""
         }`
       );
     }
