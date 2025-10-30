@@ -1,10 +1,11 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting database seeding...\n");
+  console.log(" Starting database seeding...\n");
 
   console.log("🧹 Cleaning existing data...");
   await prisma.maintenanceRequest.deleteMany();
@@ -399,62 +400,7 @@ async function main() {
     },
   });
 
-  console.log(
-    "✅ Skipping rental applications (not needed for maintenance testing)..."
-  );
-
-  console.log("\n✅ Database seeding completed successfully!\n");
-
-  console.log("📊 Summary:");
-  console.log("═".repeat(70));
-  console.log("\n👥 USERS");
-  console.log("─".repeat(70));
-  console.log(`  Landlords:`);
-  console.log(
-    `    • ${landlord1.email} (${landlord1.firstName} ${landlord1.lastName})`
-  );
-  console.log(
-    `    • ${landlord2.email} (${landlord2.firstName} ${landlord2.lastName})`
-  );
-  console.log(`  Tenants:`);
-  console.log(
-    `    • ${tenant1.email} (${tenant1.firstName} ${tenant1.lastName})`
-  );
-  console.log(
-    `    • ${tenant2.email} (${tenant2.firstName} ${tenant2.lastName})`
-  );
-  console.log(`  Default Password: password123`);
-
-  console.log("\n🏠 LISTINGS");
-  console.log("─".repeat(70));
-  console.log(
-    `  • ${listing1.title} - ${listing1.city} ($${listing1.rentAmount}/month)`
-  );
-  console.log(
-    `  • ${listing2.title} - ${listing2.city} ($${listing2.rentAmount}/month)`
-  );
-  console.log(
-    `  • ${listing3.title} - ${listing3.city} ($${listing3.rentAmount}/month)`
-  );
-  console.log(
-    `  • ${listing4.title} - ${listing4.city} ($${listing4.rentAmount}/month)`
-  );
-
-  console.log("\n📄 ACTIVE LEASES");
-  console.log("─".repeat(70));
-  console.log(`  • ${listing1.title} → ${tenant1.email}`);
-  console.log(`  • ${listing4.title} → ${tenant2.email}`);
-
-  console.log("\n🔧 MAINTENANCE REQUESTS");
-  console.log("─".repeat(70));
-  console.log(`  • Open: 4 requests`);
-  console.log(`  • In Progress: 2 requests`);
-  console.log(`  • Completed: 2 requests`);
-
-  console.log("\n═".repeat(70));
-  console.log("🎉 Ready to test! Login with any user email and password123");
-  console.log("═".repeat(70));
-  console.log();
+  
 }
 
 main()

@@ -50,7 +50,9 @@ export async function createApplication(landlordId, data) {
       documents: data.documents || null,
       references: data.references || null,
       message: data.message || null,
-      expirationDate: data.expirationDate || null,
+      expirationDate: data.expirationDate
+        ? new Date(data.expirationDate)
+        : null,
       employmentInfo:
         employmentInfoData.length > 0
           ? { create: employmentInfoData }
@@ -181,7 +183,9 @@ export async function getApplicationByPublicId(publicId) {
   }
 
   if (application.expirationDate && new Date() > application.expirationDate) {
-    return res.status(403).json({ message: "This application link has expired." });
+    const err = new Error("This application link has expired.");
+    err.status = 403;
+    throw err;
   }
 
   return application;
