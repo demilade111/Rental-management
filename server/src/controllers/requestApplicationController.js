@@ -14,6 +14,7 @@ import {
   SuccessResponse,
   HandleError,
 } from "../utils/httpResponse.js";
+import { prisma } from "../prisma/client.js";
 
 export async function createApplicationController(req, res) {
   try {
@@ -70,6 +71,11 @@ export async function submitPublicApplicationController(req, res) {
       const err = new Error("Application not found");
       err.status = 404;
       throw err;
+    }
+
+    // Check if the application link has expired
+    if (application.expirationDate && new Date() > application.expirationDate) {
+      return res.status(403).json({ message: "This application link has expired." });
     }
 
     // Update application with tenant info

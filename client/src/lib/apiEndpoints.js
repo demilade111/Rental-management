@@ -22,7 +22,7 @@ export const API_ENDPOINTS = {
 
   // Upload endpoints
   UPLOADS: {
-    BASE: `${API_VERSION}/uploads`,
+    BASE: `${API_VERSION}/upload`,
   },
 
   // Maintenance endpoints

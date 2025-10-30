@@ -108,6 +108,7 @@ enum MaintenanceCategory {
 }
 
 enum ApplicationStatus {
+  NEW
   PENDING
   APPROVED
   REJECTED
