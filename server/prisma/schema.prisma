@@ -3,9 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
+
 
 model Listing {
   id                 String               @id @default(cuid())
@@ -281,3 +283,9 @@ enum PropertyType {
   PARKING_SPACE
   WAREHOUSE
 }
+=======
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+>>>>>>> ba4611a3fb144f553ae72b5559e9c9c8c46ce601

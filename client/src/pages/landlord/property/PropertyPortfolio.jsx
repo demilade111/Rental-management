@@ -10,17 +10,24 @@ import EmptyState from '../../../components/shared/EmptyState';
 import NewListingModal from './NewListingModal';
 import api from '../../../lib/axios';
 import API_ENDPOINTS from '../../../lib/apiEndpoints';
+import PageHeader from '@/components/shared/PageHeader';
 
 const PropertyPortfolio = () => {
-  const [activeTab, setActiveTab] = useState('rentals');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("rentals");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: properties = [], isLoading, isError, error } = useQuery({
-    queryKey: ['listings'],
+  const {
+    data: properties = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["listings"],
     queryFn: async () => {
       const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
-      return response.data.data || response.data;
+      const data = response.data;
+      return Array.isArray(data) ? data : data.listing || data.data || [];
     },
   });
 
@@ -37,10 +44,7 @@ const PropertyPortfolio = () => {
 
   return (
     <div className="min-h-screen px-4 md:px-8 py-4">
-      <div className="mb-6">
-        <h1 className="text-[32px] font-bold mb-1">Portfolio</h1>
-        <p className="text-[16px] text-gray-600">Per Property</p>
-      </div>
+      <PageHeader title="Portfolio" subtitle="Per Property" />
 
       <PropertyTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       <PropertySearchBar
@@ -51,7 +55,9 @@ const PropertyPortfolio = () => {
 
       {isLoading && <LoadingState message="Loading properties..." />}
       {isError && <ErrorState message={error.message} />}
-      {!isLoading && !isError && filteredProperties.length === 0 && <EmptyState message="No properties available" />}
+      {!isLoading && !isError && filteredProperties.length === 0 && (
+        <EmptyState message="No properties available" />
+      )}
       {!isLoading && !isError && filteredProperties.length > 0 && (
         <PropertyList properties={filteredProperties} />
       )}

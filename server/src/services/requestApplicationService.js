@@ -24,13 +24,13 @@ export async function createApplication(landlordId, data) {
   const publicId = generatePublicId();
   const employmentInfoData = data.employmentInfo
     ? data.employmentInfo.map((info) => ({
-        employerName: info.employerName,
-        jobTitle: info.jobTitle,
-        income: info.income,
-        duration: info.duration,
-        address: info.address,
-        proofDocument: info.proofDocument,
-      }))
+      employerName: info.employerName,
+      jobTitle: info.jobTitle,
+      income: info.income,
+      duration: info.duration,
+      address: info.address,
+      proofDocument: info.proofDocument,
+    }))
     : [];
   const application = await prisma.requestApplication.create({
     data: {
@@ -50,6 +50,9 @@ export async function createApplication(landlordId, data) {
       documents: data.documents || null,
       references: data.references || null,
       message: data.message || null,
+      expirationDate: data.expirationDate
+        ? new Date(data.expirationDate)
+        : null,
       employmentInfo:
         employmentInfoData.length > 0
           ? { create: employmentInfoData }
@@ -176,6 +179,12 @@ export async function getApplicationByPublicId(publicId) {
   if (!application) {
     const err = new Error("Application not found");
     err.status = 404;
+    throw err;
+  }
+
+  if (application.expirationDate && new Date() > application.expirationDate) {
+    const err = new Error("This application link has expired.");
+    err.status = 403;
     throw err;
   }
 

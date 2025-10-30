@@ -3,7 +3,9 @@ import {
   getawsS3PresignedUrl,
   getawsS3DownloadUrl,
 } from "../controllers/uploadController.js";
+import { getApplicationProofUploadUrl } from "../controllers/applicationFileController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { submitPublicApplicationController } from "../controllers/requestApplicationController.js";
 
 const router = express.Router();
 
@@ -54,5 +56,11 @@ const router = express.Router();
 
 router.get("/s3-url", authenticate, getawsS3PresignedUrl);
 router.get("/s3-download-url", authenticate, getawsS3DownloadUrl);
+router.get(
+  "/application-proof-url",
+  authenticate,
+  getApplicationProofUploadUrl
+);
+router.post("/:publicId/submit", submitPublicApplicationController);
 
 export default router;

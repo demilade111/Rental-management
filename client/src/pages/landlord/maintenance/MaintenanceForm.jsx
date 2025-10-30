@@ -26,6 +26,7 @@ const MaintenanceForm = ({
               value={formData.title}
               onChange={onChange}
               placeholder="e.g. My door is broken"
+              minLength={3}
               required
             />
           </div>
@@ -106,7 +107,9 @@ const MaintenanceForm = ({
               onChange={onChange}
               rows={4}
               className="border rounded-md w-full p-2"
-              placeholder="Describe the issue..."
+              placeholder="Describe the issue... (minimum 10 characters)"
+              minLength={10}
+              required
             ></textarea>
           </div>
 

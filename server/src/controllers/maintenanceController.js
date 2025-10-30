@@ -17,7 +17,13 @@ import {
 
 async function createMaintenance(req, res) {
   try {
+    console.log("📝 CREATE MAINTENANCE REQUEST");
+    console.log("Request body:", req.body);
+    console.log("User:", req.user?.id, req.user?.role);
+
     const body = createMaintenanceRequestSchema.parse(req.body);
+    console.log("✅ Validation passed:", body);
+
     const userId = req.user.id;
     const userRole = req.user.role;
     const maintenanceRequest = await createMaintenanceRequest(
@@ -26,12 +32,16 @@ async function createMaintenance(req, res) {
       body
     );
 
+    console.log("✅ Maintenance request created:", maintenanceRequest.id);
+
     return CreatedResponse(
       res,
       "Maintenance request created successfully",
       maintenanceRequest
     );
   } catch (error) {
+    console.error("❌ CREATE MAINTENANCE ERROR:", error.message);
+    console.error("Error details:", error);
     return HandleError(res, error);
   }
 }
@@ -43,7 +53,7 @@ async function fetchAllMaintenanceRequests(req, res) {
     const filters = {
       status: req.query.status,
       priority: req.query.priority,
-      
+
       category: req.query.category,
       listingId: req.query.listingId,
     };
