@@ -20,7 +20,7 @@ const PropertySearchBar = ({ searchQuery, setSearchQuery, onNewListing }) => (
                 <SlidersHorizontal className="w-4 h-4" />
             </Button>
         </div>
-        <Button className="bg-black text-white hover:bg-gray-800" onClick={onNewListing}>
+        <Button className="bg-black text-white hover:bg-gray-800 rounded-xl" onClick={onNewListing}>
             <Plus className="w-4 h-4 mr-2" />
             New Listing
         </Button>

@@ -12,6 +12,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
 import MainLayout from "./layouts/MainLayout";
+import ApplyForm from "./pages/landlord/application/ApplyForm";
 
 
 const queryClient = new QueryClient();
@@ -83,7 +84,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-                
+
+          {/* Public-facing application form */}
+          <Route path="/apply/:publicId" element={<ApplyForm />} />
+
           <Route
             path="/*"
             element={

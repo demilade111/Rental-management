@@ -40,6 +40,9 @@ CREATE TYPE "MaintenancePriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
 -- CreateEnum
 CREATE TYPE "MaintenanceCategory" AS ENUM ('PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCE', 'STRUCTURAL', 'PEST_CONTROL', 'CLEANING', 'LANDSCAPING', 'SECURITY', 'OTHER');
 
+-- CreateEnum
+CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED');
+
 -- CreateTable
 CREATE TABLE "Lease" (
     "id" TEXT NOT NULL,
@@ -155,7 +158,7 @@ CREATE TABLE "ListingImage" (
 CREATE TABLE "MaintenanceRequest" (
     "id" TEXT NOT NULL,
     "listingId" TEXT NOT NULL,
-    "tenantId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "status" "MaintenanceStatus" NOT NULL DEFAULT 'OPEN',
     "priority" "MaintenancePriority" NOT NULL DEFAULT 'MEDIUM',
@@ -179,6 +182,53 @@ CREATE TABLE "MaintenanceImage" (
 );
 
 -- CreateTable
+CREATE TABLE "RequestApplication" (
+    "id" TEXT NOT NULL,
+    "publicId" TEXT NOT NULL,
+    "listingId" TEXT NOT NULL,
+    "tenantId" TEXT,
+    "landlordId" TEXT NOT NULL,
+    "fullName" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "dateOfBirth" TIMESTAMP(3),
+    "monthlyIncome" DOUBLE PRECISION,
+    "currentAddress" TEXT,
+    "moveInDate" TIMESTAMP(3),
+    "occupants" JSONB,
+    "pets" JSONB,
+    "documents" JSONB,
+    "references" JSONB,
+    "message" TEXT,
+    "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
+    "reviewedBy" TEXT,
+    "reviewedAt" TIMESTAMP(3),
+    "decisionNotes" TEXT,
+    "leaseId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "expirationDate" TIMESTAMP(3),
+
+    CONSTRAINT "RequestApplication_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "EmploymentInfo" (
+    "id" TEXT NOT NULL,
+    "applicationId" TEXT NOT NULL,
+    "employerName" TEXT NOT NULL,
+    "jobTitle" TEXT NOT NULL,
+    "income" DOUBLE PRECISION,
+    "duration" TEXT,
+    "address" TEXT,
+    "proofDocument" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EmploymentInfo_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -188,6 +238,8 @@ CREATE TABLE "users" (
     "phone" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'TENANT',
     "profileImage" TEXT,
+    "resetToken" TEXT,
+    "resetTokenExpiry" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -225,7 +277,7 @@ CREATE INDEX "ListingImage_listingId_idx" ON "ListingImage"("listingId");
 CREATE UNIQUE INDEX "ListingImage_listingId_url_key" ON "ListingImage"("listingId", "url");
 
 -- CreateIndex
-CREATE INDEX "MaintenanceRequest_tenantId_createdAt_idx" ON "MaintenanceRequest"("tenantId", "createdAt");
+CREATE INDEX "MaintenanceRequest_userId_createdAt_idx" ON "MaintenanceRequest"("userId", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "MaintenanceRequest_listingId_createdAt_idx" ON "MaintenanceRequest"("listingId", "createdAt");
@@ -241,6 +293,27 @@ CREATE INDEX "MaintenanceRequest_createdAt_idx" ON "MaintenanceRequest"("created
 
 -- CreateIndex
 CREATE INDEX "MaintenanceImage_maintenanceRequestId_idx" ON "MaintenanceImage"("maintenanceRequestId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RequestApplication_publicId_key" ON "RequestApplication"("publicId");
+
+-- CreateIndex
+CREATE INDEX "RequestApplication_listingId_idx" ON "RequestApplication"("listingId");
+
+-- CreateIndex
+CREATE INDEX "RequestApplication_landlordId_idx" ON "RequestApplication"("landlordId");
+
+-- CreateIndex
+CREATE INDEX "RequestApplication_tenantId_idx" ON "RequestApplication"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "RequestApplication_publicId_idx" ON "RequestApplication"("publicId");
+
+-- CreateIndex
+CREATE INDEX "RequestApplication_status_idx" ON "RequestApplication"("status");
+
+-- CreateIndex
+CREATE INDEX "EmploymentInfo_applicationId_idx" ON "EmploymentInfo"("applicationId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
@@ -270,7 +343,22 @@ ALTER TABLE "MaintenanceRequest" ADD CONSTRAINT "MaintenanceRequest_leaseId_fkey
 ALTER TABLE "MaintenanceRequest" ADD CONSTRAINT "MaintenanceRequest_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MaintenanceRequest" ADD CONSTRAINT "MaintenanceRequest_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MaintenanceRequest" ADD CONSTRAINT "MaintenanceRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "MaintenanceImage" ADD CONSTRAINT "MaintenanceImage_maintenanceRequestId_fkey" FOREIGN KEY ("maintenanceRequestId") REFERENCES "MaintenanceRequest"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RequestApplication" ADD CONSTRAINT "RequestApplication_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RequestApplication" ADD CONSTRAINT "RequestApplication_landlordId_fkey" FOREIGN KEY ("landlordId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RequestApplication" ADD CONSTRAINT "RequestApplication_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RequestApplication" ADD CONSTRAINT "RequestApplication_leaseId_fkey" FOREIGN KEY ("leaseId") REFERENCES "Lease"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EmploymentInfo" ADD CONSTRAINT "EmploymentInfo_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "RequestApplication"("id") ON DELETE CASCADE ON UPDATE CASCADE;

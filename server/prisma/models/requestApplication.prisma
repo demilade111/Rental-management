@@ -4,8 +4,8 @@ model RequestApplication {
   listingId      String
   tenantId       String?
   landlordId     String
-  fullName       String
-  email          String
+  fullName       String?
+  email          String?
   phone          String?
   dateOfBirth    DateTime?
   monthlyIncome  Float?
@@ -15,7 +15,7 @@ model RequestApplication {
   pets           Json?
   documents      Json?
   references     Json?
-  message        String?
+  message        String? // store requirements of the contact as json data
   status         ApplicationStatus @default(PENDING)
   reviewedBy     String?
   reviewedAt     DateTime?
@@ -23,6 +23,7 @@ model RequestApplication {
   leaseId        String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+  expirationDate  DateTime?
   listing         Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
   landlord        User             @relation("LandlordApplications", fields: [landlordId], references: [id])
   tenant          User?            @relation("TenantApplications", fields: [tenantId], references: [id])

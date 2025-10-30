@@ -22,7 +22,13 @@ export const API_ENDPOINTS = {
 
   // Upload endpoints
   UPLOADS: {
-    BASE: `${API_VERSION}/uploads`,
+    BASE: `${API_VERSION}/upload`,
+  },
+
+  // Maintenance endpoints
+  APPLICATIONS: {
+    BASE: `${API_VERSION}/applications`,
+    BY_ID: (id) => `${API_VERSION}/applications/${id}`,
   },
 
   // Lease endpoints

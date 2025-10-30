@@ -14,6 +14,7 @@ import {
   SuccessResponse,
   HandleError,
 } from "../utils/httpResponse.js";
+import { prisma } from "../prisma/client.js";
 
 export async function createApplicationController(req, res) {
   try {
@@ -51,6 +52,70 @@ export async function getAllApplicationsController(req, res) {
       "Applications retrieved successfully",
       applications
     );
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+export async function submitPublicApplicationController(req, res) {
+  try {
+    const { publicId } = req.params;
+    const data = req.body;
+
+    // Find application template
+    const application = await prisma.requestApplication.findUnique({
+      where: { publicId },
+    });
+
+    if (!application) {
+      const err = new Error("Application not found");
+      err.status = 404;
+      throw err;
+    }
+
+    // Check if the application link has expired
+    if (application.expirationDate && new Date() > application.expirationDate) {
+      return res.status(403).json({ message: "This application link has expired." });
+    }
+
+    // Update application with tenant info
+    const updatedApplication = await prisma.requestApplication.update({
+      where: { publicId },
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone || null,
+        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+        currentAddress: data.currentAddress || null,
+        moveInDate: data.moveInDate ? new Date(data.moveInDate) : null,
+        monthlyIncome: data.monthlyIncome || null,
+        message: data.message || null,
+        documents: data.documents || null,
+        references: data.references || null,
+        status: "NEW", // mark as new
+      },
+    });
+
+    // Optionally, create employmentInfo if provided
+    if (data.employmentInfo && data.employmentInfo.length > 0) {
+      await Promise.all(
+        data.employmentInfo.map((info) =>
+          prisma.employmentInfo.create({
+            data: {
+              applicationId: updatedApplication.id,
+              employerName: info.employerName,
+              jobTitle: info.jobTitle,
+              income: info.income || null,
+              duration: info.duration || null,
+              address: info.address || null,
+              proofDocument: info.proofDocument || null,
+            },
+          })
+        )
+      );
+    }
+
+    return SuccessResponse(res, 200, "Application submitted successfully", updatedApplication);
   } catch (error) {
     return HandleError(res, error);
   }

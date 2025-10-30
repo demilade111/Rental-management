@@ -27,6 +27,7 @@ export const createApplicationSchema = z.object({
   documents: z.array(z.string().url("Document must be a valid URL")).optional(),
   references: z.array(z.any()).optional(),
   message: z.string().trim().optional(),
+  expirationDate: z.string().datetime("Invalid expiration date format").optional(),
   employmentInfo: z.array(employmentInfoSchema).optional(),
 });
 
