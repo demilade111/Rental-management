@@ -370,7 +370,7 @@ const ApplyForm = () => {
                     onBlur={(e) => validateField("phone", e.target.value)}
                     className={errors.phone ? "border-red-500" : ""}
                   />
-                  {errors.email && <p className="text-red-500 text-sm">{errors.phone}</p>}
+                  {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">
