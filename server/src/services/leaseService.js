@@ -68,45 +68,56 @@ export const createLease = async (landlordId, data) => {
 };
 
 export const getAllLeases = async (userId, userRole, filters = {}) => {
-  const where = {};
+  try {
+    console.log("🟢 getAllLeases() called with:", {
+      userId,
+      userRole,
+      filters,
+    });
 
-  if (userRole === "LANDLORD") {
-    where.landlordId = userId;
-  } else if (userRole === "TENANT") {
-    where.tenantId = userId;
-  }
+    const where = {};
 
-  if (filters.leaseStatus) {
-    where.leaseStatus = filters.leaseStatus;
-  }
-  if (filters.listingId) {
-    where.listingId = filters.listingId;
-  }
+    if (userRole === "LANDLORD") {
+      where.landlordId = userId;
+    } else if (userRole === "TENANT") {
+      where.tenantId = userId;
+    }
 
-  const leases = await prisma.lease.findMany({
-    where,
-    include: {
-      tenant: {
-        select: { id: true, firstName: true, lastName: true, email: true },
-      },
-      landlord: {
-        select: { id: true, firstName: true, lastName: true, email: true },
-      },
-      listing: {
-        select: {
-          id: true,
-          title: true,
-          address: true,
-          city: true,
-          state: true,
-          country: true,
+    if (filters.leaseStatus) {
+      where.leaseStatus = filters.leaseStatus;
+    }
+    if (filters.listingId) {
+      where.listingId = filters.listingId;
+    }
+
+    console.log("📘 Prisma Query WHERE:", where);
+
+    const leases = await prisma.lease.findMany({
+      where,
+      include: {
+        tenant: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        listing: {
+          select: {
+            id: true,
+            title: true,
+            address: true,
+            city: true,
+            state: true,
+            country: true,
+          },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { id: "asc" },
+    });
 
-  return leases;
+    console.log("✅ Query successful, found leases:", leases.length);
+    return leases;
+  } catch (error) {
+    console.error("🔥 Prisma error in getAllLeases():", error);
+    throw new Error("Internal server error from leaseService");
+  }
 };
 
 export const getLeaseById = async (leaseId, userId, userRole) => {

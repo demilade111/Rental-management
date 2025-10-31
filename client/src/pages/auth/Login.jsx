@@ -2,8 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
+<<<<<<< HEAD
+=======
 import api from "../../lib/axios";
 import API_ENDPOINTS from "../../lib/apiEndpoints";
+>>>>>>> main
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -21,6 +24,106 @@ export default function LoginPage() {
     }));
   };
 
+<<<<<<< HEAD
+  // TanStack Query mutation
+  const loginMutation = useMutation({
+    mutationFn: async (data) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/v1/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // ✅ Debugging: log what backend sends
+      console.log("Login response:", data);
+
+      const user = data?.data?.user;
+      const token =
+        data?.data?.token ||
+        data?.token ||
+        data?.accessToken ||
+        data?.jwt ||
+        undefined;
+
+      // ✅ Save token to localStorage (critical step)
+      if (token) {
+        localStorage.setItem("token", token);
+        console.log("Token saved:", token);
+      } else {
+        console.warn("⚠️ No token found in login response.");
+      }
+
+      // ✅ Also store user info for later use
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      // ✅ Update Zustand store
+      login(user, token);
+
+      // ✅ Navigate based on user role
+      setTimeout(() => {
+        if (user?.role === "TENANT") {
+          navigate("/tenant/dashboard");
+        } else {
+          navigate("/landlord/dashboard");
+        }
+      }, 1000);
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    loginMutation.mutate(formData);
+  };
+
+  const { isPending, error, isSuccess } = loginMutation;
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md">
+        {/* Success message */}
+        {isSuccess && (
+          <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
+            Login successful!
+          </div>
+        )}
+
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded">
+            {error.message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+          <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+
+          <div className="mb-4">
+            <label className="block mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={isPending}
+              className="w-full p-2 border rounded disabled:opacity-50"
+            />
+          </div>
+
+=======
   const loginMutation = useMutation({
     mutationFn: async (data) => {
       const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
@@ -77,6 +180,7 @@ export default function LoginPage() {
             />
           </div>
 
+>>>>>>> main
           <div className="mb-4">
             <label className="block mb-1">Password</label>
             <input
@@ -88,6 +192,8 @@ export default function LoginPage() {
               disabled={isPending}
               className="w-full p-2 border rounded disabled:opacity-50"
             />
+<<<<<<< HEAD
+=======
             <div className="mt-1 text-right">
               <button
                 type="button"
@@ -97,6 +203,7 @@ export default function LoginPage() {
                 Forgot password?
               </button>
             </div>
+>>>>>>> main
           </div>
 
           <button
@@ -108,7 +215,11 @@ export default function LoginPage() {
           </button>
 
           <div className="mt-4 text-center text-sm text-gray-600">
+<<<<<<< HEAD
+            Don’t have an account?{" "}
+=======
             Don't have an account?{" "}
+>>>>>>> main
             <button
               type="button"
               onClick={() => navigate("/signup")}

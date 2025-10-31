@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -21,29 +21,17 @@ const MainLayout = () => {
 
   const navItems = isLandlord
     ? [
-      { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
-      { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
-      {
-        label: "Applications",
-        id: "applications",
-        path: "/landlord/applications",
-      },
-      {
-        label: "Maintenance",
-        id: "maintenance",
-        path: "/landlord/maintenance",
-      },
-      { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
-      { label: "My Leases", id: "leases", path: "/landlord/leases" },
-    ]
+        { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
+        { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
+        { label: "Applications", id: "applications", path: "/landlord/applications" },
+        { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
+        { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
+        { label: "My Leases", id: "leases", path: "/landlord/leases" },
+      ]
     : [
-      { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
-      {
-        label: "Maintenance",
-        id: "maintenance",
-        path: "/tenant/maintenance",
-      },
-    ];
+        { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
+        { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" },
+      ];
 
   const activeNav =
     navItems.find((item) => location.pathname.startsWith(item.path))?.id ||
@@ -76,7 +64,9 @@ const MainLayout = () => {
             <Route path="/landlord/leases" element={<MyLeasesTemplates />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
-            <Route path="/tenant/maintenance" element={<TenanceMaintenance />}/>
+            <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />
+
+            <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
           </Routes>
         </div>
       </div>

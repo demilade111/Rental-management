@@ -7,3 +7,285 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+
+model Listing {
+  id                 String               @id @default(cuid())
+  landlordId         String
+  title              String
+  description        String?
+  category           PropertyCategory
+  residentialType    ResidentialType?
+  commercialType     CommercialType?
+  address            String
+  city               String
+  state              String
+  country            String
+  zipCode            String?
+  bedrooms           Int?
+  bathrooms          Int?
+  size               Int?
+  yearBuilt          Int?
+  rentAmount         Float
+  rentCycle          RentCycle
+  securityDeposit    Float?
+  availableDate      DateTime
+  leases             Lease[]              @relation("ListingLeases")
+  landlord           users                @relation("LandlordListings", fields: [landlordId], references: [id])
+  ListingAmenity     ListingAmenity[]
+  ListingImage       ListingImage[]
+  MaintenanceRequest MaintenanceRequest[]
+
+  @@index([city, category])
+  @@index([landlordId])
+  @@index([rentCycle])
+}
+
+model Lease {
+  id                            String               @id @default(cuid())
+  listingId                     String
+  tenantId                      String
+  landlordId                    String
+  startDate                     DateTime
+  endDate                       DateTime
+  rentAmount                    Float
+  paymentFrequency              RentCycle
+  securityDeposit               Float?
+  paymentMethod                 String?
+  leaseStatus                   LeaseStatus          @default(DRAFT)
+  leaseDocument                 String?
+  signedContract                String?
+  notes                         String?
+  acceptsCash                   Boolean              @default(false)
+  acceptsCheque                 Boolean              @default(false)
+  acceptsDirectDebit            Boolean              @default(false)
+  acceptsETransfer              Boolean              @default(false)
+  acceptsOther                  Boolean              @default(false)
+  additionalLandlords           Json?
+  additionalTenants             Json?
+  allowsOccupants               Boolean              @default(false)
+  commercialType                CommercialType?
+  customDepositNoticeDays       Int?
+  customPaymentInfo             String?
+  customRentIncreaseNoticeDays  Int?
+  depositAccountInfo            String?
+  depositAmount                 Float?
+  depositBankName               String?
+  depositReturnNoticeType       DepositNoticeType?
+  discloseBankInfo              Boolean              @default(false)
+  hasSecurityDeposit            Boolean              @default(false)
+  landlordAddress               String?
+  landlordEmail                 String?
+  landlordFullName              String?
+  landlordPhone                 String?
+  landlordType                  LandlordType?
+  leaseTermType                 LeaseTermType?
+  numberOfOccupants             Int?
+  occupants                     Json?
+  paymentDay                    Int?
+  propertyAddress               String?
+  propertyCategory              PropertyCategory?
+  propertyCity                  String?
+  propertyCountry               String?
+  propertyState                 String?
+  propertyZipCode               String?
+  rentIncreaseNoticeType        NoticeType?
+  residentialType               ResidentialType?
+  tenantEmail                   String?
+  tenantFullName                String?
+  tenantPhone                   String?
+  createdAt                     DateTime?            @default(now())
+  users_Lease_landlordIdTousers users                @relation("Lease_landlordIdTousers", fields: [landlordId], references: [id])
+  listing                       Listing              @relation("ListingLeases", fields: [listingId], references: [id])
+  tenant                        users                @relation("TenantLeases", fields: [tenantId], references: [id])
+  MaintenanceRequest            MaintenanceRequest[]
+
+  @@index([landlordId])
+  @@index([tenantId])
+}
+
+model ListingAmenity {
+  id        String   @id
+  listingId String
+  name      String
+  createdAt DateTime @default(now())
+  Listing   Listing  @relation(fields: [listingId], references: [id])
+
+  @@unique([listingId, name])
+  @@index([listingId])
+}
+
+model ListingImage {
+  id        String   @id
+  listingId String
+  url       String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  Listing   Listing  @relation(fields: [listingId], references: [id])
+
+  @@unique([listingId, url])
+  @@index([listingId])
+}
+
+model MaintenanceImage {
+  id                   String             @id
+  maintenanceRequestId String
+  url                  String
+  createdAt            DateTime           @default(now())
+  MaintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
+
+  @@index([maintenanceRequestId])
+}
+
+model MaintenanceRequest {
+  id               String              @id
+  listingId        String
+  tenantId         String
+  description      String
+  status           MaintenanceStatus   @default(OPEN)
+  priority         MaintenancePriority @default(MEDIUM)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime
+  leaseId          String?
+  category         MaintenanceCategory
+  title            String
+  MaintenanceImage MaintenanceImage[]
+  Lease            Lease?              @relation(fields: [leaseId], references: [id])
+  Listing          Listing             @relation(fields: [listingId], references: [id])
+  users            users               @relation(fields: [tenantId], references: [id])
+
+  @@index([category])
+  @@index([createdAt])
+  @@index([listingId, createdAt])
+  @@index([status, priority, createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model users {
+  id                            String               @id
+  email                         String               @unique
+  password                      String
+  firstName                     String?
+  lastName                      String?
+  phone                         String?
+  role                          UserRole             @default(TENANT)
+  profileImage                  String?
+  createdAt                     DateTime             @default(now())
+  updatedAt                     DateTime
+  Lease_Lease_landlordIdTousers Lease[]              @relation("Lease_landlordIdTousers")
+  leases                        Lease[]              @relation("TenantLeases")
+  listings                      Listing[]            @relation("LandlordListings")
+  MaintenanceRequest            MaintenanceRequest[]
+}
+
+enum UserRole {
+  ADMIN
+  TENANT
+}
+
+enum PropertyCategory {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum ResidentialType {
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  MULTI_FAMILY
+  SINGLE_FAMILY
+  STUDIO
+}
+
+enum CommercialType {
+  INDUSTRIAL
+  OFFICE
+  RETAIL
+  SHOPPING_CENTER
+  STORAGE
+  PARKING_SPACE
+  WAREHOUSE
+}
+
+enum RentCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum LeaseStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum DepositNoticeType {
+  LEGAL_MAXIMUM
+  LESS_THAN_MINIMUM
+}
+
+enum LandlordType {
+  INDIVIDUAL
+  CORPORATION
+}
+
+enum LeaseTermType {
+  LONG_TERM
+  MONTH_TO_MONTH
+  YEAR_TO_YEAR
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  APPLIANCE
+  STRUCTURAL
+  PEST_CONTROL
+  CLEANING
+  LANDSCAPING
+  SECURITY
+  OTHER
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NoticeType {
+  LEGAL_MINIMUM
+  MORE_THAN_MINIMUM
+}
+
+enum PropertyType {
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  MULTI_FAMILY
+  SINGLE_FAMILY
+  STUDIO
+  INDUSTRIAL
+  OFFICE
+  RETAIL
+  SHOPPING_CENTER
+  STORAGE
+  PARKING_SPACE
+  WAREHOUSE
+}
+=======
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+>>>>>>> ba4611a3fb144f553ae72b5559e9c9c8c46ce601
