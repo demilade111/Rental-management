@@ -259,7 +259,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
     if (data.status === "APPROVED" && application.tenantId) {
       const moveInDate = application.moveInDate || new Date();
       const leaseEndDate = new Date(moveInDate);
-      leaseEndDate.setFullYear(leaseEndDate.getFullYear() + 1); // Default 1 year lease
+      leaseEndDate.setFullYear(leaseEndDate.getFullYear() + 1); 
 
       lease = await tx.lease.create({
         data: {
@@ -276,7 +276,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
         },
       });
 
-      // Link lease to application
+  
       await tx.requestApplication.update({
         where: { id: applicationId },
         data: { leaseId: lease.id },
@@ -289,11 +289,8 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
   return result;
 }
 
-/**
- * Delete an application (and cascade delete employment info)
- */
+
 export async function deleteApplication(applicationId, landlordId) {
-  // Verify application exists and belongs to landlord
   const application = await prisma.requestApplication.findUnique({
     where: { id: applicationId },
   });

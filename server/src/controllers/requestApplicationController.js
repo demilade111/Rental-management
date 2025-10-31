@@ -14,7 +14,7 @@ import {
   SuccessResponse,
   HandleError,
 } from "../utils/httpResponse.js";
-import { prisma } from "../prisma/client.js";
+import { prisma, ApplicationStatus } from "../prisma/client.js";
 
 export async function createApplicationController(req, res) {
   try {
@@ -62,7 +62,7 @@ export async function submitPublicApplicationController(req, res) {
     const { publicId } = req.params;
     const data = req.body;
 
-    // Find application template
+
     const application = await prisma.requestApplication.findUnique({
       where: { publicId },
     });
@@ -73,12 +73,13 @@ export async function submitPublicApplicationController(req, res) {
       throw err;
     }
 
-    // Check if the application link has expired
+    
     if (application.expirationDate && new Date() > application.expirationDate) {
-      return res.status(403).json({ message: "This application link has expired." });
+      return res
+        .status(403)
+        .json({ message: "This application link has expired." });
     }
 
-    // Update application with tenant info
     const updatedApplication = await prisma.requestApplication.update({
       where: { publicId },
       data: {
@@ -92,7 +93,7 @@ export async function submitPublicApplicationController(req, res) {
         message: data.message || null,
         documents: data.documents || null,
         references: data.references || null,
-        status: "NEW", // mark as new
+        status: ApplicationStatus.NEW, 
       },
     });
 
@@ -115,7 +116,12 @@ export async function submitPublicApplicationController(req, res) {
       );
     }
 
-    return SuccessResponse(res, 200, "Application submitted successfully", updatedApplication);
+    return SuccessResponse(
+      res,
+      200,
+      "Application submitted successfully",
+      updatedApplication
+    );
   } catch (error) {
     return HandleError(res, error);
   }
