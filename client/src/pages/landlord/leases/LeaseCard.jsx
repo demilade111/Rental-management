@@ -2,17 +2,17 @@ import React from "react";
 import { Calendar, DollarSign } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
-const LeaseCard = ({ data }) => {
+const LeaseCard = ({ data = {} }) => {
   const {
-    propertyName,
-    address,
-    postalCode,
-    rent,
-    deposit,
-    petDeposit,
+    propertyName = "",
+    address = "",
+    postalCode = "",
+    rent = 0,
+    deposit = 0,
+    petDeposit = 0,
     startDate,
     endDate,
-    daysLeft,
+    daysLeft = 0,
   } = data;
 
   return (
@@ -56,11 +56,11 @@ const LeaseCard = ({ data }) => {
           <span className="font-semibold mb-0.5">Lease Dates</span>
           <p>
             <span className="font-semibold">Start:</span>{" "}
-            {new Date(startDate).toLocaleDateString("en-GB")}
+            {startDate ? new Date(startDate).toLocaleDateString("en-GB") : "-"}
           </p>
           <p>
             <span className="font-semibold">End:</span>{" "}
-            {new Date(endDate).toLocaleDateString("en-GB")}
+            {endDate ? new Date(endDate).toLocaleDateString("en-GB") : "-"}
           </p>
         </div>
       </div>
