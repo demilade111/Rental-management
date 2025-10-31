@@ -182,7 +182,8 @@ export async function getApplicationByPublicId(publicId) {
   if (application.expirationDate) {
     const now = new Date();
     const expiration = new Date(application.expirationDate);
-
+    console.log("Current time:", now.toISOString());
+    console.log("Expiration time:", expiration.toISOString());
     if (now > expiration) {
       const err = new Error("This application link has expired.");
       err.status = 403;
@@ -216,7 +217,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
     throw err;
   }
 
-  if (application.status !== "PENDING") {
+  if (application.status !== "NEW") {
     const err = new Error(
       `Cannot update application with status: ${application.status}`
     );

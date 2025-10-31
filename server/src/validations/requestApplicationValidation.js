@@ -32,7 +32,7 @@ export const createApplicationSchema = z.object({
 });
 
 export const updateApplicationStatusSchema = z.object({
-  status: z.enum(["APPROVED", "REJECTED", "CANCELLED"], {
+  status: z.enum(["NEW", "PENDING", "APPROVED", "REJECTED", "CANCELLED"], {
     errorMap: () => ({
       message: "Status must be APPROVED, REJECTED, or CANCELLED",
     }),

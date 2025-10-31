@@ -198,6 +198,7 @@ router.post(
   authorize(["ADMIN"]),
   createApplicationController
 );
+
 router.get(
   "/",
   authenticate,
@@ -208,6 +209,7 @@ router.get(
 router.put("/public/:publicId", submitPublicApplicationController);
 
 router.get("/:publicId", getApplicationByPublicIdController);
+
 router.patch(
   "/:id/status",
   authenticate,

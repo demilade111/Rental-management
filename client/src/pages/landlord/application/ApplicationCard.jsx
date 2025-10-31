@@ -1,9 +1,10 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { Check, Eye, Mail, Send, Trash, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 const getStatusColor = (status) => {
     switch (status) {
@@ -18,7 +19,7 @@ const getStatusColor = (status) => {
     }
 };
 
-const ApplicationCard = ({ app, onApprove, onReject }) => {
+const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete }) => {
     const navigate = useNavigate();
 
     const handleClick = () => {
@@ -61,30 +62,66 @@ const ApplicationCard = ({ app, onApprove, onReject }) => {
 
                 {/* Column 4: Actions */}
                 <div className="flex gap-6 justify-center mx-auto pr-8">
-                    {/* Prevent card navigation when clicking buttons */}
-                    <button
-                        onClick={(e) => { 
-                            e.stopPropagation();
-                            onApprove?.(app.id);
-                        }}
-                        className="text-white bg-gray-900 rounded-full transition"
-                        title="Approve"
-                    >
-                        <Check className="w-6 h-6" />
-                    </button>
+                    {/* Actions */}
+                    <div className="flex gap-3 justify-center">
+                        {app.status === "PENDING" && (
+                            <Button
+                                // onClick={() => onSendLease?.(app.id)}
+                                className="flex items-center gap-2 sm:w-28 rounded-xl"
+                            >
+                                <Eye /> View
+                            </Button>
+                        )}
 
-                    <button
-                        onClick={(e) => { 
-                            e.stopPropagation();
-                            onReject?.(app.id);
-                        }}
-                        className="text-white bg-gray-900 rounded-full transition"
-                        title="Reject"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
+                        {app.status === "APPROVED" && (
+                            <Button
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent card click
+                                    onSendLease?.(app.id)
+                                }}
+                                className="flex items-center gap-2 sm:w-28 rounded-xl"
+                            >
+                                <Send /> Send Lease
+                            </Button>
+                        )}
+
+                        {app.status === "REJECTED" && (
+                            <Button
+                                onClick={() => onDelete?.(app.id)}
+                                className="flex items-center gap-2 bg-red-600 sm:w-28 rounded-xl"
+                            >
+                                <Trash2 /> Delete
+                            </Button>
+                        )}
+
+                        {app.status !== "APPROVED" && app.status !== "REJECTED" && app.status !== "PENDING" && (
+                            <>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onApprove?.(app.id);
+                                    }}
+                                    className="text-white bg-gray-900 rounded-full transition"
+                                    title="Approve"
+                                >
+                                    <Check className="w-6 h-6" />
+                                </button>
+
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onReject?.(app.id);
+                                    }}
+                                    className="text-white bg-gray-900 rounded-full transition"
+                                    title="Reject"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </>
+                        )}
+                    </div>
+
                 </div>
-
             </div>
         </Card>
     );
