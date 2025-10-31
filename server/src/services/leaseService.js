@@ -102,7 +102,7 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
           select: {
             id: true,
             title: true,
-            address: true,
+            streetAddress: true,
             city: true,
             state: true,
             country: true,
@@ -146,7 +146,7 @@ export const getLeaseById = async (leaseId, userId, userRole) => {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
           state: true,
           country: true,
@@ -228,7 +228,7 @@ export const updateLeaseById = async (leaseId, userId, data) => {
         select: {
           id: true,
           title: true,
-          address: true,
+          streetAddress: true,
           city: true,
           state: true,
           country: true,
