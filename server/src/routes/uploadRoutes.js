@@ -56,11 +56,7 @@ const router = express.Router();
 
 router.get("/s3-url", authenticate, getawsS3PresignedUrl);
 router.get("/s3-download-url", authenticate, getawsS3DownloadUrl);
-router.get(
-  "/application-proof-url",
-  authenticate,
-  getApplicationProofUploadUrl
-);
+router.get("/application-proof-url", getApplicationProofUploadUrl);
 router.post("/:publicId/submit", submitPublicApplicationController);
 
 export default router;
