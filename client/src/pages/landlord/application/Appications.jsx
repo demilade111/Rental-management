@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
 import GenerateApplicationDialog from "./GenerateApplicationModal";
@@ -8,6 +8,7 @@ import LoadingState from "@/components/shared/LoadingState";
 import ApplicationSearchBar from "./ApplicationSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import FilterApplicationDialog from "./FilterApplicationDialog";
+import { toast } from "sonner";
 
 const Applications = () => {
     const [modalOpen, setModalOpen] = useState(false);
@@ -61,6 +62,31 @@ const Applications = () => {
         return matchSearch && matchStatus && matchStart && matchEnd;
     });
 
+    // Mutation to update status
+    const updateStatusMutation = useMutation({
+        mutationFn: async ({ id, status }) => {
+            const res = await api.patch(`${API_ENDPOINTS.APPLICATIONS.BASE}/${id}/status`, { status });
+            return res.data.data; // assuming your controller returns { data: result }
+        },
+        onSuccess: (updatedApp) => {
+            toast.success(`Application ${updatedApp.application.status.toLowerCase()}`);
+            // Option 1: refetch the whole applications list
+            refetchApplications();
+        },
+        onError: (err) => {
+            console.error(err);
+            toast.error("Failed to update status");
+        },
+    });
+
+    const handleApprove = (id) => updateStatusMutation.mutate({ id, status: "APPROVED" });
+    const handleReject = (id) => updateStatusMutation.mutate({ id, status: "REJECTED" });
+    const handleSendLease = (id) => {
+        toast.success(`Lease sent for application ${id}`);
+    };
+    const handleDelete = (id) => {
+        toast.success(`Application ${id} deleted`);
+    };
 
     return (
         <div className="min-h-screen px-4 md:px-8 py-4">
@@ -90,7 +116,14 @@ const Applications = () => {
                 ) : (
                     filteredApps.length > 0 ? (
                         filteredApps.map((app) => (
-                            <ApplicationCard key={app.id} app={app} />
+                            <ApplicationCard
+                                key={app.id}
+                                app={app}
+                                onApprove={handleApprove}
+                                onSendLease={handleSendLease}
+                                onReject={handleReject}
+                                onDelete={handleDelete}
+                            />
                         ))
                     ) : (
                         <div className="p-4 text-center text-gray-500">No applications found.</div>

@@ -65,6 +65,7 @@ const FilterApplicationDialog = ({ isOpen, onClose, onApply }) => {
 
                         <SelectContent>
                             <SelectItem value="ALL">All</SelectItem>
+                            <SelectItem value="NEW">New</SelectItem>
                             <SelectItem value="PENDING">Pending</SelectItem>
                             <SelectItem value="APPROVED">Approved</SelectItem>
                             <SelectItem value="REJECTED">Rejected</SelectItem>

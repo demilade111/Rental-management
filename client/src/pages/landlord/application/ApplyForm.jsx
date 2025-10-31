@@ -16,6 +16,7 @@ import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import LoadingState from "@/components/shared/LoadingState";
 import { toast } from "sonner";
+import { useValidator } from "@/utils/useValidator";
 
 /**
  * Multi-step application form for public applicants
@@ -55,6 +56,24 @@ const ApplyForm = () => {
     ],
     documents: [], // array of File objects to upload
   });
+
+  const { errors, validateField, validateAll, clearError } = useValidator(form, {
+    fullName: [
+      v => !v?.trim() && "Full name is required",
+    ],
+    email: [
+      v => !v?.trim() && "Email is required",
+      v => !/\S+@\S+\.\S+/.test(v) && "Invalid email format",
+    ],
+    phone: [
+      v => !v && "Phone is required",
+      v => v && v.length < 10 && "Phone too short",
+    ],
+    dateOfBirth: [
+      v => !v && "Date of birth required",
+    ],
+  });
+
 
   // load application meta by publicId (listing info & requirements)
   const {
@@ -112,7 +131,7 @@ const ApplyForm = () => {
 
   useEffect(() => {
     console.log(
-      "🔄 Form state updated - documents:",
+      "Form state updated - documents:",
       form.documents?.length || 0,
       form.documents?.map((d) => d.name)
     );
@@ -184,7 +203,7 @@ const ApplyForm = () => {
     setForm((s) => {
       const newDocs = [...(s.documents || []), file];
       console.log(
-        "✅ Updated documents array:",
+        "Updated documents array:",
         newDocs.length,
         "files:",
         newDocs.map((d) => d.name)
@@ -214,11 +233,6 @@ const ApplyForm = () => {
   }
 
   const handleSubmit = async () => {
-    if (!form.fullName || !form.email) {
-      toast.error("Please provide name and email");
-      setStep(1);
-      return;
-    }
 
     try {
       // Upload all documents to S3 first
@@ -272,9 +286,9 @@ const ApplyForm = () => {
   // ---------- UI Steps ----------
   return (
     <div className="min-h-screen flex items-start justify-center py-10 px-4 md:px-8">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow p-6">
+      <div className="w-full max-w-3xl bg-white rounded-lg shadow p-8">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 space-y-2">
           <h1 className="text-2xl font-semibold">
             Apply for {applicationMeta.listing?.title || "property"}
           </h1>
@@ -284,32 +298,28 @@ const ApplyForm = () => {
         </div>
 
         {/* Stepper */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-4 my-10">
           <div
-            className={`px-3 py-1 rounded ${
-              step === 1 ? "bg-black text-white" : "bg-gray-100"
-            }`}
+            className={`px-3 py-1 rounded-2xl ${step === 1 ? "bg-black text-white" : "bg-gray-100"
+              }`}
           >
             1. Personal
           </div>
           <div
-            className={`px-3 py-1 rounded ${
-              step === 2 ? "bg-black text-white" : "bg-gray-100"
-            }`}
+            className={`px-3 py-1 rounded-2xl ${step === 2 ? "bg-black text-white" : "bg-gray-100"
+              }`}
           >
             2. Employment
           </div>
           <div
-            className={`px-3 py-1 rounded ${
-              step === 3 ? "bg-black text-white" : "bg-gray-100"
-            }`}
+            className={`px-3 py-1 rounded-2xl ${step === 3 ? "bg-black text-white" : "bg-gray-100"
+              }`}
           >
             3. Occupants
           </div>
           <div
-            className={`px-3 py-1 rounded ${
-              step === 4 ? "bg-black text-white" : "bg-gray-100"
-            }`}
+            className={`px-3 py-1 rounded-2xl ${step === 4 ? "bg-black text-white" : "bg-gray-100"
+              }`}
           >
             4. Documents
           </div>
@@ -321,34 +331,56 @@ const ApplyForm = () => {
           {step === 1 && (
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label>Full name</Label>
                   <Input
                     value={form.fullName}
-                    onChange={(e) => updateField("fullName", e.target.value)}
+                    onChange={(e) => {
+                      updateField("fullName", e.target.value);
+                      clearError("fullName");
+                    }}
+                    onBlur={(e) => validateField("fullName", e.target.value)}
+                    className={errors.fullName ? "border-red-500" : ""}
                   />
+                  {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Email</Label>
                   <Input
                     value={form.email}
-                    onChange={(e) => updateField("email", e.target.value)}
+                    onChange={(e) => {
+                      updateField("email", e.target.value);
+                      clearError("email");
+                    }}
+                    onBlur={(e) => validateField("email", e.target.value)}
+                    className={errors.email ? "border-red-500" : ""}
                   />
+                  {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label>Phone</Label>
                   <Input
                     value={form.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
+                    onChange={(e) => {
+                      updateField("phone", e.target.value);
+                      clearError("phone");
+                    }}
+                    onBlur={(e) => validateField("phone", e.target.value)}
+                    className={errors.phone ? "border-red-500" : ""}
                   />
+                  {errors.email && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label>Date of birth</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full text-left">
+                      <Button
+                        variant="outline"
+                        className={`w-full text-left ${errors.dateOfBirth ? "border-red-500" : ""}`}
+                      >
                         {form.dateOfBirth
                           ? format(form.dateOfBirth, "PPP")
                           : "Select date of birth"}
@@ -358,13 +390,23 @@ const ApplyForm = () => {
                       <Calendar
                         mode="single"
                         selected={form.dateOfBirth}
-                        onSelect={(d) => updateField("dateOfBirth", d)}
+                        onSelect={(d) => {
+                          updateField("dateOfBirth", d)
+                          validateField("dateOfBirth", d)
+                        }}
+                        captionLayout="dropdown"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
                       />
                     </PopoverContent>
                   </Popover>
+
+                  {errors.dateOfBirth && (
+                    <p className="text-red-500 text-sm">{errors.dateOfBirth}</p>
+                  )}
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 space-y-2">
                   <Label>Current Address</Label>
                   <Input
                     value={form.currentAddress}
@@ -382,7 +424,7 @@ const ApplyForm = () => {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium">Employment Information</h3>
-                <Button variant="outline" onClick={addEmployment}>
+                <Button className="rounded-2xl" variant="outline" onClick={addEmployment}>
                   Add Employment
                 </Button>
               </div>
@@ -394,9 +436,9 @@ const ApplyForm = () => {
                   </p>
                 )}
                 {(form.employmentInfo || []).map((emp, idx) => (
-                  <div key={idx} className="border p-4 rounded">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div>
+                  <div key={idx} className="border p-6 rounded">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
                         <Label>Employer</Label>
                         <Input
                           value={emp.employerName}
@@ -409,7 +451,7 @@ const ApplyForm = () => {
                           }
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Job title</Label>
                         <Input
                           value={emp.jobTitle}
@@ -418,7 +460,7 @@ const ApplyForm = () => {
                           }
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Income</Label>
                         <Input
                           type="number"
@@ -428,7 +470,7 @@ const ApplyForm = () => {
                           }
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Duration</Label>
                         <Input
                           value={emp.duration}
@@ -437,7 +479,7 @@ const ApplyForm = () => {
                           }
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Address</Label>
                         <Input
                           value={emp.address}
@@ -446,28 +488,35 @@ const ApplyForm = () => {
                           }
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Proof document</Label>
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          className="mt-1"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            updateEmployment(idx, "proofDocumentFile", file);
-                          }}
-                        />
+                        <div>
+                          <Label className="block bg-gray-100 px-4 py-2 rounded cursor-pointer">
+                            Select files
+                            <Input
+                              type="file"
+                              multiple
+                              accept="image/*,application/pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                updateEmployment(idx, "proofDocumentFile", file);
+                              }}
+                            />
+                          </Label>
 
-                        {emp.proofDocumentFile && (
-                          <div className="text-xs text-gray-600 mt-1">
-                            {emp.proofDocumentFile.name} selected
-                          </div>
-                        )}
+                          {emp.proofDocumentFile && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {emp.proofDocumentFile.name} selected
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex justify-end mt-3">
+                    <div className="flex justify-end mt-6">
                       <Button
+                        className="rounded-2xl"
                         variant="ghost"
                         onClick={() => removeEmployment(idx)}
                       >
@@ -587,7 +636,7 @@ const ApplyForm = () => {
         <div className="flex items-center justify-between mt-6">
           <div>
             {step > 1 && (
-              <Button variant="ghost" onClick={() => setStep(step - 1)}>
+              <Button className="rounded-2xl" variant="ghost" onClick={() => setStep(step - 1)}>
                 Back
               </Button>
             )}
@@ -595,10 +644,15 @@ const ApplyForm = () => {
 
           <div className="flex items-center gap-3">
             {step < 4 && (
-              <Button onClick={() => setStep(step + 1)}>Next</Button>
+              <Button className="rounded-2xl" onClick={() => {
+                if (validateAll(form)) {
+                  setStep(step + 1);
+                }
+              }}>Next </Button>
             )}
             {step === 4 && (
               <Button
+                className="rounded-2xl"
                 onClick={handleSubmit}
                 disabled={submitMutation.isPending}
               >
