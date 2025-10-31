@@ -120,7 +120,7 @@ const ApplyForm = () => {
 
   useEffect(() => {
     if (step === 4) {
-      console.log("📝 Step 4 rendered, documents:", form.documents?.length || 0);
+      console.log("Step 4 rendered, documents:", form.documents?.length || 0);
     }
   }, [step, form.documents]);
 
@@ -524,7 +524,7 @@ const ApplyForm = () => {
                     accept="image/*,application/pdf"
                     className="mt-2"
                     onChange={(e) => {
-                      console.log("🔥 onChange FIRED!");
+                      console.log("onChange FIRED!");
                       const files = Array.from(e.target.files || []);
                       console.log(
                         "📁 Files selected in input:",

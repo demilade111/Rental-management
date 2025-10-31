@@ -18,7 +18,7 @@ async function createLeaseForTesting() {
     });
 
     if (listings.length === 0) {
-      console.log("❌ No listings found. Please create a listing first.");
+      console.log(" No listings found. Please create a listing first.");
       return;
     }
 
@@ -29,7 +29,7 @@ async function createLeaseForTesting() {
 
     const users = usersResponse.data.data || usersResponse.data;
     const tenants = users.filter((user) => user.role === "TENANT");
-    console.log(`👥 Found ${tenants.length} tenants:`);
+    console.log(`Found ${tenants.length} tenants:`);
     tenants.forEach((tenant, index) => {
       console.log(
         `${index + 1}. ${tenant.firstName} ${tenant.lastName} (ID: ${
@@ -39,7 +39,7 @@ async function createLeaseForTesting() {
     });
 
     if (tenants.length === 0) {
-      console.log("❌ No tenants found. Please create a tenant user first.");
+      console.log("No tenants found. Please create a tenant user first.");
       return;
     }
 
@@ -47,7 +47,7 @@ async function createLeaseForTesting() {
     const selectedListing = listings[0];
     const selectedTenant = tenants[0];
 
-    console.log(`\n🏠 Creating lease for:`);
+    console.log(`\n Creating lease for:`);
     console.log(`   Property: ${selectedListing.title}`);
     console.log(
       `   Tenant: ${selectedTenant.firstName} ${selectedTenant.lastName}`
@@ -77,13 +77,13 @@ async function createLeaseForTesting() {
       }
     );
 
-    console.log("✅ Lease created successfully!");
+    console.log("Lease created successfully!");
     console.log(
       "📄 Lease details:",
       JSON.stringify(leaseResponse.data.data, null, 2)
     );
   } catch (error) {
-    console.error("❌ Error:", error.response?.data || error.message);
+    console.error("Error:", error.response?.data || error.message);
   }
 }
 

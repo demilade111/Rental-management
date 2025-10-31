@@ -2,15 +2,12 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "NodeNext",
-    "checkJs": true,
+    "moduleResolution": "Node",
+    "checkJs": false,
     "allowJs": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "typeAcquisition": {
-      "include": ["node"]
     }
   },
   "include": ["src/**/*", "prisma.config.ts", "prisma/**/*"]
