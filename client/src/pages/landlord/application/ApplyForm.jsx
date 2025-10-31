@@ -524,13 +524,17 @@ const ApplyForm = () => {
                     accept="image/*,application/pdf"
                     className="mt-2"
                     onChange={(e) => {
+                      console.log("🔥 onChange FIRED!");
                       const files = Array.from(e.target.files || []);
                       console.log(
                         "📁 Files selected in input:",
                         files.length,
                         files.map((f) => f.name)
                       );
-                      files.forEach((file) => handleAddDocument(file));
+                      files.forEach((file) => {
+                        console.log("Calling handleAddDocument for:", file.name);
+                        handleAddDocument(file);
+                      });
                     }}
                   />
                 </div>
