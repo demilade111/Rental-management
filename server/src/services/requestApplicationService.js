@@ -1,7 +1,6 @@
 import { prisma } from "../prisma/client.js";
 import { generatePublicId } from "../utils/generatePublicId.js";
 
-
 export async function createApplication(landlordId, data) {
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
@@ -24,13 +23,13 @@ export async function createApplication(landlordId, data) {
   const publicId = generatePublicId();
   const employmentInfoData = data.employmentInfo
     ? data.employmentInfo.map((info) => ({
-      employerName: info.employerName,
-      jobTitle: info.jobTitle,
-      income: info.income,
-      duration: info.duration,
-      address: info.address,
-      proofDocument: info.proofDocument,
-    }))
+        employerName: info.employerName,
+        jobTitle: info.jobTitle,
+        income: info.income,
+        duration: info.duration,
+        address: info.address,
+        proofDocument: info.proofDocument,
+      }))
     : [];
   const application = await prisma.requestApplication.create({
     data: {
@@ -84,7 +83,6 @@ export async function createApplication(landlordId, data) {
 
   return application;
 }
-
 
 export async function getAllApplicationsByLandlord(landlordId, filters = {}) {
   const { status, listingId } = filters;
@@ -141,8 +139,9 @@ export async function getAllApplicationsByLandlord(landlordId, filters = {}) {
   return applications;
 }
 
-
 export async function getApplicationByPublicId(publicId) {
+  console.log("🔍 Looking up application with publicId:", publicId);
+
   const application = await prisma.requestApplication.findUnique({
     where: { publicId },
     include: {
@@ -182,15 +181,23 @@ export async function getApplicationByPublicId(publicId) {
     throw err;
   }
 
-  if (application.expirationDate && new Date() > application.expirationDate) {
-    const err = new Error("This application link has expired.");
-    err.status = 403;
-    throw err;
+  if (application.expirationDate) {
+    const now = new Date();
+    const expiration = new Date(application.expirationDate);
+    console.log("⏰ Current time:", now.toISOString());
+    console.log("⏰ Expiration time:", expiration.toISOString());
+    if (now > expiration) {
+      const err = new Error("This application link has expired.");
+      err.status = 403;
+      throw err;
+    }
+  
+  } else {
+    console.log("ℹNo expiration date set - application never expires");
   }
 
   return application;
 }
-
 
 export async function updateApplicationStatus(applicationId, landlordId, data) {
   const application = await prisma.requestApplication.findUnique({
@@ -221,7 +228,6 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
     err.status = 400;
     throw err;
   }
-
 
   const result = await prisma.$transaction(async (tx) => {
     const updatedApplication = await tx.requestApplication.update({
@@ -259,7 +265,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
     if (data.status === "APPROVED" && application.tenantId) {
       const moveInDate = application.moveInDate || new Date();
       const leaseEndDate = new Date(moveInDate);
-      leaseEndDate.setFullYear(leaseEndDate.getFullYear() + 1); // Default 1 year lease
+      leaseEndDate.setFullYear(leaseEndDate.getFullYear() + 1);
 
       lease = await tx.lease.create({
         data: {
@@ -276,7 +282,6 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
         },
       });
 
-      // Link lease to application
       await tx.requestApplication.update({
         where: { id: applicationId },
         data: { leaseId: lease.id },
@@ -289,11 +294,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
   return result;
 }
 
-/**
- * Delete an application (and cascade delete employment info)
- */
 export async function deleteApplication(applicationId, landlordId) {
-  // Verify application exists and belongs to landlord
   const application = await prisma.requestApplication.findUnique({
     where: { id: applicationId },
   });

@@ -3,11 +3,10 @@ import { prisma } from "../prisma/client.js";
 const dedupe = (arr) => Array.from(new Set(arr));
 
 async function createMaintenanceRequest(userId, userRole, data) {
-  console.log("Creating maintenance request with data:", data);
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
   });
-  console.log("Listing found:", listing);
+
   if (!listing) {
     const err = new Error("Listing not found");
     err.status = 404;
@@ -35,19 +34,12 @@ async function createMaintenanceRequest(userId, userRole, data) {
 
     leaseId = lease.id;
   } else if (userRole === "ADMIN") {
-    console.log("User is ADMIN, verifying ownership of listing");
-    console.log("  Listing landlordId:", listing.landlordId);
-    console.log("  Current userId:", userId);
-    console.log("  Types:", typeof listing.landlordId, typeof userId);
-    console.log("  Match:", listing.landlordId === userId);
 
     if (listing.landlordId !== userId) {
-      console.error("❌ OWNERSHIP MISMATCH!");
       const err = new Error("You do not own this property");
       err.status = 403;
       throw err;
     }
-    console.log("✅ Ownership verified");
     const activeLease = await prisma.lease.findFirst({
       where: {
         listingId: data.listingId,

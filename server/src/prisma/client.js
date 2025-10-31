@@ -12,6 +12,7 @@ const {
   ResidentialType,
   CommercialType,
   RentCycle,
+  ApplicationStatus,
 } = pkg;
 
 const prisma = new PrismaClient();
@@ -41,4 +42,5 @@ export {
   ResidentialType,
   CommercialType,
   RentCycle,
+  ApplicationStatus,
 };

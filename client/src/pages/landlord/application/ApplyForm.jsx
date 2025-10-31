@@ -51,9 +51,9 @@ const ApplyForm = () => {
     petsCount: 0,
     message: "",
     employmentInfo: [
-      // example entry: { employerName: "", jobTitle: "", income: "", duration: "", address: "", proofDocumentUrl: "" }
+      // example entry: { employerName: "", jobTitle: "", income: "", duration: "", address: "", proofDocumentFile: null }
     ],
-    documents: [], // array of uploaded URLs
+    documents: [], // array of File objects to upload
   });
 
   // load application meta by publicId (listing info & requirements)
@@ -61,6 +61,7 @@ const ApplyForm = () => {
     data: applicationMeta,
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ["applicationPublic", publicId],
     queryFn: async () => {
@@ -71,6 +72,7 @@ const ApplyForm = () => {
     },
     enabled: !!publicId,
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 
   // (Deprecated) old mutation removed — we now use presigned URL endpoints directly via GET
@@ -108,6 +110,20 @@ const ApplyForm = () => {
     }
   }, [applicationMeta]);
 
+  useEffect(() => {
+    console.log(
+      "🔄 Form state updated - documents:",
+      form.documents?.length || 0,
+      form.documents?.map((d) => d.name)
+    );
+  }, [form.documents]);
+
+  useEffect(() => {
+    if (step === 4) {
+      console.log("📝 Step 4 rendered, documents:", form.documents?.length || 0);
+    }
+  }, [step, form.documents]);
+
   if (!publicId) return <Navigate to="/" replace />;
 
   if (isLoading) {
@@ -116,13 +132,18 @@ const ApplyForm = () => {
   }
 
   if (isError || !applicationMeta) {
+    // Extract error message from API response
+    const errorMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.details ||
+      error?.message ||
+      "That application link may be invalid or expired.";
+
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-xl w-full bg-white p-6 rounded shadow">
-          <h2 className="text-lg font-semibold mb-2">Application not found</h2>
-          <p className="text-sm text-gray-600">
-            That application link may be invalid or expired.
-          </p>
+          <h2 className="text-lg font-semibold mb-2">Application Error</h2>
+          <p className="text-sm text-gray-600">{errorMessage}</p>
         </div>
       </div>
     );
@@ -141,7 +162,7 @@ const ApplyForm = () => {
           income: "",
           duration: "",
           address: "",
-          proofDocumentUrl: "",
+          proofDocumentFile: null,
         },
       ],
     }));
@@ -158,7 +179,21 @@ const ApplyForm = () => {
       return { ...s, employmentInfo: arr };
     });
 
-  async function handleFileUpload(file) {
+  const handleAddDocument = (file) => {
+    console.log("➕ Adding file:", file.name);
+    setForm((s) => {
+      const newDocs = [...(s.documents || []), file];
+      console.log(
+        "✅ Updated documents array:",
+        newDocs.length,
+        "files:",
+        newDocs.map((d) => d.name)
+      );
+      return { ...s, documents: newDocs };
+    });
+  };
+
+  async function uploadFileToS3(file) {
     const endpoint = "/api/v1/upload/application-proof-url";
     const { data } = await api.get(endpoint, {
       params: {
@@ -168,7 +203,7 @@ const ApplyForm = () => {
     });
 
     const { uploadURL, fileUrl } = data.data;
-    
+
     await fetch(uploadURL, {
       method: "PUT",
       headers: { "Content-Type": file.type },
@@ -178,11 +213,6 @@ const ApplyForm = () => {
     return fileUrl;
   }
 
-  const handleAddDocument = async (file) => {
-    const url = await handleFileUpload(file);
-    setForm((s) => ({ ...s, documents: [...(s.documents || []), url] }));
-  };
-
   const handleSubmit = async () => {
     if (!form.fullName || !form.email) {
       toast.error("Please provide name and email");
@@ -190,33 +220,53 @@ const ApplyForm = () => {
       return;
     }
 
-    const payload = {
-      fullName: form.fullName,
-      email: form.email,
-      phone: form.phone || null,
-      dateOfBirth: form.dateOfBirth ? form.dateOfBirth.toISOString() : null,
-      monthlyIncome: form.monthlyIncome ? Number(form.monthlyIncome) : null,
-      currentAddress: form.currentAddress || null,
-      moveInDate: form.moveInDate ? form.moveInDate.toISOString() : null,
-      occupants: form.occupantsCount
-        ? { count: Number(form.occupantsCount) }
-        : null,
-      pets: form.petsCount ? { count: Number(form.petsCount) } : null,
-      documents: form.documents || [],
-      references: null,
-      message: form.message || null,
-      employmentInfo:
-        form.employmentInfo?.map((e) => ({
-          employerName: e.employerName,
-          jobTitle: e.jobTitle,
-          income: e.income ? Number(e.income) : null,
-          duration: e.duration || null,
-          address: e.address || null,
-          proofDocument: e.proofDocumentUrl || null,
-        })) || [],
-    };
+    try {
+      // Upload all documents to S3 first
+      const documentUrls = await Promise.all(
+        (form.documents || []).map((file) => uploadFileToS3(file))
+      );
 
-    await submitMutation.mutateAsync(payload);
+      // Upload all employment proof documents to S3
+      const employmentInfoWithUrls = await Promise.all(
+        (form.employmentInfo || []).map(async (e) => {
+          let proofDocument = null;
+          if (e.proofDocumentFile) {
+            proofDocument = await uploadFileToS3(e.proofDocumentFile);
+          }
+          return {
+            employerName: e.employerName,
+            jobTitle: e.jobTitle,
+            income: e.income ? Number(e.income) : null,
+            duration: e.duration || null,
+            address: e.address || null,
+            proofDocument,
+          };
+        })
+      );
+
+      const payload = {
+        fullName: form.fullName,
+        email: form.email,
+        phone: form.phone || null,
+        dateOfBirth: form.dateOfBirth ? form.dateOfBirth.toISOString() : null,
+        monthlyIncome: form.monthlyIncome ? Number(form.monthlyIncome) : null,
+        currentAddress: form.currentAddress || null,
+        moveInDate: form.moveInDate ? form.moveInDate.toISOString() : null,
+        occupants: form.occupantsCount
+          ? { count: Number(form.occupantsCount) }
+          : null,
+        pets: form.petsCount ? { count: Number(form.petsCount) } : null,
+        documents: documentUrls,
+        references: null,
+        message: form.message || null,
+        employmentInfo: employmentInfoWithUrls,
+      };
+
+      await submitMutation.mutateAsync(payload);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload files. Please try again.");
+    }
   };
 
   // ---------- UI Steps ----------
@@ -400,24 +450,18 @@ const ApplyForm = () => {
                         <Label>Proof document</Label>
                         <input
                           type="file"
+                          accept="image/*,application/pdf"
                           className="mt-1"
-                          onChange={async (e) => {
+                          onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            console.log(file);
-                            const url = await handleFileUpload(
-                              file,
-                              "applications/proofs"
-                            );
-                            console.log("Uploaded file URL:", url);
-
-                            updateEmployment(idx, "proofDocumentUrl", url);
+                            updateEmployment(idx, "proofDocumentFile", file);
                           }}
                         />
 
-                        {emp.proofDocumentUrl && (
+                        {emp.proofDocumentFile && (
                           <div className="text-xs text-gray-600 mt-1">
-                            Uploaded
+                            {emp.proofDocumentFile.name} selected
                           </div>
                         )}
                       </div>
@@ -477,32 +521,39 @@ const ApplyForm = () => {
                   <input
                     type="file"
                     multiple
+                    accept="image/*,application/pdf"
                     className="mt-2"
-                    onChange={async (e) => {
+                    onChange={(e) => {
+                      console.log("🔥 onChange FIRED!");
                       const files = Array.from(e.target.files || []);
-                      for (const file of files) {
-                        await handleAddDocument(file);
-                      }
+                      console.log(
+                        "📁 Files selected in input:",
+                        files.length,
+                        files.map((f) => f.name)
+                      );
+                      files.forEach((file) => {
+                        console.log("Calling handleAddDocument for:", file.name);
+                        handleAddDocument(file);
+                      });
                     }}
                   />
                 </div>
 
                 <div>
-                  <h4 className="font-medium">Uploaded files</h4>
-                  <ul className="list-disc pl-5 mt-2">
-                    {(form.documents || []).map((d, i) => (
-                      <li key={i}>
-                        <a
-                          href={d}
-                          className="text-blue-600 underline"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {d}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  <h4 className="font-medium">Selected files</h4>
+                  {form.documents && form.documents.length > 0 ? (
+                    <ul className="list-disc pl-5 mt-2">
+                      {form.documents.map((file, i) => (
+                        <li key={i} className="text-gray-700">
+                          {file.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500 mt-2">
+                      No files selected yet
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded">
@@ -549,9 +600,9 @@ const ApplyForm = () => {
             {step === 4 && (
               <Button
                 onClick={handleSubmit}
-                disabled={submitMutation.isLoading}
+                disabled={submitMutation.isPending}
               >
-                {submitMutation.isLoading
+                {submitMutation.isPending
                   ? "Submitting..."
                   : "Submit Application"}
               </Button>
