@@ -104,7 +104,7 @@ export const requestPasswordReset = async (email) => {
   try {
     await sendPasswordResetEmail(user.email, resetToken);
   } catch (error) {
-    console.error("Failed to send reset email:", error);
+  
     const err = new Error("Failed to send reset email. Please try again later.");
     err.status = 500;
     throw err;

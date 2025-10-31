@@ -37,7 +37,7 @@ async function setupTestData() {
       },
     });
 
-    console.log("🏠 Creating test listings...");
+    console.log("Creating test listings...");
 
     const listing1 = await prisma.listing.create({
       data: {
@@ -89,7 +89,7 @@ async function setupTestData() {
       },
     });
 
-    console.log("📄 Creating test leases...");
+    console.log("Creating test leases...");
 
     const lease = await prisma.lease.create({
       data: {
@@ -105,8 +105,8 @@ async function setupTestData() {
       },
     });
 
-    console.log("\n✅ Test data setup complete!");
-    console.log("\n📊 Summary:");
+    console.log("\n Test data setup complete!");
+    console.log("\nSummary:");
     console.log(`  Landlord: ${landlord.email} (password: password123)`);
     console.log(`  Tenant: ${tenant.email} (password: password123)`);
     console.log(`  Listings: ${listing1.title}, ${listing2.title}`);

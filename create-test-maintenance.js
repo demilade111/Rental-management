@@ -40,13 +40,13 @@ async function createTestData() {
       },
     });
 
-    console.log("✅ Maintenance request created successfully!");
+    console.log("Maintenance request created successfully!");
     console.log(
       "📄 Request details:",
       JSON.stringify(maintenanceRequest, null, 2)
     );
   } catch (error) {
-    console.error("❌ Error creating maintenance request:", error);
+    console.error("Error creating maintenance request:", error);
   } finally {
     await prisma.$disconnect();
   }

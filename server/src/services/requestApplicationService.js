@@ -140,8 +140,6 @@ export async function getAllApplicationsByLandlord(landlordId, filters = {}) {
 }
 
 export async function getApplicationByPublicId(publicId) {
-  console.log("🔍 Looking up application with publicId:", publicId);
-
   const application = await prisma.requestApplication.findUnique({
     where: { publicId },
     include: {
@@ -184,16 +182,13 @@ export async function getApplicationByPublicId(publicId) {
   if (application.expirationDate) {
     const now = new Date();
     const expiration = new Date(application.expirationDate);
-    console.log("⏰ Current time:", now.toISOString());
-    console.log("⏰ Expiration time:", expiration.toISOString());
+
     if (now > expiration) {
       const err = new Error("This application link has expired.");
       err.status = 403;
       throw err;
     }
-  
   } else {
-    console.log("ℹNo expiration date set - application never expires");
   }
 
   return application;

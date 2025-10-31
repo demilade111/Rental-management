@@ -22,7 +22,7 @@ async function createMaintenance(req, res) {
     console.log("User:", req.user?.id, req.user?.role);
 
     const body = createMaintenanceRequestSchema.parse(req.body);
-    console.log("✅ Validation passed:", body);
+    console.log(" Validation passed:", body);
 
     const userId = req.user.id;
     const userRole = req.user.role;
@@ -32,7 +32,7 @@ async function createMaintenance(req, res) {
       body
     );
 
-    console.log("✅ Maintenance request created:", maintenanceRequest.id);
+    console.log("Maintenance request created:", maintenanceRequest.id);
 
     return CreatedResponse(
       res,
@@ -40,7 +40,7 @@ async function createMaintenance(req, res) {
       maintenanceRequest
     );
   } catch (error) {
-    console.error("❌ CREATE MAINTENANCE ERROR:", error.message);
+    console.error("CREATE MAINTENANCE ERROR:", error.message);
     console.error("Error details:", error);
     return HandleError(res, error);
   }
