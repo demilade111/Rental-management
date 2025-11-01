@@ -41,17 +41,26 @@ export async function getAllApplicationsController(req, res) {
       listingId: req.query.listingId,
     };
 
-    const applications = await getAllApplicationsByLandlord(
+    const page = parseInt(req.query.page, 10) || 1; // default page 1
+    const limit = parseInt(req.query.limit, 10) || 10; // default 10 items per page
+    const skip = (page - 1) * limit;
+
+    const { applications, total } = await getAllApplicationsByLandlord(
       landlordId,
-      filters
+      filters,
+      skip,
+      limit
     );
 
-    return SuccessResponse(
-      res,
-      200,
-      "Applications retrieved successfully",
-      applications
-    );
+    return SuccessResponse(res, 200, "Applications retrieved successfully", {
+      applications,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     return HandleError(res, error);
   }
@@ -73,7 +82,7 @@ export async function submitPublicApplicationController(req, res) {
       throw err;
     }
 
-    
+
     if (application.expirationDate && new Date() > application.expirationDate) {
       return res
         .status(403)
@@ -93,7 +102,7 @@ export async function submitPublicApplicationController(req, res) {
         message: data.message || null,
         documents: data.documents || null,
         references: data.references || null,
-        status: ApplicationStatus.NEW, 
+        status: ApplicationStatus.NEW,
       },
     });
 

@@ -16,6 +16,7 @@ const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState("rentals");
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user } = useAuthStore();
 
   const {
     data: properties = [],
@@ -23,7 +24,7 @@ const PropertyPortfolio = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["listings"],
+    queryKey: ["listings", user?.id],
     queryFn: async () => {
       const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
       const data = response.data;

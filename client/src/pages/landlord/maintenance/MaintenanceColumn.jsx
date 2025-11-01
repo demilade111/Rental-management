@@ -9,7 +9,7 @@ const MaintenanceColumn = ({
   onActionClick,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-gray-50 h-[65vh] p-6 rounded-lg">
       <h2 className="font-semibold text-lg">
         {title} ({requests.length})
       </h2>

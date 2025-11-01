@@ -5,6 +5,7 @@ import {
   getListingById,
   deleteListingById,
   updateListingById,
+  checkListingHasLeases,
 } from "../services/listingService.js";
 import {
   CreatedResponse,
@@ -26,7 +27,17 @@ async function createListing(req, res) {
 
 async function fetchAllListings(req, res) {
   try {
-    const listings = await getAllListings();
+    const landlordId = req.user?.id; // from JWT decoded payload or session
+
+    if (!landlordId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: landlord not found",
+      });
+    }
+
+    const listings = await getAllListings(landlordId);
+
     const response = {
       success: true,
       message: "Listings fetched successfully",
@@ -80,10 +91,21 @@ async function updateListing(req, res) {
   }
 }
 
+async function checkListingLeasesController(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await checkListingHasLeases(id);
+    return SuccessResponse(res, 200, "Lease check successful", result);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
 export {
   createListing,
   fetchAllListings,
   fetchListingById,
   deleteListing,
   updateListing,
+  checkListingLeasesController
 };
