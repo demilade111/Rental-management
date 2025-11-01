@@ -23,13 +23,13 @@ export async function createApplication(landlordId, data) {
   const publicId = generatePublicId();
   const employmentInfoData = data.employmentInfo
     ? data.employmentInfo.map((info) => ({
-        employerName: info.employerName,
-        jobTitle: info.jobTitle,
-        income: info.income,
-        duration: info.duration,
-        address: info.address,
-        proofDocument: info.proofDocument,
-      }))
+      employerName: info.employerName,
+      jobTitle: info.jobTitle,
+      income: info.income,
+      duration: info.duration,
+      address: info.address,
+      proofDocument: info.proofDocument,
+    }))
     : [];
   const application = await prisma.requestApplication.create({
     data: {
@@ -84,7 +84,12 @@ export async function createApplication(landlordId, data) {
   return application;
 }
 
-export async function getAllApplicationsByLandlord(landlordId, filters = {}) {
+export async function getAllApplicationsByLandlord(
+  landlordId,
+  filters = {},
+  skip = 0,
+  limit = 10
+) {
   const { status, listingId } = filters;
 
   const whereClause = {
@@ -99,6 +104,12 @@ export async function getAllApplicationsByLandlord(landlordId, filters = {}) {
     whereClause.listingId = listingId;
   }
 
+  // Get total count first
+  const total = await prisma.requestApplication.count({
+    where: whereClause,
+  });
+
+  // Get paginated data
   const applications = await prisma.requestApplication.findMany({
     where: whereClause,
     include: {
@@ -134,9 +145,11 @@ export async function getAllApplicationsByLandlord(landlordId, filters = {}) {
     orderBy: {
       createdAt: "desc",
     },
+    skip,
+    take: limit,
   });
 
-  return applications;
+  return { applications, total };
 }
 
 export async function getApplicationByPublicId(publicId) {

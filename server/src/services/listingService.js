@@ -77,8 +77,9 @@ async function createListings(landlordId, data) {
   return listing;
 }
 
-async function getAllListings() {
+async function getAllListings(landlordId) {
   const listings = await prisma.listing.findMany({
+    where: { landlordId },
     include: {
       amenities: true,
       images: true,
@@ -151,4 +152,20 @@ async function updateListingById(id, userId, updates) {
   return updatedListing;
 }
 
-export { createListings, getAllListings, getListingById, updateListingById, deleteListingById };
+async function checkListingHasLeases(listingId) {
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: {
+      id: true,
+      leases: true,
+    },
+  });
+
+  if (!listing) throw new Error("Listing not found");
+
+  const hasLease = listing.leases.length > 0;
+
+  return { listingId: listing.id, hasLease, leaseCount: listing.leases.length };
+}
+
+export { createListings, getAllListings, getListingById, updateListingById, deleteListingById, checkListingHasLeases };

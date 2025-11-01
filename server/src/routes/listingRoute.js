@@ -5,6 +5,7 @@ import {
   fetchListingById,
   deleteListing,
   updateListing,
+  checkListingLeasesController,
 } from "../controllers/listingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -90,5 +91,6 @@ router.put(
   updateListing
 );
 router.delete("/:id", authenticate, authorize(["ADMIN"]), deleteListing);
+router.get("/:id/check-leases", checkListingLeasesController);
 
 export default router;

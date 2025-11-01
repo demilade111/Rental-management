@@ -52,7 +52,7 @@ const ApplyForm = () => {
     petsCount: 0,
     message: "",
     employmentInfo: [
-      // example entry: { employerName: "", jobTitle: "", income: "", duration: "", address: "", proofDocumentFile: null }
+      // example entry: { employerName: "", jobTitle: "", income: "", duration: "", address: "", proofDocument: null }
     ],
     documents: [], // array of File objects to upload
   });
