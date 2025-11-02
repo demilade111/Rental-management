@@ -129,7 +129,7 @@ const Applications = () => {
                 leaseStatus: "ACTIVE", // still need to be DFAFT until the user sign the contract
             });
 
-            toast.success(`Lease sent for application ${app.id}`);
+            // toast.success(`Lease sent for application ${app.id}`);
         } catch (err) {
             console.error(err);
             toast.error("Failed to check lease");

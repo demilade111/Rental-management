@@ -4,7 +4,7 @@ import {
     getLeaseInviteController, 
     signLeaseController 
 } from "../controllers/inviteLeaseController.js";
-import { authenticate } from "../middleware/authMiddleware.js";
+import { authenticate } from "../middleware/AuthMiddleware.js";
 
 const router = express.Router();
 
