@@ -94,7 +94,9 @@ async function updateListing(req, res) {
 async function checkListingLeasesController(req, res) {
   try {
     const { id } = req.params;
+
     const result = await checkListingHasLeases(id);
+    
     return SuccessResponse(res, 200, "Lease check successful", result);
   } catch (error) {
     return HandleError(res, error);

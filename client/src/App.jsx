@@ -14,6 +14,7 @@ import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
 import MainLayout from "./layouts/MainLayout";
 import ApplyForm from "./pages/landlord/application/ApplyForm";
+import SignLeasePage from "./pages/landlord/application/SignLeasePage";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,15 @@ function App() {
             element={
               <PublicRoute>
                 <ResetPassword />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/leases-invite/sign/:token"
+            element={
+              <PublicRoute>
+                <SignLeasePage />
               </PublicRoute>
             }
           />

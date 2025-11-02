@@ -1,22 +1,26 @@
 model User {
-  id                  String               @id @default(cuid())
-  email               String               @unique
-  password            String
-  firstName           String?
-  lastName            String?
-  phone               String?
-  role                UserRole             @default(TENANT)
-  profileImage        String?
-  resetToken          String?
-  resetTokenExpiry    DateTime?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  landlordLeases        Lease[]              @relation("LandlordLeases")
-  tenantLeases          Lease[]              @relation("TenantLeases")
-  listings              Listing[]            @relation("LandlordListings")
-  maintenanceRequests   MaintenanceRequest[]
-  landlordApplications  RequestApplication[] @relation("LandlordApplications")
-  tenantApplications    RequestApplication[] @relation("TenantApplications")
+  id               String    @id @default(cuid())
+  email            String    @unique
+  password         String
+  firstName        String?
+  lastName         String?
+  phone            String?
+  role             UserRole  @default(TENANT)
+  profileImage     String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Existing relations
+  landlordLeases       Lease[]              @relation("LandlordLeases")
+  tenantLeases         Lease[]              @relation("TenantLeases")
+  tenantCustomLeases   CustomLease[]        @relation("TenantCustomLeases")
+  landlordCustomLeases CustomLease[]        @relation("LandlordCustomLeases")
+  listings             Listing[]            @relation("LandlordListings")
+  maintenanceRequests  MaintenanceRequest[]
+  landlordApplications RequestApplication[] @relation("LandlordApplications")
+  tenantApplications   RequestApplication[] @relation("TenantApplications")
 
   @@map("users")
 }

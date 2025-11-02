@@ -19,27 +19,34 @@ export default function SignUpPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const registerMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, data);
-      return response.data;
+      const res = await api.post(API_ENDPOINTS.AUTH.REGISTER, data);
+      return res.data;
     },
+
     onSuccess: (data) => {
+      // Authenticate immediately (token available right away)
+      login(data.data.user, data.data.user.token);
+
+      // Extract redirect param (if lease invite)
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get("redirect");
+
+      // Now delay ONLY the navigation
       setTimeout(() => {
-        login(data.data.user, data.data.user.token);
-        navigate(
-          formData.role === "TENANT"
-            ? "/onboarding/tenant"
-            : "/onboarding/landlord"
-        );
-      }, 1500);
+        if (redirect) {
+          navigate(redirect);
+          return;
+        }
+
+        navigate("/dashboard");
+      }, 1500);  // 1.5s UI fade delay
     },
+
   });
 
   const handleSubmit = (e) => {
@@ -52,7 +59,6 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-        {/* Success message */}
         {isSuccess && (
           <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
             Registration successful!
@@ -67,16 +73,17 @@ export default function SignUpPage() {
 
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
           <h1 className="text-2xl font-bold text-center mb-6">Sign Up</h1>
+
           <div className="mb-4">
             <label className="block mb-1">First Name</label>
             <input
               type="text"
               name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
               required
               disabled={isPending}
-              className="w-full p-2 border rounded disabled:opacity-50"
+              value={formData.firstName}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
             />
           </div>
 
@@ -85,11 +92,11 @@ export default function SignUpPage() {
             <input
               type="text"
               name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
               required
               disabled={isPending}
-              className="w-full p-2 border rounded disabled:opacity-50"
+              value={formData.lastName}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
             />
           </div>
 
@@ -98,11 +105,11 @@ export default function SignUpPage() {
             <input
               type="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
               required
               disabled={isPending}
-              className="w-full p-2 border rounded disabled:opacity-50"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
             />
           </div>
 
@@ -111,11 +118,11 @@ export default function SignUpPage() {
             <input
               type="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
               required
               disabled={isPending}
-              className="w-full p-2 border rounded disabled:opacity-50"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
             />
           </div>
 
@@ -124,11 +131,11 @@ export default function SignUpPage() {
             <input
               type="tel"
               name="phone"
-              value={formData.phone}
-              onChange={handleChange}
               required
               disabled={isPending}
-              className="w-full p-2 border rounded disabled:opacity-50"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
             />
           </div>
 
@@ -136,11 +143,10 @@ export default function SignUpPage() {
             <label className="block mb-1">Role</label>
             <select
               name="role"
+              disabled={isPending}
               value={formData.role}
               onChange={handleChange}
-              required
-              disabled={isPending}
-              className="w-full p-2 border rounded disabled:opacity-50"
+              className="w-full p-2 border rounded"
             >
               <option value="TENANT">Tenant</option>
               <option value="ADMIN">Landlord</option>
@@ -150,7 +156,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50"
           >
             {isPending ? "Signing up..." : "Sign Up"}
           </button>

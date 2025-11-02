@@ -10,7 +10,7 @@ async function createListings(landlordId, data) {
     where: { id: landlordId },
     select: { id: true, role: true },
   });
-  
+
   if (!landlord || landlord.role !== "ADMIN") {
     const err = new Error("Unauthorized: only landlords can create listings");
     err.status = 403;
@@ -25,7 +25,7 @@ async function createListings(landlordId, data) {
   const amenities = dedupe(
     toLower((data.amenities || []).map((name) => name.trim()).filter(Boolean))
   );
-  
+
 
   const images = dedupe(
     (data.images || [])
@@ -58,10 +58,10 @@ async function createListings(landlordId, data) {
       phoneNumber: data.phoneNumber?.trim() || null,
       email: data.email?.trim() || null,
       notes: data.notes?.trim() || null,
-      amenities: { 
-        create: amenities.map((name) => ({ name })) 
+      amenities: {
+        create: amenities.map((name) => ({ name }))
       },
-      images: { 
+      images: {
         create: images.map((url, index) => ({
           url,
           isPrimary: index === 0
@@ -153,17 +153,22 @@ async function updateListingById(id, userId, updates) {
 }
 
 async function checkListingHasLeases(listingId) {
+
   const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     select: {
       id: true,
       leases: true,
+      customLeases: true,
     },
   });
 
+  console.log("this is an id " + JSON.stringify(listing.customLeases.length))
+
   if (!listing) throw new Error("Listing not found");
 
-  const hasLease = listing.leases.length > 0;
+  const totalLeases = listing.leases.length + listing.customLeases.length;
+  const hasLease = totalLeases > 0;
 
   return { listingId: listing.id, hasLease, leaseCount: listing.leases.length };
 }
