@@ -114,3 +114,8 @@ enum ApplicationStatus {
   REJECTED
   CANCELLED
 }
+
+enum LeaseType {
+  STANDARD
+  CUSTOM
+}

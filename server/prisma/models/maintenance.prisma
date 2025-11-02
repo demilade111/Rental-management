@@ -1,7 +1,7 @@
 model MaintenanceRequest {
   id          String              @id @default(cuid())
   listingId   String
-  userId    String
+  userId      String
   description String
   status      MaintenanceStatus   @default(OPEN)
   priority    MaintenancePriority @default(MEDIUM)
@@ -13,7 +13,7 @@ model MaintenanceRequest {
   images      MaintenanceImage[]
   lease       Lease?              @relation(fields: [leaseId], references: [id])
   listing     Listing             @relation(fields: [listingId], references: [id])
-  user      User                @relation(fields: [userId], references: [id])
+  user        User                @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
   @@index([listingId, createdAt])

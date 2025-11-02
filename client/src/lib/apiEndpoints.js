@@ -37,6 +37,18 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `${API_VERSION}/leases/${id}`,
   },
 
+  // custom lease endpoints
+  CUSTOM_LEASES: {
+    BASE: `${API_VERSION}/customleases`,
+    BY_ID: (id) => `${API_VERSION}/customleases/${id}`,
+    BY_LISTING_ID: (listingId) => `${API_VERSION}/customleases/by-listing/${listingId}`,
+  },
+
+  // leases invite endpoints
+  LEASES_INVITE: {
+    BASE: `${API_VERSION}/leases-invite`,
+  },
+
   // Maintenance endpoints
   MAINTENANCE: {
     BASE: `${API_VERSION}/maintenance`,

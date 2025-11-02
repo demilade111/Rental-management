@@ -10,7 +10,9 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import maintenanceRoutes from "./routes/maintenanceRoute.js";
 import { specs } from "./config/swagger.js";
 import leaseRoutes from "./routes/leaseRoute.js";
+import customLeaseRoutes from "./routes/customLeaseRoutes.js";
 import requestApplicationRoutes from "./routes/requestApplicationRoute.js";
+import leaseInviteRoutes from "./routes/leaseInviteRoutes.js";
 
 const require = createRequire(import.meta.url);
 const swaggerUi = require("swagger-ui-express");
@@ -27,6 +29,8 @@ app.use("/api/v1/listings", listingRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/maintenance", maintenanceRoutes);
 app.use("/api/v1/leases", leaseRoutes);
+app.use("/api/v1/leases-invite", leaseInviteRoutes);
+app.use("/api/v1/customleases", customLeaseRoutes);
 app.use("/api/v1/applications", requestApplicationRoutes);
 
 // Swagger API Documentation

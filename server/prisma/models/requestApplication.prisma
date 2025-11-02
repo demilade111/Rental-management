@@ -23,12 +23,12 @@ model RequestApplication {
   leaseId        String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  expirationDate  DateTime?
-  listing         Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  landlord        User             @relation("LandlordApplications", fields: [landlordId], references: [id])
-  tenant          User?            @relation("TenantApplications", fields: [tenantId], references: [id])
-  lease           Lease?           @relation(fields: [leaseId], references: [id])
-  employmentInfo  EmploymentInfo[]
+  expirationDate DateTime?
+  listing        Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  landlord       User              @relation("LandlordApplications", fields: [landlordId], references: [id])
+  tenant         User?             @relation("TenantApplications", fields: [tenantId], references: [id])
+  lease          Lease?            @relation(fields: [leaseId], references: [id])
+  employmentInfo EmploymentInfo[]
 
   @@index([listingId])
   @@index([landlordId])
@@ -38,7 +38,7 @@ model RequestApplication {
 }
 
 model EmploymentInfo {
-  id            String               @id @default(cuid())
+  id            String             @id @default(cuid())
   applicationId String
   employerName  String
   jobTitle      String
@@ -46,10 +46,9 @@ model EmploymentInfo {
   duration      String?
   address       String?
   proofDocument String?
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  application   RequestApplication   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  application   RequestApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([applicationId])
 }
-
