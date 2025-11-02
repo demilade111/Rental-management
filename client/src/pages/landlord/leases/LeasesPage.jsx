@@ -18,7 +18,6 @@ export default function LeasesPage() {
   const removeChip = (label) =>
     setChips((prev) => prev.filter((c) => c !== label));
 
-  // ✅ Fetch leases from backend
   useEffect(() => {
     const fetchLeases = async () => {
       try {
@@ -43,7 +42,7 @@ export default function LeasesPage() {
 
         const data = await res.json();
         console.log("Leases fetched:", data);
-        setLeases(data?.data || []); // adapt if your backend sends differently
+        setLeases(data?.data || []); 
       } catch (err) {
         console.error("Lease fetch error:", err);
         setError("Failed to load leases. Please try again later.");

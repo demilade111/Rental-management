@@ -6,7 +6,7 @@ import {
   updateMaintenance,
   deleteMaintenance,
 } from "../controllers/maintenanceController.js";
-import { authenticate } from "../middleware/authMiddleware.js";
+import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
 
 const router = Router();

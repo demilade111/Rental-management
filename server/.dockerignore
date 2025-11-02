@@ -1,14 +1,15 @@
-node_modules
-npm-debug.log
-.git
-.gitignore
-README.md
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.nyc_output
-coverage
-.DS_Store
-*log
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY prisma ./prisma
+RUN npx prisma generate
+
+FROM node:20-alpine AS prod
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/prisma ./prisma
+COPY . .
+EXPOSE 4000
+CMD ["npm", "start"]

@@ -4,7 +4,7 @@ import {
   getawsS3DownloadUrl,
 } from "../controllers/uploadController.js";
 import { getApplicationProofUploadUrl } from "../controllers/applicationFileController.js";
-import { authenticate } from "../middleware/authMiddleware.js";
+import { authenticate } from "../middleware/AuthMiddleware.js";
 import { submitPublicApplicationController } from "../controllers/requestApplicationController.js";
 
 const router = express.Router();
