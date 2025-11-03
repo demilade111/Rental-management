@@ -15,6 +15,8 @@ import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
 import MainLayout from "./layouts/MainLayout";
 import ApplyForm from "./pages/landlord/application/ApplyForm";
 import SignLeasePage from "./pages/landlord/application/SignLeasePage";
+import ThankYouApplyPage from "./pages/landlord/application/ThankYouApplyPage";
+import ThankYouSigningPage from "./pages/landlord/application/ThankYouSigningPage";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +76,24 @@ function App() {
               <PublicRoute>
                 <SignLeasePage />
               </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/apply/thank-you"
+            element={
+              <ThankYouApplyPage
+                landlordEmail={location.state?.landlordEmail || null}
+              />
+            }
+          />
+
+          <Route
+            path="/signing/thank-you"
+            element={
+              <ThankYouSigningPage
+                landlordEmail={location.state?.landlordEmail || null}
+              />
             }
           />
 
