@@ -11,8 +11,10 @@ import {
 import axios from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import MaintenanceForm from "./MaintenanceForm";
-import MaintenanceFilters from "./MaintenanceFilters";
 import MaintenanceColumn from "./MaintenanceColumn";
+import MaintenanceSearchBar from "./MaintanenceSearchBar";
+import PageHeader from "@/components/shared/PageHeader";
+import { toast } from "sonner";
 
 function Maintenance() {
   const [search, setSearch] = useState("");
@@ -20,6 +22,8 @@ function Maintenance() {
   const [loading, setLoading] = useState(false);
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [chips, setChips] = useState(["Urgent", "Request in 30 days"]);
   const [filters] = useState({
     status: "",
     priority: "",
@@ -36,8 +40,11 @@ function Maintenance() {
     image: null,
   });
 
+  const [updatingActions, setUpdatingActions] = useState({}); // { [requestId]: action }
+
   const token = useAuthStore((state) => state.token);
 
+  // Fetch properties
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -47,24 +54,24 @@ function Maintenance() {
         setProperties(listings);
       } catch (err) {
         console.error("Error fetching listings:", err);
+        toast.error("Failed to fetch properties.");
       }
     };
 
-    if (token) {
-      fetchListings();
-    }
+    if (token) fetchListings();
   }, [token]);
 
+  // Fetch maintenance requests
   useEffect(() => {
     const fetchMaintenanceRequests = async () => {
       if (!token) return;
-
       setLoading(true);
       try {
         const data = await maintenanceApi.getAllRequests(filters);
         setMaintenanceRequests(data.data || data);
       } catch (err) {
         console.error("Error fetching maintenance requests:", err);
+        toast.error("Failed to fetch maintenance requests.");
       } finally {
         setLoading(false);
       }
@@ -83,26 +90,7 @@ function Maintenance() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !formData.title ||
-      !formData.listingId ||
-      !formData.category ||
-      !formData.description
-    ) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    if (formData.title.length < 3) {
-      alert("Title must be at least 3 characters");
-      return;
-    }
-
-    if (formData.description.length < 10) {
-      alert("Description must be at least 10 characters");
-      return;
-    }
+    setSaving(true); // start saving
 
     try {
       const requestData = {
@@ -113,11 +101,9 @@ function Maintenance() {
         description: formData.description,
       };
 
-      console.log("Submitting maintenance request:", requestData);
-      const response = await maintenanceApi.createRequest(requestData);
-      console.log("Maintenance request created successfully:", response);
+      await maintenanceApi.createRequest(requestData);
 
-      alert("Maintenance request created successfully!");
+      toast.success("Maintenance request created successfully!");
       setShowModal(false);
       setFormData({
         title: "",
@@ -131,65 +117,63 @@ function Maintenance() {
       const updatedRequests = await maintenanceApi.getAllRequests(filters);
       setMaintenanceRequests(updatedRequests.data || updatedRequests);
     } catch (error) {
-      console.error("Full error object:", error);
-      console.error("Error response:", error.response);
-      console.error("Error response data:", error.response?.data);
-
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to create request";
-      const errorDetails =
-        error.response?.data?.details || error.response?.data?.errors || "";
-
-      alert(
-        `Error submitting request: ${errorMessage}${
-          errorDetails ? "\n" + JSON.stringify(errorDetails) : ""
-        }`
-      );
+      console.error("Error submitting request:", error);
+      toast.error("Failed to create request");
+    } finally {
+      setSaving(false); // stop saving
     }
   };
 
-  const handleStatusUpdate = async (requestId, newStatus) => {
+  const handleStatusUpdate = async (requestId, actionName, newStatus) => {
     try {
+      // set updating action for this request
+      setUpdatingActions({ ...updatingActions, [requestId]: actionName });
+
       await maintenanceApi.updateStatus(requestId, newStatus);
 
       const updatedRequests = await maintenanceApi.getAllRequests(filters);
       setMaintenanceRequests(updatedRequests.data || updatedRequests);
 
-      alert(`Request ${newStatus.toLowerCase()} successfully!`);
+      toast.success(`Request ${newStatus.replace(/_/g, " ").toLowerCase()} successfully!`);
     } catch (error) {
       console.error("Error updating status:", error);
-      alert(`Error updating request: ${error.message}`);
+      toast.error(`Error updating request: ${error.message}`);
+    } finally {
+      // clear updating action
+      const updated = { ...updatingActions };
+      delete updated[requestId];
+      setUpdatingActions(updated);
     }
   };
 
   const handleDeleteRequest = async (requestId) => {
-    if (!confirm("Are you sure you want to delete this maintenance request?")) {
-      return;
-    }
+    if (!confirm("Are you sure you want to delete this maintenance request?")) return;
 
     try {
+      // set updating action for delete
+      setUpdatingActions({ ...updatingActions, [requestId]: "Trash" });
+
       await maintenanceApi.deleteRequest(requestId);
 
       const updatedRequests = await maintenanceApi.getAllRequests(filters);
       setMaintenanceRequests(updatedRequests.data || updatedRequests);
 
-      alert("Request deleted successfully!");
+      toast.success("Request deleted successfully!");
     } catch (error) {
       console.error("Error deleting request:", error);
-      alert(`Error deleting request: ${error.message}`);
+      toast.error(`Error deleting request: ${error.message}`);
+    } finally {
+      const updated = { ...updatingActions };
+      delete updated[requestId];
+      setUpdatingActions(updated);
     }
   };
 
-  const getRequestsByStatus = (status) => {
-    return maintenanceRequests.filter((request) => request.status === status);
-  };
+  const getRequestsByStatus = (status) =>
+    maintenanceRequests.filter((request) => request.status === status);
 
   const getFilteredRequests = (requests) => {
     if (!search) return requests;
-
     return requests.filter(
       (request) =>
         request.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -220,46 +204,39 @@ function Maintenance() {
 
   const handleActionClick = (action, requestId) => {
     if (action === "Accept") {
-      handleStatusUpdate(requestId, MAINTENANCE_STATUS.IN_PROGRESS);
+      handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.IN_PROGRESS);
     } else if (action === "Cancel") {
-      handleStatusUpdate(requestId, MAINTENANCE_STATUS.CANCELLED);
+      handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.CANCELLED);
     } else if (action === "Finish") {
-      handleStatusUpdate(requestId, MAINTENANCE_STATUS.COMPLETED);
+      handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.COMPLETED);
     } else if (action === "Trash") {
       handleDeleteRequest(requestId);
     } else if (action === "Reply") {
-      alert("Reply functionality coming soon!");
+      toast("Reply functionality coming soon!");
     } else if (action === "View") {
-      alert("View details functionality coming soon!");
+      toast("View details functionality coming soon!");
     }
   };
 
-  const handleFilterClick = (filterType) => {
-    console.log("Filter clicked:", filterType);
-  };
-
   return (
-    <div className="p-8 space-y-8">
-      <h1 className="text-2xl font-bold">Maintenance</h1>
-
-      <MaintenanceFilters
-        search={search}
-        onSearchChange={setSearch}
-        onFilterClick={handleFilterClick}
+    <div className="px-4 md:px-8 py-4">
+      <PageHeader
+        title="Maintenance"
+        subtitle="Track and manage all property maintenance tasks"
       />
 
-      <Button
-        size="sm"
-        onClick={() => setShowModal(true)}
-        className="flex items-center gap-2"
-      >
-        <Plus className="size-4" /> New Request
-      </Button>
+      <MaintenanceSearchBar
+        search={search}
+        setSearch={setSearch}
+        onFilter={() => console.log("Filter clicked")}
+        onNewRequest={() => setShowModal(true)}
+        chips={chips}
+        removeChip={(label) => setChips((prev) => prev.filter((c) => c !== label))}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {columns.map((col) => {
           const requests = getFilteredRequests(getRequestsByStatus(col.status));
-
           return (
             <MaintenanceColumn
               key={col.title}
@@ -268,6 +245,7 @@ function Maintenance() {
               loading={loading}
               actions={col.actions}
               onActionClick={handleActionClick}
+              updatingActions={updatingActions} // pass down updatingActions
             />
           );
         })}
@@ -279,7 +257,9 @@ function Maintenance() {
           properties={properties}
           onChange={handleChange}
           onSubmit={handleSubmit}
-          onClose={() => setShowModal(false)}
+          open={showModal}
+          setOpen={setShowModal}
+          saving={saving}
         />
       )}
     </div>
