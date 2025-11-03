@@ -16,6 +16,18 @@ import LeaseRedirectModal from "./LeaseRedirectModal";
 import { useAuthStore } from "@/store/authStore";
 import Pagination from "@/components/shared/Pagination";
 
+// Shadcn/ui imports for modal
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 const Applications = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -27,6 +39,11 @@ const Applications = () => {
     const [filters, setFilters] = useState({ status: "", startDate: "", endDate: "" });
     const [showLeaseRedirectModal, setShowLeaseRedirectModal] = useState(false);
     const [redirectUrl, setRedirectUrl] = useState(null);
+
+    // State for Shadcn modal
+    const [inviteModalOpen, setInviteModalOpen] = useState(false);
+    const [inviteUrl, setInviteUrl] = useState("");
+
     const { user } = useAuthStore();
 
     // Fetch listings
@@ -43,6 +60,7 @@ const Applications = () => {
         queryKey: ["applications", page, limit],
         queryFn: async () => {
             const res = await api.get(`${API_ENDPOINTS.APPLICATIONS.BASE}?page=${page}&limit=${limit}`);
+            // console.log(res.data)
             return res.data.data || res.data;
         },
     });
@@ -69,14 +87,13 @@ const Applications = () => {
     const handleApprove = (id) => updateStatusMutation.mutate({ id, status: "APPROVED" });
     const handleReject = (id) => updateStatusMutation.mutate({ id, status: "REJECTED" });
 
-    // --- Option 1: send lease directly using listingId ---
     const handleSendLease = async (app) => {
         const listingId = app?.listing?.id;
         if (!listingId) return toast.error("Listing ID not found");
 
         try {
             const res = await api.get(`${API_ENDPOINTS.LISTINGS.BY_ID(listingId)}/check-leases`);
-            const listInfo = res.data.data; // { listingId, hasLease, leaseCount }
+            const listInfo = res.data.data;
 
             if (!listInfo?.hasLease) {
                 setRedirectUrl("/landlord/leases");
@@ -85,51 +102,38 @@ const Applications = () => {
                 return;
             }
 
-            // need to check for both CUSTOM_LEASES ans LEASES
-            const leaseRes = await api.get(`${API_ENDPOINTS.CUSTOM_LEASES.BY_LISTING_ID(listingId)}`);
-            const lease = leaseRes.data.lease;
+            let leaseRes = await api.get(`${API_ENDPOINTS.CUSTOM_LEASES.BY_LISTING_ID(listingId)}`);
+            let lease = leaseRes.data.lease;
+            let leaseType = "CUSTOM";
 
-            if (!lease) return toast.error("Custom lease not found");
-            console.log(app)
-
-            let leaseType = null;
-
-            // generate the sign up link for the contact for that lease.
             if (!lease) {
                 const defaultLease = await api.get(`${API_ENDPOINTS.LEASES.BY_LISTING_ID(listingId)}`);
-
                 if (!defaultLease.data.lease) {
                     toast.error("No lease found for this listing");
                     return;
                 }
-
                 lease = defaultLease.data.lease;
                 leaseType = "STANDARD";
-            } else {
-                leaseType = "CUSTOM";
             }
-
-            console.log(leaseType)
 
             const inviteRes = await api.post(`${API_ENDPOINTS.LEASES_INVITE.BASE}/${lease.id}/invite`, {
                 tenantId: app.tenantId,
-                leaseType: leaseType, // "STANDARD" or "CUSTOM"
+                leaseType,
             });
 
-            console.log(inviteRes)
-
             const invite = inviteRes.data.invite;
-            navigator.clipboard.writeText(invite.url);
-            toast.success("Lease sign link copied!");
+
+            // Show modal instead of copying
+            setInviteUrl(invite.url);
+            setInviteModalOpen(true);
 
             // update tenant + status
             await api.put(`${API_ENDPOINTS.CUSTOM_LEASES.BY_ID(lease.id)}`, {
                 tenantId: app.tenantId,
                 listingId,
-                leaseStatus: "ACTIVE", // still need to be DFAFT until the user sign the contract
+                leaseStatus: "ACTIVE",
             });
 
-            // toast.success(`Lease sent for application ${app.id}`);
         } catch (err) {
             console.error(err);
             toast.error("Failed to check lease");
@@ -223,6 +227,41 @@ const Applications = () => {
                 onClose={() => setShowLeaseRedirectModal(false)}
                 redirectUrl={redirectUrl}
             />
+
+            {/* Shadcn modal for invite URL */}
+            <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
+                <DialogContent className="sm:max-w-lg p-8">
+                    <DialogHeader>
+                        <DialogTitle>Lease Sign Link</DialogTitle>
+                        <DialogDescription>
+                            Share this link with the tenant to sign the lease.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        <Input
+                            type="text"
+                            className="w-full p-2 border rounded"
+                            value={inviteUrl}
+                            readOnly
+                            onFocus={(e) => e.target.select()}
+                        />
+                    </div>
+                    <DialogFooter className="mt-4 flex justify-end gap-2">
+                        <Button
+                            onClick={() => {
+                                navigator.clipboard.writeText(inviteUrl);
+                                toast.success("Copied!");
+                            }}
+                            className="rounded-2xl"
+                        >
+                            Copy
+                        </Button>
+                        <Button className="rounded-2xl" variant="secondary" onClick={() => setInviteModalOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

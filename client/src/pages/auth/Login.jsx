@@ -4,6 +4,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import API_ENDPOINTS from "@/lib/apiEndpoints.js";
 import api from "@/lib/axios.js";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner"; // <-- import toast
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ export default function LoginPage() {
       return response.data;
     },
     onSuccess: (data) => {
+      toast.success("Login successful!"); // <-- show toast
       setTimeout(() => {
         login(data.data.user, data.data.token);
         navigate(
@@ -36,6 +40,9 @@ export default function LoginPage() {
         );
       }, 1500);
     },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || err.message); // <-- optional toast for errors
+    },
   });
 
   const handleSubmit = (e) => {
@@ -43,30 +50,16 @@ export default function LoginPage() {
     loginMutation.mutate(formData);
   };
 
-  const { isPending, error, isSuccess } = loginMutation;
+  const { isPending } = loginMutation;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-        {/* Success message */}
-        {isSuccess && (
-          <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
-            Login successful!
-          </div>
-        )}
-
-        {/* Error message */}
-        {error && (
-          <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded">
-            {error.response?.data?.message || error.message}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded shadow">
           <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
           <div className="mb-4">
             <label className="block mb-1">Email</label>
-            <input
+            <Input
               type="email"
               name="email"
               value={formData.email}
@@ -77,9 +70,9 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block mb-1">Password</label>
-            <input
+            <Input
               type="password"
               name="password"
               value={formData.password}
@@ -99,20 +92,20 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gray-700 text-lg text-white p-2 rounded-2xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed py-6"
           >
             {isPending ? "Logging in..." : "Login"}
-          </button>
+          </Button>
 
           <div className="mt-4 text-center text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don't have an account?
             <button
               type="button"
               onClick={() => navigate("/signup")}
-              className="text-blue-500 hover:underline"
+              className="text-blue-500 hover:underline ml-3"
             >
               Sign up
             </button>

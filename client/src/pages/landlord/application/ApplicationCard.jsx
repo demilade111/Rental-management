@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Eye, Mail, Send, Trash, Trash2, X } from "lucide-react";
+import { Check, Eye, Send, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -21,17 +21,26 @@ const getStatusColor = (status) => {
 
 const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onView }) => {
     const navigate = useNavigate();
+    const [isSending, setIsSending] = useState(false);
 
-    const handleClick = () => {
-        navigate(`/applications/${app.id}`);
+    const handleSendLeaseClick = async (e) => {
+        e.stopPropagation();
+        setIsSending(true);
+        try {
+            await onSendLease?.(app); // Call parent handler
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleViewClick = (e) => {
+        e.stopPropagation();
+        onView?.(app);
     };
 
     return (
-        <Card
-            className="border border-gray-300 hover:shadow-md cursor-pointer transition-shadow mb-3 p-3"
-        >
+        <Card className="border border-gray-300 hover:shadow-md cursor-pointer transition-shadow mb-3 p-3">
             <div className="grid grid-cols-4 gap-4 items-center justify-items-start">
-
                 {/* Column 1: Applicant Info */}
                 <div className="text-[16px] text-gray-700 truncate pl-10">
                     {app.fullName}
@@ -61,14 +70,10 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
 
                 {/* Column 4: Actions */}
                 <div className="flex gap-6 justify-center mr-auto">
-                    {/* Actions */}
                     <div className="flex gap-3 justify-center">
                         {["PENDING", "NEW"].includes(app.status) && (
                             <Button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onView?.(app);
-                                }}
+                                onClick={handleViewClick}
                                 className="flex items-center gap-2 sm:w-28 rounded-xl bg-gray-900"
                             >
                                 <Eye /> View
@@ -77,13 +82,12 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
 
                         {app.status === "APPROVED" && (
                             <Button
-                                onClick={(e) => {
-                                    e.stopPropagation(); // Prevent card click
-                                    onSendLease?.(app);
-                                }}
+                                onClick={handleSendLeaseClick}
                                 className="flex items-center gap-2 sm:w-28 rounded-xl bg-gray-900"
+                                disabled={isSending}
                             >
-                                <Send /> Send Lease
+                                <Send />
+                                {isSending ? "Sending..." : "Send Lease"}
                             </Button>
                         )}
 
@@ -122,7 +126,6 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
                             </>
                         )}
                     </div>
-
                 </div>
             </div>
         </Card>
