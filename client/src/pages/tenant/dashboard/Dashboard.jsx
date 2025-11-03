@@ -25,12 +25,10 @@ const Dashboard = () => {
   return (
     <div className="p-6 md:p-8 bg-background min-h-screen flex flex-col items-center">
       <div className="w-full max-w-[1400px] flex flex-col items-start gap-10">
-        {/* ===== TITLE ===== */}
         <h1 className="text-2xl font-bold text-left w-full">
           October Rent Summary
         </h1>
 
-        {/* ===== TOP SUMMARY CARDS ===== */}
         <div className="flex flex-wrap gap-[37px] w-full">
           {[
             { title: "Unpaid", amount: "$300" },
@@ -51,7 +49,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* ===== UPLOAD PAYMENT PROOF BUTTON ===== */}
         <div className="flex justify-start w-full">
           <Button
             variant="outline"
@@ -61,7 +58,6 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* ===== MIDDLE SECTION ===== */}
         <div className="flex flex-wrap justify-start gap-[37px] w-full">
           <div className="w-full lg:w-[463px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <h2 className="text-3xl font-semibold mb-4">Your Rent</h2>
@@ -89,7 +85,6 @@ const Dashboard = () => {
 </div>
 </div>
 
-          {/* ===== NOTICE SECTION ===== */}
           <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-semibold">Notice</h2>
@@ -134,7 +129,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* MAINTENANCE SECTION */}
           <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <h2 className="text-3xl font-semibold mb-4">Maintenance</h2>
             <div className="flex flex-col gap-4 text-sm">
@@ -167,7 +161,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* ===== INSURANCE SECTION ===== */}
         <div className="w-full border rounded-[15px] p-6 flex flex-col bg-white">
           <h2 className="text-lg font-semibold mb-4">Insurance</h2>
 
