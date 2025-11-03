@@ -120,6 +120,7 @@ export async function getAllApplicationsByLandlord(
           streetAddress: true,
           city: true,
           state: true,
+          status: true,
           rentAmount: true,
         },
       },

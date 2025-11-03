@@ -62,14 +62,14 @@ const ExpiringLeasesCard = () => {
 
     return (
         <div className="bg-card rounded-lg border border-gray-400 p-6">
-            <h3 className="text-[32px] font-bold mb-8">Expiring Leases</h3>
+            <h3 className="text-[32px] font-bold mb-10">Expiring Leases</h3>
             {/* Filter Buttons */}
             <div className="flex gap-3 mb-8 justify-between">
                 {filters.map((filter) => (
                     <button
                         key={filter.id}
                         onClick={() => setActiveFilter(filter.id)}
-                        className={`px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors ${activeFilter === filter.id
+                        className={`sm:px-6 py-1.5 rounded-full text-sm font-bold transition-colors ${activeFilter === filter.id
                                 ? 'bg-gray-800 text-white'
                                 : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
                             }`}
