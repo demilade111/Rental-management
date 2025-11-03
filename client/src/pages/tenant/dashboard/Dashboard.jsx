@@ -46,7 +46,7 @@ const Dashboard = () => {
               <div className="text-gray-500 text-sm font-medium">
                 {item.title}
               </div>
-              <div className="text-4xl font-bold">{item.amount}</div>
+              <div className="text-2xl font-bold">{item.amount}</div>
             </div>
           ))}
         </div>
