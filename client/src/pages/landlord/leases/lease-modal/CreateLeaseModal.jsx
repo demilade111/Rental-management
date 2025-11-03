@@ -53,7 +53,9 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
         queryKey: ["listings", user?.id],
         queryFn: async () => {
             const res = await api.get(API_ENDPOINTS.LISTINGS.BASE);
-            return res.data.listing;
+            const activeListings = res.data.listing.filter(l => l.status === "ACTIVE");
+
+            return activeListings;
         },
     });
 
