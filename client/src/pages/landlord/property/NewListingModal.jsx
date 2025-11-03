@@ -460,7 +460,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="border-0 text-gray-700 shadow-none"
+                className="border-0 text-gray-700 shadow-none rounded-2xl"
                 disabled={isPending}
               >
                 Discard
@@ -470,7 +470,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
               <Button
                 type="button"
                 variant="outline"
-                className="border-gray-300"
+                className="border-gray-300 rounded-2xl"
                 disabled={isPending}
               >
                 Save Draft
@@ -478,7 +478,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
               <Button
                 type="submit"
                 onClick={handleSubmit}
-                className="bg-black text-white hover:bg-gray-800"
+                className="bg-black text-white hover:bg-gray-800 rounded-2xl"
                 disabled={isPending}
               >
                 {isPending ? "Adding..." : "Add Property"}

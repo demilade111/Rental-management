@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ import { useValidator } from "@/utils/useValidator";
 
 const ApplyForm = () => {
   const { publicId } = useParams();
-
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [redirectAfterSubmit, setRedirectAfterSubmit] = useState(false);
 
@@ -107,7 +107,10 @@ const ApplyForm = () => {
     },
     onSuccess: () => {
       toast.success("Application submitted — landlord will be notified.");
-      setRedirectAfterSubmit(true);
+      // setRedirectAfterSubmit(true);
+      navigate("/apply/thank-you", { 
+        state: { landlordEmail: applicationMeta.landlord?.email } 
+      });
     },
     onError: (err) => {
       console.error(err);
@@ -665,14 +668,16 @@ const ApplyForm = () => {
         </div>
       </div>
 
-      {redirectAfterSubmit && (
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-          {/* small overlay message or redirect */}
-          <div className="bg-white p-4 rounded shadow">
-            Submitted — thank you.
-          </div>
-        </div>
-      )}
+      {
+        // redirectAfterSubmit && (
+        //   <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        //     {/* small overlay message or redirect */}
+        //     <div className="bg-white p-4 rounded shadow">
+        //       Submitted — thank you.
+        //     </div>
+        //   </div>
+        // )
+      }
     </div>
   );
 };

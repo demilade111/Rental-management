@@ -119,3 +119,8 @@ enum LeaseType {
   STANDARD
   CUSTOM
 }
+
+enum ListingStatus {
+  ACTIVE
+  RENTED
+}

@@ -121,6 +121,12 @@ export const signLeaseController = async (req, res) => {
             },
         });
 
+        // Update the associated listing status to RENTED
+        await prisma.listing.update({
+            where: { id: lease.listingId },
+            data: { status: "RENTED" },
+        });
+
         res.json({ message: "Lease signed successfully" });
     } catch (err) {
         console.error(err);

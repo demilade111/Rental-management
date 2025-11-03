@@ -7,15 +7,15 @@ const LeaseRedirectModal = ({ isOpen, onClose, redirectUrl }) => {
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-md text-center space-y-4">
                 <DialogHeader className="pt-4">
-                    <DialogTitle className="text-[18px] items-center">No Lease Found</DialogTitle>
+                    <DialogTitle className="text-xl items-center mx-auto">No Lease Found !</DialogTitle>
                 </DialogHeader>
-                <DialogDescription>
+                <DialogDescription className="text-md px-6">
                     This listing doesn’t have any lease attached. You need to create a lease
                     before sending.
                 </DialogDescription>
                 <div className="flex justify-center gap-4 mt-4">
                     <Button
-                        className="bg-gray-900 text-white"
+                        className="bg-gray-900 text-white rounded-2xl"
                         onClick={() => {
                             window.location.href = redirectUrl;
                         }}
@@ -25,6 +25,7 @@ const LeaseRedirectModal = ({ isOpen, onClose, redirectUrl }) => {
                     <Button
                         variant="outline"
                         onClick={onClose}
+                        className="rounded-2xl"
                     >
                         Cancel
                     </Button>
