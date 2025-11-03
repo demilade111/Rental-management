@@ -1,9 +1,26 @@
 import { useAuthStore } from "../../../store/authStore";
 import {Button} from "../../../components/ui/button";
 import { Upload, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "../../../lib/axios";
 
 const Dashboard = () => {
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
+  const [leases, setLeases] = useState([]);
+
+  useEffect(() => {
+    const fetchTenantLeases = async () => {
+      if (!token) return;
+      try {
+        const res = await axios.get("/api/v1/leases");
+        console.log("API response:", res.data);
+        setLeases(res.data.data || []);
+      } catch (err) {
+        console.error("Error fetching tenant leases:", err);
+      }
+    };
+    fetchTenantLeases();
+  }, [token]);
 
   return (
     <div className="p-6 md:p-8 bg-background min-h-screen flex flex-col items-center">
@@ -49,31 +66,29 @@ const Dashboard = () => {
           <div className="w-full lg:w-[463px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <h2 className="text-3xl font-semibold mb-4">Your Rent</h2>
             <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-2xl"></div>
-                <div>
-                  <p className="font-semibold">Property Name</p>
-                  <p className="font-bold">$2500</p>
-                  <p className="text-gray-500 text-sm">Address</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-gray-400 text-sm">Oct 8</p>
-                </div>
-              </div>
+  {leases.length === 0 && <p>You have no active rentals.</p>}
 
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-2xl"></div>
-                <div>
-                  <p className="font-semibold">Property Name</p>
-                  <p className="font-bold">$1500</p>
-                  <p className="text-gray-500 text-sm">Address</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-gray-400 text-sm">Sep 12</p>
-                </div>
-              </div>
-            </div>
-          </div>
+  {leases.map((lease) => {
+    const listing = lease.listing || {};
+    return (
+      <div key={lease.id} className="flex items-center gap-4">
+        <div className="w-24 h-24 bg-gray-100 rounded-2xl"></div>
+        <div>
+          <p className="font-semibold">{listing?.title || "Untitled Property"}</p>
+          <p className="font-bold">${lease.rentAmount}</p>
+          <p className="text-gray-500 text-sm">{listing?.streetAddress}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-gray-400 text-sm">
+            {new Date(lease.startDate).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+    );
+  })}
+</div>
+</div>
+
           {/* ===== NOTICE SECTION ===== */}
           <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
             <div className="flex items-center justify-between mb-4">
