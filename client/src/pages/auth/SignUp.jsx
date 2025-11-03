@@ -4,6 +4,16 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import api from "../../lib/axios";
 import API_ENDPOINTS from "../../lib/apiEndpoints";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner"; // <-- import toast
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -27,26 +37,25 @@ export default function SignUpPage() {
       const res = await api.post(API_ENDPOINTS.AUTH.REGISTER, data);
       return res.data;
     },
-
     onSuccess: (data) => {
-      // Authenticate immediately (token available right away)
+      toast.success("Registration successful!"); // <-- toast success
+      // Authenticate immediately
       login(data.data.user, data.data.user.token);
 
-      // Extract redirect param (if lease invite)
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get("redirect");
 
-      // Now delay ONLY the navigation
       setTimeout(() => {
         if (redirect) {
           navigate(redirect);
           return;
         }
-
         navigate("/dashboard");
-      }, 1500);  // 1.5s UI fade delay
+      }, 1500);
     },
-
+    onError: (err) => {
+      toast.error(err.response?.data?.message || err.message); // <-- toast error
+    },
   });
 
   const handleSubmit = (e) => {
@@ -54,29 +63,17 @@ export default function SignUpPage() {
     registerMutation.mutate(formData);
   };
 
-  const { isPending, error, isSuccess } = registerMutation;
+  const { isPending } = registerMutation;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-        {isSuccess && (
-          <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded">
-            Registration successful!
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded">
-            {error.response?.data?.message || error.message}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
+        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded shadow">
           <h1 className="text-2xl font-bold text-center mb-6">Sign Up</h1>
 
           <div className="mb-4">
             <label className="block mb-1">First Name</label>
-            <input
+            <Input
               type="text"
               name="firstName"
               required
@@ -89,7 +86,7 @@ export default function SignUpPage() {
 
           <div className="mb-4">
             <label className="block mb-1">Last Name</label>
-            <input
+            <Input
               type="text"
               name="lastName"
               required
@@ -102,7 +99,7 @@ export default function SignUpPage() {
 
           <div className="mb-4">
             <label className="block mb-1">Email</label>
-            <input
+            <Input
               type="email"
               name="email"
               required
@@ -115,7 +112,7 @@ export default function SignUpPage() {
 
           <div className="mb-4">
             <label className="block mb-1">Password</label>
-            <input
+            <Input
               type="password"
               name="password"
               required
@@ -128,7 +125,7 @@ export default function SignUpPage() {
 
           <div className="mb-4">
             <label className="block mb-1">Phone</label>
-            <input
+            <Input
               type="tel"
               name="phone"
               required
@@ -139,34 +136,37 @@ export default function SignUpPage() {
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block mb-1">Role</label>
-            <select
-              name="role"
+            <Select
               disabled={isPending}
               value={formData.role}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
+              onValueChange={(value) => handleChange({ target: { name: "role", value } })}
             >
-              <option value="TENANT">Tenant</option>
-              <option value="ADMIN">Landlord</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TENANT">Tenant</SelectItem>
+                <SelectItem value="ADMIN">Landlord</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50"
+            className="w-full bg-gray-700 text-lg text-white p-2 py-6 rounded-2xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isPending ? "Signing up..." : "Sign Up"}
-          </button>
+          </Button>
 
           <div className="mt-4 text-center text-sm text-gray-600">
-            Already have an account?{" "}
+            Already have an account?
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="text-blue-500 hover:underline"
+              className="text-blue-500 hover:underline ml-3"
             >
               Login
             </button>

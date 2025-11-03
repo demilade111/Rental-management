@@ -18,7 +18,7 @@ const ThankYouSigningPage = () => {
                     </p>
                     <Button
                         className="mt-4 rounded-2xl"
-                        onClick={() => navigate("/dashboard")}
+                        onClick={() => navigate("/tenant/dashboard")}
                     >
                         Go to Dashboard
                     </Button>

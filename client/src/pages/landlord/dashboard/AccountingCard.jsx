@@ -1,5 +1,5 @@
 import React from 'react';
-import { PieChart, Pie, Cell } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import {
     ChartContainer,
     ChartTooltip,
@@ -52,29 +52,27 @@ const AccountingCard = ({ data }) => {
                         </div>
                     ))}
                 </div>
-                <div className="w-full">
-                    <ChartContainer config={accountingChartConfig}>
+
+                <div className="w-full sm:h-64 flex justify-center items-center">
+                    <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            <ChartTooltip
-                                cursor={false}
-                                content={<ChartTooltipContent hideLabel />}
-                            />
                             <Pie
                                 data={accountingData}
                                 dataKey="value"
                                 nameKey="name"
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={40}
-                                outerRadius={70}
+                                innerRadius="40%"
+                                outerRadius="80%"
                             >
                                 {accountingData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                             </Pie>
                         </PieChart>
-                    </ChartContainer>
+                    </ResponsiveContainer>
                 </div>
+
             </div>
         </div>
     );

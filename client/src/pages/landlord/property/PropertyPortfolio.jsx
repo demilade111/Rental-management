@@ -13,7 +13,7 @@ import API_ENDPOINTS from '../../../lib/apiEndpoints';
 import PageHeader from '@/components/shared/PageHeader';
 
 const PropertyPortfolio = () => {
-  const [activeTab, setActiveTab] = useState("rentals");
+  const [activeTab, setActiveTab] = useState("listings");
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuthStore();
@@ -34,14 +34,26 @@ const PropertyPortfolio = () => {
 
   const filteredProperties = properties.filter((prop) => {
     const q = searchQuery.toLowerCase();
-    return (
+
+    // Filter by search query
+    const matchesSearch =
       prop.name?.toLowerCase().includes(q) ||
       prop.title?.toLowerCase().includes(q) ||
       prop.address?.toLowerCase().includes(q) ||
       prop.location?.toLowerCase().includes(q) ||
-      prop.propertyName?.toLowerCase().includes(q)
-    );
+      prop.propertyName?.toLowerCase().includes(q);
+
+    // Filter by status based on activeTab
+    let matchesStatus = true;
+    if (activeTab === "listings") {
+      matchesStatus = prop.status === "ACTIVE"; // Default listings
+    } else if (activeTab === "rentals") {
+      matchesStatus = prop.status === "RENTED"; // Rentals tab
+    }
+
+    return matchesSearch && matchesStatus;
   });
+
 
   return (
     <div className="min-h-screen px-4 md:px-8 py-4">

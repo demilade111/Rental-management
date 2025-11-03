@@ -2,7 +2,7 @@ import React from 'react';
 
 const PropertyTabs = ({ activeTab, setActiveTab }) => (
     <div className="flex gap-2 mb-6">
-        <div className="bg-gray-200 rounded-lg border-2 border-gray-200">
+        <div className="bg-gray-200 rounded-lg border-2 border-gray-200 space-x-0.5">
             {['rentals', 'listings'].map((tab) => (
                 <button
                     key={tab}
