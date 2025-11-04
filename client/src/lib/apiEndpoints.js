@@ -44,6 +44,11 @@ export const API_ENDPOINTS = {
     BY_LISTING_ID: (listingId) => `${API_VERSION}/customleases/by-listing/${listingId}`,
   },
 
+  // get all the tenant leases
+  TENANT_LEASES: {
+    BASE: `${API_VERSION}/leases/tenant`,
+  },
+
   // leases invite endpoints
   LEASES_INVITE: {
     BASE: `${API_VERSION}/leases-invite`,
