@@ -62,7 +62,7 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
                 </div>
 
                 {/* Column 3: Status */}
-                <div className="flex justify-center mx-auto">
+                <div className="flex justify-center mr-auto">
                     <Badge className={`${getStatusColor(app.status)} whitespace-nowrap text-sm px-3 py-1 text-gray-900 border-0`}>
                         {app.status}
                     </Badge>

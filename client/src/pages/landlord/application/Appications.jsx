@@ -57,7 +57,7 @@ const Applications = () => {
 
     // Fetch applications
     const { data: applicationsData = {}, refetch: refetchApplications, isLoading: appsLoading } = useQuery({
-        queryKey: ["applications", page, limit],
+        queryKey: ["applications", user?.id, page, limit],
         queryFn: async () => {
             const res = await api.get(`${API_ENDPOINTS.APPLICATIONS.BASE}?page=${page}&limit=${limit}`);
             // console.log(res.data)
