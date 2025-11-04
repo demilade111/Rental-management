@@ -23,7 +23,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
         leaseStatus: "ACTIVE",
       },
     });
-
+ 
     if (!lease) {
       const err = new Error(
         "You do not have an active lease for this property"
