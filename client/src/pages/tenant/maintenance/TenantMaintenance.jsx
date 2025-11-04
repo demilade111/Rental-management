@@ -8,7 +8,7 @@ import {
   getStatusDisplayName,
 } from "@/lib/maintenanceApi";
 import { useAuthStore } from "@/store/authStore";
-import axios from "@/lib/axios";
+import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import {
   MaintenanceFilters,
@@ -33,7 +33,8 @@ function TenanceMaintenance() {
   useEffect(() => {
     const fetchTenantProperties = async () => {
       try {
-        const res = await axios.get("/api/v1/leases");
+        const res = await api.get(`${API_ENDPOINTS.CUSTOM_LEASES.BASE}`);
+        console.log("Tenant leases response:", res.data);
         const leases = res.data.data || [];
         const tenantListings = leases
           .map((lease) => lease.listing)
