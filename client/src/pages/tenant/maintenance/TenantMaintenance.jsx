@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Mic } from "lucide-react";
+import { Plus } from "lucide-react";
+
 import {
   maintenanceApi,
   MAINTENANCE_STATUS,
-  MAINTENANCE_PRIORITY,
   getStatusDisplayName,
 } from "@/lib/maintenanceApi";
+
 import { useAuthStore } from "@/store/authStore";
-import axios from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
+
 import {
   MaintenanceFilters,
   MaintenanceColumn,
 } from "@/pages/landlord/maintenance";
+
 import TenantMaintenanceForm from "./TenantMaintenanceForm";
+import api from "@/lib/axios";
+import { toast } from "sonner";
 
 function TenanceMaintenance() {
   const [search, setSearch] = useState("");
@@ -22,6 +26,9 @@ function TenanceMaintenance() {
   const [loading, setLoading] = useState(false);
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [properties, setProperties] = useState([]);
+
+  const { token, user } = useAuthStore();
+
   const [filters] = useState({
     status: "",
     priority: "",
@@ -29,24 +36,30 @@ function TenanceMaintenance() {
     listingId: "",
   });
 
-  const { token, user } = useAuthStore();
+  // === Fetch Tenant Properties ===
   useEffect(() => {
     const fetchTenantProperties = async () => {
       try {
-        const res = await axios.get("/api/v1/leases");
+        const res = await api.get(`${API_ENDPOINTS.TENANT_LEASES.BASE}`);
         const leases = res.data.data || [];
+console.log(leases)
         const tenantListings = leases
           .map((lease) => lease.listing)
           .filter(Boolean);
+
         setProperties(tenantListings);
       } catch (err) {
-        console.error("Error fetching tenant listings:", err);
+        toast({
+          title: "Error fetching properties",
+          variant: "destructive",
+        });
       }
     };
 
-    if (token) fetchTenantProperties();
+    fetchTenantProperties();
   }, [token]);
 
+  // === Fetch Requests ===
   useEffect(() => {
     const fetchRequests = async () => {
       if (!token) return;
@@ -55,7 +68,10 @@ function TenanceMaintenance() {
         const data = await maintenanceApi.getAllRequests(filters);
         setMaintenanceRequests(data.data || data);
       } catch (err) {
-        console.error("Error fetching tenant maintenance requests:", err);
+        toast({
+          title: "Error loading maintenance requests",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -64,6 +80,7 @@ function TenanceMaintenance() {
     fetchRequests();
   }, [token, filters]);
 
+  // === Group Helpers ===
   const getRequestsByStatus = (status) =>
     maintenanceRequests.filter((r) => r.status === status);
 
@@ -94,30 +111,31 @@ function TenanceMaintenance() {
   return (
     <div className="p-6 md:p-10 space-y-6">
       <h1 className="text-2xl font-bold">My Maintenance Requests</h1>
+
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-3">
-          <MaintenanceFilters
-            search={search}
-            onSearchChange={setSearch}
-            onFilterClick={(f) => console.log("Filter clicked:", f)}
-          />
-        </div>
+        <MaintenanceFilters
+          search={search}
+          onSearchChange={setSearch}
+          onFilterClick={(f) => console.log("Filter clicked:", f)}
+        />
+
         <Button
           size="sm"
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 bg-white-100 text-black border border-gray-300 hover:bg-gray-50 w-44 h-12 rounded-2xl p-1"
         >
-          <Plus className="size-4 w-7 h-7 bg-black text-white rounded-full p-1" />{" "}
+          <Plus className="size-4 w-7 h-7 bg-black text-white rounded-full p-1" />
           New Request
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {columns.map((col) => {
+      {/* Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        {columns.map((col, index) => {
           const requests = getFilteredRequests(getRequestsByStatus(col.status));
           return (
             <MaintenanceColumn
-              key={col.title}
+              key={index}
               title={col.title}
               requests={requests}
               loading={loading}
@@ -128,7 +146,7 @@ function TenanceMaintenance() {
         })}
       </div>
 
-      {/* Modal for New Request */}
+      {/* Modal */}
       {showModal && (
         <TenantMaintenanceForm
           user={user}
@@ -137,6 +155,10 @@ function TenanceMaintenance() {
           onRequestCreated={async () => {
             const updated = await maintenanceApi.getAllRequests(filters);
             setMaintenanceRequests(updated.data || updated);
+
+            toast({
+              title: "Request created successfully!",
+            });
           }}
         />
       )}
