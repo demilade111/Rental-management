@@ -1,26 +1,48 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload } from "lucide-react";
+import { Save, Upload } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   MAINTENANCE_PRIORITY,
   MAINTENANCE_CATEGORY,
 } from "@/lib/maintenanceApi";
+import { Textarea } from "@/components/ui/textarea";
 
 const MaintenanceForm = ({
   formData,
   properties,
   onChange,
   onSubmit,
-  onClose,
+  open,
+  setOpen,
+  saving,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4">New Maintenance Request</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="bg-white dark:bg-gray-900 p-8 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>New Maintenance Request</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={onSubmit} className="space-y-4 mt-4">
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium">Title</label>
+            <label className="block text-sm font-medium mb-1">Title</label>
             <Input
               name="title"
               value={formData.title}
@@ -31,95 +53,100 @@ const MaintenanceForm = ({
             />
           </div>
 
+          {/* Property & Priority */}
           <div className="grid grid-cols-2 gap-4">
+            {/* Property */}
             <div>
-              <label className="block text-sm font-medium">Property</label>
-              <select
-                name="listingId"
+              <label className="block text-sm font-medium mb-1">Select property</label>
+              <Select
                 value={formData.listingId}
-                onChange={onChange}
-                className="border rounded-md w-full p-2"
-                required
+                onValueChange={(value) =>
+                  onChange({ target: { name: "listingId", value } })
+                }
+                disabled={properties.length === 0}
               >
-                <option value="">
-                  Select property ({properties.length} available)
-                </option>
-                {properties.map((property) => (
-                  <option key={property.id} value={property.id}>
-                    {property.title || property.name || "Untitled Property"}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={`Available properties ( ${properties.length} )`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.title || property.name || "Untitled Property"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Priority */}
             <div>
-              <label className="block text-sm font-medium">Priority</label>
-              <select
-                name="priority"
+              <label className="block text-sm font-medium mb-1">Priority</label>
+              <Select
                 value={formData.priority}
-                onChange={onChange}
-                className="border rounded-md w-full p-2"
-                required
+                onValueChange={(value) =>
+                  onChange({ target: { name: "priority", value } })
+                }
               >
-                <option value={MAINTENANCE_PRIORITY.LOW}>Low</option>
-                <option value={MAINTENANCE_PRIORITY.MEDIUM}>Normal</option>
-                <option value={MAINTENANCE_PRIORITY.HIGH}>Important</option>
-                <option value={MAINTENANCE_PRIORITY.URGENT}>Urgent</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={MAINTENANCE_PRIORITY.LOW}>Low</SelectItem>
+                  <SelectItem value={MAINTENANCE_PRIORITY.MEDIUM}>Normal</SelectItem>
+                  <SelectItem value={MAINTENANCE_PRIORITY.HIGH}>Important</SelectItem>
+                  <SelectItem value={MAINTENANCE_PRIORITY.URGENT}>Urgent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
+          {/* Category */}
           <div>
-            <label className="block text-sm font-medium">Category</label>
-            <select
-              name="category"
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <Select
               value={formData.category}
-              onChange={onChange}
-              className="border rounded-md w-full p-2"
-              required
+              onValueChange={(value) =>
+                onChange({ target: { name: "category", value } })
+              }
             >
-              <option value="">Select category</option>
-              <option value={MAINTENANCE_CATEGORY.PLUMBING}>Plumbing</option>
-              <option value={MAINTENANCE_CATEGORY.ELECTRICAL}>
-                Electrical
-              </option>
-              <option value={MAINTENANCE_CATEGORY.HVAC}>HVAC</option>
-              <option value={MAINTENANCE_CATEGORY.APPLIANCE}>Appliance</option>
-              <option value={MAINTENANCE_CATEGORY.STRUCTURAL}>
-                Structural
-              </option>
-              <option value={MAINTENANCE_CATEGORY.PEST_CONTROL}>
-                Pest Control
-              </option>
-              <option value={MAINTENANCE_CATEGORY.CLEANING}>Cleaning</option>
-              <option value={MAINTENANCE_CATEGORY.LANDSCAPING}>
-                Landscaping
-              </option>
-              <option value={MAINTENANCE_CATEGORY.SECURITY}>Security</option>
-              <option value={MAINTENANCE_CATEGORY.OTHER}>Other</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MAINTENANCE_CATEGORY.PLUMBING}>Plumbing</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.ELECTRICAL}>Electrical</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.HVAC}>HVAC</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.APPLIANCE}>Appliance</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.STRUCTURAL}>Structural</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.PEST_CONTROL}>Pest Control</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.CLEANING}>Cleaning</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.LANDSCAPING}>Landscaping</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.SECURITY}>Security</SelectItem>
+                <SelectItem value={MAINTENANCE_CATEGORY.OTHER}>Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium">Description</label>
-            <textarea
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <Textarea
               name="description"
               value={formData.description}
               onChange={onChange}
-              rows={4}
               className="border rounded-md w-full p-2"
               placeholder="Describe the issue... (minimum 10 characters)"
               minLength={10}
               required
-            ></textarea>
+            />
           </div>
 
+          {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium">Image</label>
+            <label className="block text-sm font-medium mb-1">Image</label>
             <label className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-muted/10">
-              <Upload className="size-6 mb-2" />
-              <span className="text-sm text-muted-foreground">
-                Upload image
-              </span>
+              <Upload className="w-6 h-6 mb-2" />
+              <span className="text-sm text-muted-foreground">Upload image</span>
               <input
                 type="file"
                 name="image"
@@ -130,15 +157,18 @@ const MaintenanceForm = ({
             </label>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="outline" type="button" onClick={onClose}>
+          {/* Actions */}
+          <DialogFooter className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" onClick={() => setOpen(false)}>
               Close
             </Button>
-            <Button type="submit">Save</Button>
-          </div>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : <><Save className="mr-2" /> Save</>}
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
