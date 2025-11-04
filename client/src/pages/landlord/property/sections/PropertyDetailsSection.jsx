@@ -1,5 +1,12 @@
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   PROPERTY_CATEGORY_NAMES,
   PROPERTY_OPTIONS,
 } from "@/constants/propertyTypes";
@@ -13,6 +20,7 @@ export const PropertyDetailsSection = ({
 }) => {
   return (
     <div className="border-b border-gray-300 space-y-6 pb-8">
+      {/* Property Title */}
       <div>
         <label className="block text-sm font-medium mb-2">Property Title</label>
         <Input
@@ -29,34 +37,40 @@ export const PropertyDetailsSection = ({
         )}
       </div>
 
+      {/* Property Type */}
       <div>
         <label className="block text-sm font-medium mb-2">Property Type</label>
-        <select
-          name="propertyType"
+        <Select
           value={formData.propertyType}
-          onChange={(e) =>
-            setFormData({ ...formData, propertyType: e.target.value })
+          onValueChange={(value) =>
+            setFormData({ ...formData, propertyType: value })
           }
-          className="w-full text-gray-600 text-sm p-2 border border-gray-300 rounded-md"
+          disabled={isPending}
         >
-          <option value="">Select property type</option>
-          {Object.entries(PROPERTY_OPTIONS).map(([category, types]) => (
-            <optgroup key={category} label={PROPERTY_CATEGORY_NAMES[category]}>
-              {types.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select property type" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(PROPERTY_OPTIONS).map(([category, types]) => (
+              <div key={category}>
+                <p className="px-3 py-1 text-xs font-semibold text-gray-500">
+                  {PROPERTY_CATEGORY_NAMES[category]}
+                </p>
+                {types.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </div>
+            ))}
+          </SelectContent>
+        </Select>
         {fieldErrors.propertyType && (
-          <p className="mt-1 text-red-400 text-sm">
-            {fieldErrors.propertyType}
-          </p>
+          <p className="mt-1 text-red-400 text-sm">{fieldErrors.propertyType}</p>
         )}
       </div>
 
+      {/* Property Owner */}
       <div>
         <label className="block text-sm font-medium mb-2">Property Owner</label>
         <Input
@@ -69,12 +83,11 @@ export const PropertyDetailsSection = ({
           disabled={isPending}
         />
         {fieldErrors.propertyOwner && (
-          <p className="mt-1 text-red-400 text-sm">
-            {fieldErrors.propertyOwner}
-          </p>
+          <p className="mt-1 text-red-400 text-sm">{fieldErrors.propertyOwner}</p>
         )}
       </div>
 
+      {/* Bedrooms & Bathrooms */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-2">Bedrooms</label>
@@ -110,11 +123,10 @@ export const PropertyDetailsSection = ({
         </div>
       </div>
 
+      {/* Total Square Feet & Year Built */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-2">
-            Total Square Feet
-          </label>
+          <label className="block text-sm font-medium mb-2">Total Square Feet</label>
           <Input
             type="number"
             name="totalSquareFeet"
@@ -125,9 +137,7 @@ export const PropertyDetailsSection = ({
             onWheel={(e) => e.target.blur()}
           />
           {fieldErrors.totalSquareFeet && (
-            <p className="mt-1 text-red-400 text-sm">
-              {fieldErrors.totalSquareFeet}
-            </p>
+            <p className="mt-1 text-red-400 text-sm">{fieldErrors.totalSquareFeet}</p>
           )}
         </div>
         <div>

@@ -11,17 +11,15 @@ import {
     SelectItem
 } from "@/components/ui/select";
 import { PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from "@/constants/propertyTypes";
-import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
+import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { Label } from "@/components/ui/label";
 
 export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, listingId }) {
     const [file, setFile] = useState(null);
-    const [uploadedUrl, setUploadedUrl] = useState("");
     const [step, setStep] = useState(1);
 
     const [selectedListing, setSelectedListing] = useState("");
@@ -36,7 +34,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
     const handleFile = (e) => setFile(e.target.files[0]);
 
     const handleClose = () => {
-        onClose(); // triggers shadcn close animation
+        onClose();
         setTimeout(() => {
             setStep(1);
             setFile(null);
@@ -44,18 +42,16 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
             setCategory("");
             setType("");
             setDescription("");
-            setUploadedUrl("");
+            setSelectedListing("");
         }, 200);
     };
 
-    // Fetch listings
+    // Fetch active listings
     const { data: listings = [], isLoading: listingsLoading } = useQuery({
         queryKey: ["listings", user?.id],
         queryFn: async () => {
             const res = await api.get(API_ENDPOINTS.LISTINGS.BASE);
-            const activeListings = res.data.listing.filter(l => l.status === "ACTIVE");
-
-            return activeListings;
+            return res.data.listing.filter(l => l.status === "ACTIVE");
         },
     });
 
@@ -63,17 +59,13 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
     const uploadPdfMutation = useMutation({
         mutationFn: async (file) => {
             const encoded = encodeURIComponent(file.name);
-
-            const { data } = await api.get(
-                `${API_ENDPOINTS.UPLOADS.BASE}/s3-url`,
-                {
-                    params: {
-                        fileName: encoded,
-                        fileType: file.type,
-                        category: "leases",
-                    }
+            const { data } = await api.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-url`, {
+                params: {
+                    fileName: encoded,
+                    fileType: file.type,
+                    category: "leases",
                 }
-            );
+            });
 
             const { uploadURL, fileUrl } = data.data;
 
@@ -84,24 +76,13 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
             });
 
             return fileUrl;
-        },
-        onSuccess: (key) => {
-            setUploadedUrl(key);
-            toast.success("PDF uploaded successfully");
-            setStep(2);
-        },
-        onError: () => toast.error("Failed to upload PDF"),
+        }
     });
 
-    // Save metadata
+    // Save lease metadata
     const createLeaseMutation = useMutation({
         mutationFn: async (payload) => {
-            // console.log(API_ENDPOINTS.CUSTOM_LEASES.BASE)
-            // console.log(payload)
-            const res = await api.post(
-                API_ENDPOINTS.CUSTOM_LEASES.BASE,
-                payload
-            );
+            const res = await api.post(API_ENDPOINTS.CUSTOM_LEASES.BASE, payload);
             return res.data;
         },
         onSuccess: () => {
@@ -109,11 +90,31 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
             queryClient.invalidateQueries(["customleases"]);
             handleClose();
         },
-        onError: (err) => {
-            console.error(err);
-            toast.error("Failed to submit application.");
-        },
+        onError: () => toast.error("Failed to submit lease"),
     });
+
+    // Handle save lease: first upload PDF, then create lease
+    const handleSaveLease = () => {
+        if (!file) return toast.error("Please upload a PDF first");
+
+        uploadPdfMutation.mutate(file, {
+            onSuccess: (fileUrl) => {
+                createLeaseMutation.mutate({
+                    leaseName,
+                    propertyCategory: category,
+                    propertyType: type,
+                    description,
+                    fileUrl,
+                    tenantId,
+                    landlordId: user.id,
+                    listingId: selectedListing,
+                });
+            },
+            onError: () => toast.error("Failed to upload PDF"),
+        });
+    };
+
+    const isProcessing = uploadPdfMutation.isLoading || createLeaseMutation.isLoading;
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
@@ -131,9 +132,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                         </DialogHeader>
 
                         <div
-                            onClick={() => {
-                                toast("Standard Lease Builder coming soon!");
-                            }}
+                            onClick={() => toast("Standard Lease Builder coming soon!")}
                             className="cursor-pointer border border-gray-200 rounded-xl p-10 text-center hover:shadow-md transition mb-6"
                         >
                             <p className="text-lg font-semibold">Create with PropEase</p>
@@ -166,10 +165,10 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
 
                         <Button
                             className="mt-6 w-1/2 mx-auto rounded-2xl py-6"
-                            onClick={() => uploadPdfMutation.mutate(file)}
-                            disabled={!file || uploadPdfMutation.isPending}
+                            onClick={() => setStep(2)}
+                            disabled={!file || isProcessing}
                         >
-                            {uploadPdfMutation.isPending ? "Uploading..." : "Save and Continue"}
+                            Next
                         </Button>
                     </>
                 )}
@@ -230,51 +229,43 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                             </div>
 
                             {/* Category + Type */}
-                            <div className="w-full">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                                    <div className="space-y-2 w-full">
-                                        <Label className="text-gray-900">Property Category</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                                <div className="space-y-2 w-full">
+                                    <Label className="text-gray-900">Property Category</Label>
+                                    <Select
+                                        value={category}
+                                        onValueChange={(val) => {
+                                            setCategory(val);
+                                            setType("");
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select Category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(PROPERTY_CATEGORY_NAMES).map(([key, label]) => (
+                                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                                        <Select
-                                            value={category}
-                                            onValueChange={(val) => {
-                                                setCategory(val);
-                                                setType("");
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select Category" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(PROPERTY_CATEGORY_NAMES).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2 w-full">
-                                        <Label className="text-gray-900">Property Type</Label>
-                                        <Select
-                                            value={type}
-                                            disabled={!category}
-                                            onValueChange={setType}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select Type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {category &&
-                                                    PROPERTY_OPTIONS[category].map((opt) => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
-                                                        </SelectItem>
-                                                    ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                <div className="space-y-2 w-full">
+                                    <Label className="text-gray-900">Property Type</Label>
+                                    <Select
+                                        value={type}
+                                        disabled={!category}
+                                        onValueChange={setType}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select Type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {category && PROPERTY_OPTIONS[category].map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
 
@@ -288,24 +279,25 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                             </div>
                         </div>
 
-                        <Button
-                            className="mt-6 w-full py-6 rounded-2xl"
-                            onClick={() =>
-                                createLeaseMutation.mutate({
-                                    leaseName,
-                                    propertyCategory: category,
-                                    propertyType: type,
-                                    description,
-                                    fileUrl: uploadedUrl,
-                                    tenantId,
-                                    landlordId: user.id,
-                                    listingId: selectedListing,
-                                })
-                            }
-                            disabled={!leaseName || !category || !type}
-                        >
-                            {createLeaseMutation.isPending ? "Saving..." : "Save Lease"}
-                        </Button>
+                        {/* Back + Save Buttons */}
+                        <div className="flex justify-between mt-6 gap-4">
+                            <Button
+                                variant="outline"
+                                className="flex-1 py-6 rounded-2xl"
+                                onClick={() => setStep(1)}
+                                disabled={isProcessing}
+                            >
+                                Back
+                            </Button>
+
+                            <Button
+                                className="flex-1 py-6 rounded-2xl"
+                                onClick={handleSaveLease}
+                                disabled={!leaseName || !category || !type || !file || isProcessing}
+                            >
+                                {isProcessing ? "Processing..." : "Save Lease"}
+                            </Button>
+                        </div>
                     </>
                 )}
             </DialogContent>

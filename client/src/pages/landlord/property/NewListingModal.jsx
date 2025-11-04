@@ -21,6 +21,8 @@ import {
   RentalInformationSection,
   ContactInformationSection,
 } from "./sections";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const NewListingModal = ({ isOpen, onClose }) => {
   const token = useAuthStore((state) => state.token);
@@ -67,7 +69,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       [name]: value,
     }));
-    
+
     // Clear field error when user starts typing
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
@@ -83,7 +85,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       amenities: selectedAmenities,
     }));
-    
+
     if (fieldErrors.amenities) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -98,7 +100,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       images: images,
     }));
-    
+
     if (fieldErrors.images) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -120,7 +122,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
 
     setStates(State.getStatesOfCountry(selectedCountryCode));
     setCities([]);
-    
+
     if (fieldErrors.country) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -143,7 +145,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
     } else {
       setCities([]);
     }
-    
+
     if (fieldErrors.state) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -158,7 +160,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
       ...prev,
       city: e.target.value,
     }));
-    
+
     if (fieldErrors.city) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -371,24 +373,22 @@ const NewListingModal = ({ isOpen, onClose }) => {
             />
 
             <div className="border-b border-gray-300 space-y-6 pb-8">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Property Description
-                </label>
-                <textarea
+              <div className="space-y-2">
+                <Label htmlFor="description">Property Description</Label>
+                <Textarea
+                  id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  className={`w-full p-2 text-sm border rounded-md min-h-[120px] ${
-                    fieldErrors.description 
-                      ? 'border-red-400 bg-red-50' 
-                      : 'border-gray-300 bg-gray-100'
-                  }`}
+                  className={`min-h-[120px] resize-none ${fieldErrors.description
+                    ? 'border-destructive bg-destructive/10'
+                    : ''
+                    }`}
                   placeholder="Describe your property, its features and amenities etc.."
                   disabled={isPending}
                 />
                 {fieldErrors.description && (
-                  <p className="mt-1 text-red-500 text-sm">
+                  <p className="text-sm text-destructive">
                     {fieldErrors.description}
                   </p>
                 )}
@@ -432,22 +432,22 @@ const NewListingModal = ({ isOpen, onClose }) => {
               isPending={isPending}
             />
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Notes</label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
                 name="notes"
                 value={formData.notes}
                 onChange={handleChange}
-                className={`w-full p-2 text-sm border rounded-md min-h-[120px] ${
-                  fieldErrors.notes 
-                    ? 'border-red-400 bg-red-50' 
-                    : 'border-gray-300 bg-gray-100'
-                }`}
+                className={`min-h-[120px] resize-none ${fieldErrors.notes
+                    ? 'border-destructive bg-destructive/10'
+                    : ''
+                  }`}
                 placeholder="Leave a note about this listing that only you can see.."
                 disabled={isPending}
               />
               {fieldErrors.notes && (
-                <p className="mt-1 text-red-500 text-sm">{fieldErrors.notes}</p>
+                <p className="text-sm text-destructive">{fieldErrors.notes}</p>
               )}
             </div>
           </div>

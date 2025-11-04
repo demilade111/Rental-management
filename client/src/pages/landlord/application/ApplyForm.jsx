@@ -464,7 +464,7 @@ const ApplyForm = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Income</Label>
+                        <Label>Income / Year</Label>
                         <Input
                           type="number"
                           value={emp.income || ""}
@@ -480,6 +480,7 @@ const ApplyForm = () => {
                           onChange={(e) =>
                             updateEmployment(idx, "duration", e.target.value)
                           }
+                          placeholder="6 month / 1 year"
                         />
                       </div>
                       <div className="space-y-2">
