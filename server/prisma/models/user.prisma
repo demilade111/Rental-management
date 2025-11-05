@@ -21,6 +21,7 @@ model User {
   maintenanceRequests  MaintenanceRequest[]
   landlordApplications RequestApplication[] @relation("LandlordApplications")
   tenantApplications   RequestApplication[] @relation("TenantApplications")
+  MaintenanceMessage   MaintenanceMessage[]
 
   @@map("users")
 }

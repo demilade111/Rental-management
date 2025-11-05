@@ -11,8 +11,9 @@ model CustomLease {
 
   leaseStatus LeaseStatus @default(DRAFT)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  maintenanceRequests MaintenanceRequest[]
 
   // Relations
   listing  Listing? @relation(fields: [listingId], references: [id])
