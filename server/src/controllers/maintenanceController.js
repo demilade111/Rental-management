@@ -8,6 +8,8 @@ import {
   getMaintenanceRequestById,
   updateMaintenanceRequest,
   deleteMaintenanceRequest,
+  getMaintenanceMessages,
+  addMaintenanceMessage,
 } from "../services/maintenanceService.js";
 import {
   CreatedResponse,
@@ -137,10 +139,37 @@ async function deleteMaintenance(req, res) {
   }
 }
 
+async function fetchMaintenanceMessages(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const messages = await getMaintenanceMessages(id, userId, userRole);
+    return SuccessResponse(res, 200, "Messages fetched", messages);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+async function postMaintenanceMessage(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const { body } = req.body;
+    const message = await addMaintenanceMessage(id, userId, userRole, body);
+    return CreatedResponse(res, "Message sent", message);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
 export {
   createMaintenance,
   fetchAllMaintenanceRequests,
   fetchMaintenanceRequestById,
   updateMaintenance,
   deleteMaintenance,
+  fetchMaintenanceMessages,
+  postMaintenanceMessage,
 };

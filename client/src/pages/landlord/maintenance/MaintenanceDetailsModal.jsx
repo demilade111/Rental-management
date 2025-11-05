@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { getCategoryDisplayName, getPriorityDisplayName } from "@/lib/maintenanceApi";
 import axios from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
+import { maintenanceApi } from "@/lib/maintenanceApi";
+import { SendIcon } from "lucide-react";
 
 const MaintenanceDetailsModal = ({ request, open, onClose }) => {
     const sliderRef = useRef(null);
@@ -41,6 +43,9 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
         [request]
     );
     const [resolvedUrls, setResolvedUrls] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [sending, setSending] = useState(false);
+    const [messageBody, setMessageBody] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -80,6 +85,16 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
             cancelled = true;
         };
     }, [imageUrls]);
+
+    useEffect(() => {
+        if (!open || !request?.id) return;
+        (async () => {
+            try {
+                const res = await maintenanceApi.getMessages(request.id);
+                setMessages(res.data || res);
+            } catch (_) { }
+        })();
+    }, [open, request?.id]);
 
     const ImageWithShimmer = ({ src, alt }) => {
         const [loaded, setLoaded] = useState(false);
@@ -125,13 +140,12 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                                 <label className="block text-sm font-medium mb-1">Priority</label>
                                 <div className="text-sm">
                                     <span
-                                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                                            request.priority === "URGENT"
-                                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                                                : request.priority === "HIGH"
+                                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${request.priority === "URGENT"
+                                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                                            : request.priority === "HIGH"
                                                 ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
                                                 : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                        }`}
+                                            }`}
                                     >
                                         {getPriorityDisplayName(request.priority)}
                                     </span>
@@ -173,9 +187,75 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                         </div>
                     )}
 
-                    <DialogFooter className="flex justify-end gap-3 pt-2">
-                        <Button className="rounded-2xl" variant="secondary" onClick={onClose}>Close</Button>
-                    </DialogFooter>
+                    <div className="mt-8">
+                        <div className="flex flex-col gap-2 bg-orange-50/50 p-3 rounded-sm border border-gray-300">
+
+                            <p className="text-[14px]  text-semibold mb-2">Messages</p>
+                            <div className="max-h-56 w-1/2">
+                                {messages.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">No messages yet.</p>
+                                ) : (
+                                    <div className="max-h-56 overflow-y-auto space-y-1">
+                                        {messages.map((m, index) => {
+                                            const isLast = index === messages.length - 1;
+
+                                            return (
+                                                <div
+                                                    key={m.id}
+                                                    className={
+                                                        `text-sm bg-blue-100 p-4 rounded-2xl ` +
+                                                        (isLast ? `rounded-bl-none` : ``)
+                                                    }
+                                                >
+                                                    <p className="font-medium text-xs mb-1">
+                                                        {m.sender?.firstName} {m.sender?.lastName}:
+                                                    </p>
+                                                    {m.body}
+                                                    <p className="text-[8px] text-muted-foreground mt-3">
+                                                        {new Date(m.createdAt).toLocaleString([], {
+                                                            dateStyle: "short",
+                                                            timeStyle: "short",
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-2 mt-2">
+                                <input
+                                    className="flex-1 border rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-900"
+                                    placeholder="Write a message..."
+                                    value={messageBody}
+                                    onChange={(e) => setMessageBody(e.target.value)}
+                                />
+                                <Button
+                                    disabled={sending || !messageBody.trim()}
+                                    onClick={async () => {
+                                        try {
+                                            setSending(true);
+                                            const res = await maintenanceApi.sendMessage(request.id, messageBody.trim());
+                                            const msg = res.data || res;
+                                            setMessages((prev) => [...prev, msg]);
+                                            setMessageBody("");
+                                        } catch (_) {
+                                        } finally {
+                                            setSending(false);
+                                        }
+                                    }}
+                                >
+                                    <SendIcon className="size-4" />
+                                    {sending ? "Sending..." : "Send"}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <DialogFooter className="flex justify-end gap-3 pt-2 mt-4">
+                            <Button className="rounded-2xl" variant="secondary" onClick={onClose}>Close</Button>
+                        </DialogFooter>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>
