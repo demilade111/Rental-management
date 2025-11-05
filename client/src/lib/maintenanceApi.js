@@ -50,6 +50,16 @@ export const maintenanceApi = {
   updatePriority: async (id, priority) => {
     return maintenanceApi.updateRequest(id, { priority });
   },
+
+  // messages
+  getMessages: async (id) => {
+    const response = await axios.get(`${MAINTENANCE_API_BASE}/${id}/messages`);
+    return response.data;
+  },
+  sendMessage: async (id, body) => {
+    const response = await axios.post(`${MAINTENANCE_API_BASE}/${id}/messages`, { body });
+    return response.data;
+  },
 };
 
 export const MAINTENANCE_STATUS = {

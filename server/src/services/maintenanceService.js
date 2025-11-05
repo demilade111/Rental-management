@@ -370,10 +370,71 @@ async function deleteMaintenanceRequest(requestId, userId, userRole) {
   return { message: "Maintenance request deleted successfully" };
 }
 
+async function getMaintenanceMessages(requestId, userId, userRole) {
+  const req = await prisma.maintenanceRequest.findUnique({
+    where: { id: requestId },
+    include: { listing: true, lease: true, customLease: true },
+  });
+  if (!req) {
+    const err = new Error("Maintenance request not found");
+    err.status = 404;
+    throw err;
+  }
+  const isLandlord = req.listing.landlordId === userId;
+  const isCreator = req.userId === userId;
+  const isTenant = req.lease?.tenantId === userId || req.customLease?.tenantId === userId;
+  if (!isLandlord && !isCreator && !isTenant) {
+    const err = new Error("Unauthorized to view messages");
+    err.status = 403;
+    throw err;
+  }
+  const messages = await prisma.maintenanceMessage.findMany({
+    where: { maintenanceRequestId: requestId },
+    include: { sender: { select: { id: true, firstName: true, lastName: true, role: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  return messages;
+}
+
+async function addMaintenanceMessage(requestId, userId, userRole, body) {
+  if (!body || !body.trim()) {
+    const err = new Error("Message body is required");
+    err.status = 400;
+    throw err;
+  }
+  const req = await prisma.maintenanceRequest.findUnique({
+    where: { id: requestId },
+    include: { listing: true, lease: true, customLease: true },
+  });
+  console.log(req);
+  if (!req) {
+    const err = new Error("Maintenance request not found");
+    err.status = 404;
+    throw err;
+  }
+  const isLandlord = req.listing.landlordId === userId;
+  const isTenant = req.lease?.tenantId === userId || req.customLease?.tenantId === userId;
+  if (!isLandlord && !isTenant) {
+    const err = new Error("Unauthorized to add message");
+    err.status = 403;
+    throw err;
+  }
+  const message = await prisma.maintenanceMessage.create({
+    data: {
+      maintenanceRequestId: requestId,
+      senderId: userId,
+      body: body.trim(),
+    },
+    include: { sender: { select: { id: true, firstName: true, lastName: true, role: true } } },
+  });
+  return message;
+}
 export {
   createMaintenanceRequest,
   getAllMaintenanceRequests,
   getMaintenanceRequestById,
   updateMaintenanceRequest,
   deleteMaintenanceRequest,
+  getMaintenanceMessages,
+  addMaintenanceMessage,
 };
