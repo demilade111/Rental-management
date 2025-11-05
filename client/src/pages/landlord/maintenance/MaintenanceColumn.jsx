@@ -11,7 +11,7 @@ const MaintenanceColumn = ({
   error = null,
   actions,
   onActionClick,
-  updatingActions, // <-- pass the object here
+  updatingActions,
 }) => {
   return (
     <div className="space-y-4 bg-gray-50 h-[70vh] p-6 rounded-lg flex flex-col">

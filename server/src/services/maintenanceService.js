@@ -3,6 +3,7 @@ import { prisma } from "../prisma/client.js";
 const dedupe = (arr) => Array.from(new Set(arr));
 
 async function createMaintenanceRequest(userId, userRole, data) {
+  // Check if listing exists
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
   });
@@ -14,32 +15,53 @@ async function createMaintenanceRequest(userId, userRole, data) {
   }
 
   let leaseId = null;
+  let customLeaseId = null;
 
+  // Handle tenant user
   if (userRole === "TENANT") {
-    const lease = await prisma.lease.findFirst({
-      where: {
-        tenantId: userId,
-        listingId: data.listingId,
-        leaseStatus: "ACTIVE",
-      },
+    // Find the lease invite for this tenant
+    const leaseInvite = await prisma.leaseInvite.findFirst({
+      where: { tenantId: userId, leaseId: data.leaseId },
     });
 
-    if (!lease) {
-      const err = new Error(
-        "You do not have an active lease for this property"
-      );
+    if (!leaseInvite) {
+      const err = new Error("No lease invite found for this tenant");
       err.status = 403;
       throw err;
     }
 
-    leaseId = lease.id;
-  } else if (userRole === "ADMIN") {
+    if (leaseInvite.leaseType === "STANDARD") {
+      const lease = await prisma.lease.findFirst({
+        where: {
+          id: leaseInvite.leaseId,
+          tenantId: userId,
+          leaseStatus: "ACTIVE",
+        },
+      });
 
+      if (!lease) {
+        const err = new Error("You do not have an active lease for this property");
+        err.status = 403;
+        throw err;
+      }
+
+      leaseId = lease.id;
+    } else if (leaseInvite.leaseType === "CUSTOM") {
+      console.log('zminhtun00' + leaseInvite.leaseId)
+      if (!leaseInvite.leaseId) {
+        const err = new Error("Custom lease not found");
+        err.status = 404;
+        throw err;
+      }
+      customLeaseId = leaseInvite.leaseId;
+    }
+  } else if (userRole === "ADMIN") {
     if (listing.landlordId !== userId) {
       const err = new Error("You do not own this property");
       err.status = 403;
       throw err;
     }
+
     const activeLease = await prisma.lease.findFirst({
       where: {
         listingId: data.listingId,
@@ -56,15 +78,16 @@ async function createMaintenanceRequest(userId, userRole, data) {
     throw err;
   }
 
-  const images = dedupe(
-    (data.images || []).map((u) => u.trim()).filter(Boolean)
-  );
+  // Process images
+  const images = dedupe((data.images || []).map((u) => u.trim()).filter(Boolean));
 
+  // Create the maintenance request
   const maintenanceRequest = await prisma.maintenanceRequest.create({
     data: {
       user: { connect: { id: userId } },
       listing: { connect: { id: data.listingId } },
       lease: leaseId ? { connect: { id: leaseId } } : undefined,
+      customLease: customLeaseId ? { connect: { id: customLeaseId } } : undefined,
       title: data.title.trim(),
       description: data.description.trim(),
       category: data.category,
@@ -76,33 +99,14 @@ async function createMaintenanceRequest(userId, userRole, data) {
     },
     include: {
       user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          role: true,
-        },
+        select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true },
       },
       listing: {
-        select: {
-          id: true,
-          title: true,
-          streetAddress: true,
-          city: true,
-          state: true,
-          landlordId: true,
-        },
+        select: { id: true, title: true, streetAddress: true, city: true, state: true, landlordId: true },
       },
       images: true,
-      ...(leaseId && {
-        lease: {
-          include: {
-            tenant: true,
-          },
-        },
-      }),
+      ...(leaseId && { lease: { include: { tenant: true } } }),
+      ...(customLeaseId && { customLease: true }),
     },
   });
 

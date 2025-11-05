@@ -1,19 +1,21 @@
 model MaintenanceRequest {
-  id          String              @id @default(cuid())
-  listingId   String
-  userId      String
-  description String
-  status      MaintenanceStatus   @default(OPEN)
-  priority    MaintenancePriority @default(MEDIUM)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  leaseId     String?
-  category    MaintenanceCategory
-  title       String
-  images      MaintenanceImage[]
-  lease       Lease?              @relation(fields: [leaseId], references: [id])
-  listing     Listing             @relation(fields: [listingId], references: [id])
-  user        User                @relation(fields: [userId], references: [id])
+  id            String              @id @default(cuid())
+  listingId     String
+  userId        String
+  description   String
+  status        MaintenanceStatus   @default(OPEN)
+  priority      MaintenancePriority @default(MEDIUM)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  leaseId       String?
+  customLeaseId String?
+  category      MaintenanceCategory
+  title         String
+  images        MaintenanceImage[]
+  lease         Lease?              @relation(fields: [leaseId], references: [id])
+  customLease   CustomLease?        @relation(fields: [customLeaseId], references: [id])
+  listing       Listing             @relation(fields: [listingId], references: [id])
+  user          User                @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
   @@index([listingId, createdAt])

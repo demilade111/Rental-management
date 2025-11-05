@@ -13,6 +13,7 @@ model CustomLease {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  maintenanceRequests MaintenanceRequest[]
 
   // Relations
   listing  Listing? @relation(fields: [listingId], references: [id])

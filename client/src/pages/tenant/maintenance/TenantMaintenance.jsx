@@ -42,17 +42,14 @@ function TenanceMaintenance() {
       try {
         const res = await api.get(`${API_ENDPOINTS.TENANT_LEASES.BASE}`);
         const leases = res.data.data || [];
-console.log(leases)
+        // console.log(leases)
         const tenantListings = leases
           .map((lease) => lease.listing)
           .filter(Boolean);
 
         setProperties(tenantListings);
       } catch (err) {
-        toast({
-          title: "Error fetching properties",
-          variant: "destructive",
-        });
+        toast.error("Error fetching properties");
       }
     };
 
@@ -68,10 +65,7 @@ console.log(leases)
         const data = await maintenanceApi.getAllRequests(filters);
         setMaintenanceRequests(data.data || data);
       } catch (err) {
-        toast({
-          title: "Error loading maintenance requests",
-          variant: "destructive",
-        });
+        toast.error("Error loading maintenance requests");
       } finally {
         setLoading(false);
       }
@@ -88,10 +82,10 @@ console.log(leases)
     !search
       ? requests
       : requests.filter(
-          (r) =>
-            r.title?.toLowerCase().includes(search.toLowerCase()) ||
-            r.description?.toLowerCase().includes(search.toLowerCase())
-        );
+        (r) =>
+          r.title?.toLowerCase().includes(search.toLowerCase()) ||
+          r.description?.toLowerCase().includes(search.toLowerCase())
+      );
 
   const columns = [
     {
@@ -140,7 +134,7 @@ console.log(leases)
               requests={requests}
               loading={loading}
               actions={[]}
-              onActionClick={() => {}}
+              onActionClick={() => { }}
             />
           );
         })}
@@ -156,9 +150,7 @@ console.log(leases)
             const updated = await maintenanceApi.getAllRequests(filters);
             setMaintenanceRequests(updated.data || updated);
 
-            toast({
-              title: "Request created successfully!",
-            });
+            toast.success("Request created successfully!");
           }}
         />
       )}
