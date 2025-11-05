@@ -280,10 +280,10 @@ const MaintenanceForm = ({
 
             {/* Actions */}
             <DialogFooter className="flex justify-end gap-3 pt-2">
-              <Button variant="secondary" onClick={() => setOpen(false)}>
+              <Button variant="secondary" onClick={() => setOpen(false)} className="rounded-2xl">
                 Close
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} className="rounded-2xl">
                 {saving ? "Saving..." : <><Save className="mr-2" /> Save</>}
               </Button>
             </DialogFooter>

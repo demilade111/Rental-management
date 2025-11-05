@@ -19,6 +19,12 @@ import {
   Eye,
   Check,
   ViewIcon,
+  ToolCase,
+  Cog,
+  ToolCaseIcon,
+  Settings2Icon,
+  LucideSettings,
+  Settings,
 } from "lucide-react";
 import {
   getPriorityDisplayName,
@@ -42,7 +48,7 @@ const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActio
       <Card className="cursor-pointer" onClick={() => onCardClick?.(request)}>
         <CardHeader className="flex items-center gap-3">
           <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center">
-            <User className="size-6 text-muted-foreground" />
+            <Settings className="size-6 text-muted-foreground" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-sm font-semibold leading-tight mb-0.5">{request.title}</CardTitle>
