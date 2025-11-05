@@ -174,7 +174,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                     )}
 
                     <DialogFooter className="flex justify-end gap-3 pt-2">
-                        <Button variant="secondary" onClick={onClose}>Close</Button>
+                        <Button className="rounded-2xl" variant="secondary" onClick={onClose}>Close</Button>
                     </DialogFooter>
                 </div>
             </DialogContent>
