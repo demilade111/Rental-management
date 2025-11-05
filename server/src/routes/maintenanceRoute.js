@@ -158,6 +158,6 @@ router.patch(
   authorize(["ADMIN", "TENANT"]),
   updateMaintenance
 );
-router.delete("/:id", authenticate, deleteMaintenance);
+router.delete("/:id", authenticate, authorize(["ADMIN", "TENANT"]), deleteMaintenance);
 
 export default router;
