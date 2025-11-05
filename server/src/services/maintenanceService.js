@@ -241,6 +241,7 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
     include: {
       listing: true,
       lease: true,
+      customLease: true,
     },
   });
 
@@ -253,8 +254,25 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
   const isLandlord = existingRequest.listing.landlordId === userId;
   const isCreator = existingRequest.userId === userId;
   const isTenantOfLease = existingRequest.lease?.tenantId === userId;
+  const isTenantOfCustomLease = existingRequest.customLease?.tenantId === userId;
 
-  if (!isLandlord && !isCreator && !isTenantOfLease) {
+  // Fallback: tenant has an active (standard/custom) lease on this listing even if the request doesn't store lease linkage
+  let isTenantOfListingActiveLease = false;
+  if (userRole === "TENANT" && !isTenantOfLease && !isTenantOfCustomLease) {
+    const [activeLease, activeCustomLease] = await Promise.all([
+      prisma.lease.findFirst({
+        where: { listingId: existingRequest.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
+        select: { id: true },
+      }),
+      prisma.customLease.findFirst({
+        where: { listingId: existingRequest.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
+        select: { id: true },
+      }),
+    ]);
+    isTenantOfListingActiveLease = Boolean(activeLease || activeCustomLease);
+  }
+
+  if (!isLandlord && !isCreator && !isTenantOfLease && !isTenantOfCustomLease && !isTenantOfListingActiveLease) {
     const err = new Error("Unauthorized to update this maintenance request");
     err.status = 403;
     throw err;
