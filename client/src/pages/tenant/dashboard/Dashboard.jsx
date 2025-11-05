@@ -1,5 +1,5 @@
 import { useAuthStore } from "../../../store/authStore";
-import {Button} from "../../../components/ui/button";
+import { Button } from "../../../components/ui/button";
 import { Upload, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "../../../lib/axios";
@@ -23,105 +23,68 @@ const Dashboard = () => {
   }, [token]);
 
   return (
-    <div className="p-6 md:p-8 bg-background min-h-screen flex flex-col items-center">
-      <div className="w-full max-w-[1400px] flex flex-col items-start gap-10">
-        <h1 className="text-2xl font-bold text-left w-full">
-          October Rent Summary
-        </h1>
+    <main className="bg-gray-50 p-8 min-h-screen flex justify-center">
+      <div className="w-full max-w-[1200px]">
+        <h1 className="text-xl font-semibold mb-6">October Rent Summary</h1>
 
-        <div className="flex flex-wrap gap-[37px] w-full">
-          {[
-            { title: "Unpaid", amount: "$300" },
-            { title: "Paid", amount: "$4500" },
-            { title: "In Transit", amount: "$1200" },
-            { title: "Past Due", amount: "$1200" },
-            { title: "Deposit", amount: "$1500" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="w-[250px] h-[120px] rounded-[15px] bg-white shadow-sm border border-gray-200 p-4 flex flex-col justify-between"
-            >
-              <div className="text-gray-500 text-sm font-medium">
-                {item.title}
-              </div>
-              <div className="text-2xl font-bold">{item.amount}</div>
+        {/* Outstanding Balance */}
+        <div className="bg-white rounded-xl shadow p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="text-2xl font-bold">
+            Outstanding balance{" "}
+            <span className="text-gray-700 ml-2">$3000</span>
+          </div>
+          <div className="flex items-center gap-4 mt-4 md:mt-0">
+            <span className="text-sm text-gray-500 flex items-center gap-2">
+              <span className="w-3 h-3 bg-gray-400 rounded-full"></span> In
+              transit
+            </span>
+            <Button className="bg-black text-white px-4 py-2 text-sm flex items-center gap-2">
+              <Upload size={16} /> Upload Payment Proof
+            </Button>
+          </div>
+        </div>
+
+        {/* Notice + Maintenance cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Notice */}
+          <div className="bg-white rounded-xl shadow p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Notice</h2>
+              <Bell size={20} fill="black" />
             </div>
-          ))}
-        </div>
 
-        <div className="flex justify-start w-full">
-          <Button
-            variant="outline"
-            className="bg-black text-white px-6 py-2 rounded-md"
-          >
-            <Upload size={16} /> Upload Payment Proof
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap justify-start gap-[37px] w-full">
-          <div className="w-full lg:w-[463px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
-            <h2 className="text-3xl font-semibold mb-4">Your Rent</h2>
-            <div className="flex flex-col gap-4">
-  {leases.length === 0 && <p>You have no active rentals.</p>}
-
-  {leases.map((lease) => {
-    const listing = lease.listing || {};
-    return (
-      <div key={lease.id} className="flex items-center gap-4">
-        <div className="w-24 h-24 bg-gray-100 rounded-2xl"></div>
-        <div>
-          <p className="font-semibold">{listing?.title || "Untitled Property"}</p>
-          <p className="font-bold">${lease.rentAmount}</p>
-          <p className="text-gray-500 text-sm">{listing?.streetAddress}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-gray-400 text-sm">
-            {new Date(lease.startDate).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
-    );
-  })}
-</div>
-</div>
-
-          <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-3xl font-semibold">Notice</h2>
-              <Bell size={24} stroke="#000000" fill="#000000" />
-            </div>
-            <div className="flex flex-col gap-3 text-sm">
-              <div>
+            <div className="space-y-4 text-sm">
+              <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg">
                 <p>
                   Your next rent payment of <b>$1,200</b> is due on October 15.
                 </p>
                 <Button
-                  variant="outline"
                   size="sm"
-                  className="mt-2 bg-gray-200 text-black"
+                  variant="outline"
+                  className="mt-2 bg-gray-100 text-black p-3 rounded-2xl"
                 >
                   Rent
                 </Button>
               </div>
-              <div>
+              <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg">
                 <p>
                   Your maintenance request for “Leaking faucet” has been
                   updated.
                 </p>
                 <Button
-                  variant="outline"
                   size="sm"
-                  className="mt-2 bg-gray-200 text-black"
+                  variant="outline"
+                  className="mt-2 bg-gray-100 text-black p-3 rounded-2xl"
                 >
                   Maintenance
                 </Button>
               </div>
-              <div>
+              <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg">
                 <p>Your lease for Apartment A will expire in 45 days.</p>
                 <Button
-                  variant="outline"
                   size="sm"
-                  className="mt-2 bg-gray-200 text-black"
+                  variant="outline"
+                  className="mt-2 bg-gray-100 text-black p-3 rounded-2xl"
                 >
                   Lease
                 </Button>
@@ -129,9 +92,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
-            <h2 className="text-3xl font-semibold mb-4">Maintenance</h2>
-            <div className="flex flex-col gap-4 text-sm">
+          {/* Maintenance */}
+          <div className="bg-white rounded-xl shadow p-6 flex flex-col">
+            <h2 className="text-2xl font-semibold mb-4">Maintenance</h2>
+            <div className="space-y-5 text-sm">
               <div>
                 <div className="flex justify-between">
                   <p className="font-semibold">1023 Jervis St</p>
@@ -142,7 +106,7 @@ const Dashboard = () => {
                 </p>
                 <p className="text-gray-500 text-xs mt-1">
                   The kitchen sink faucet has been dripping continuously for the
-                  past week. I've tried tightening it...
+                  past week...
                 </p>
               </div>
 
@@ -154,48 +118,44 @@ const Dashboard = () => {
                 <p className="font-semibold mt-1">Heater Repair</p>
                 <p className="text-gray-500 text-xs mt-1">
                   The heater is not producing any warm air, and the apartment
-                  has been very cold at night...
+                  has been cold...
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="w-full border rounded-[15px] p-6 flex flex-col bg-white">
+        {/* Insurance Section */}
+        <div className="bg-white rounded-xl shadow p-6 flex flex-col">
           <h2 className="text-lg font-semibold mb-4">Insurance</h2>
-
-          <div className="flex flex-col lg:flex-row flex-wrap gap-[60px]">
+          <div className="space-y-6 text-sm flex items-start gap-12 ">
             <div>
-              <p className="text-sm text-gray-600">Insurance Status: Active</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-gray-600">Insurance Status: Active</p>
+              <p className="text-gray-600">
                 Insurance Type: Tenant Liability Insurance
               </p>
-              <p className="text-sm text-gray-600">
-                Expiration Date: Nov 15, 2025
-              </p>
-              <Button variant="outline" className="mt-3 bg-black text-white">
+              <p className="text-gray-600">Expiration Date: Nov 15, 2025</p>
+              <Button className="bg-black text-white mt-3 rounded-2xl">
                 View Policy
               </Button>
             </div>
 
             <div>
-              <p className="text-sm text-gray-600">
+              <p className="text-gray-600">
                 Insurance Status: Expiring in 30 days
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-gray-600">
                 Insurance Type: Personal Property Insurance
               </p>
-              <p className="text-sm text-gray-600">
-                Expiration Date: Oct 7, 2025
-              </p>
-              <Button variant="outline" className="mt-3 bg-black text-white">
+              <p className="text-gray-600">Expiration Date: Oct 7, 2025</p>
+              <Button className="bg-black text-white mt-3 rounded-2xl">
                 View Policy
               </Button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
