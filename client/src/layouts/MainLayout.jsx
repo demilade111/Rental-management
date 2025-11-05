@@ -12,6 +12,8 @@ import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import TenanceMaintenance from "@/pages/tenant/maintenance/TenantMaintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
+import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
+
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -20,19 +22,22 @@ const MainLayout = () => {
 
   const isLandlord = user?.role === "ADMIN";
 
-  const navItems = isLandlord
-    ? [
-        { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
-        { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
-        { label: "Applications", id: "applications", path: "/landlord/applications" },
-        { label: "Leases", id: "leases", path: "/landlord/leases" },
-        { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
-        // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
-      ]
-    : [
-        { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
-        { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" },
-      ];
+  // In MainLayout.jsx, update this section:
+
+const navItems = isLandlord
+  ? [
+      { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
+      { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
+      { label: "Applications", id: "applications", path: "/landlord/applications" },
+      { label: "Leases", id: "leases", path: "/landlord/leases" },
+      { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
+    ]
+  : [
+      { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
+      { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" },
+      { label: "Accounting", id: "accounting", path: "/tenant/accounting" }, 
+    ];
+
 
   const activeNav =
     navItems.find((item) => location.pathname.startsWith(item.path))?.id ||
@@ -66,6 +71,8 @@ const MainLayout = () => {
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />
+            <Route path="/tenant/accounting" element={<TenantAccounting />} />
+
 
             <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
           </Routes>
