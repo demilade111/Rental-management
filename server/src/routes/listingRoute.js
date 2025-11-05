@@ -75,7 +75,7 @@ router.post("/", authenticate, authorize(["ADMIN"]), createListing);
 router.get(
   "/",
   authenticate,
-  authorize(["ADMIN", "LANDLORD"]),
+  authorize(["ADMIN", "LANDLORD", "TENANT"]),
   fetchAllListings
 );
 router.get(

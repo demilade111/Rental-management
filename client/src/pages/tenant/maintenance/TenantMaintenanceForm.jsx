@@ -25,7 +25,7 @@ const TenantMaintenanceForm = ({
     image: null,
   });
   const [submitting, setSubmitting] = useState(false);
-  console.log(formData);
+  // console.log(formData);
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     setFormData({
@@ -74,7 +74,7 @@ const TenantMaintenanceForm = ({
 
       await maintenanceApi.createRequest(requestData);
 
-      alert("Maintenance request submitted successfully!");
+      // alert("Maintenance request submitted successfully!");
 
       setFormData({
         title: "",

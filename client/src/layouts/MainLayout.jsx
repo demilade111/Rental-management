@@ -9,7 +9,6 @@ import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
 import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
-import TenanceMaintenance from "@/pages/tenant/maintenance/TenantMaintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
 
@@ -65,7 +64,7 @@ const MainLayout = () => {
             <Route path="/landlord/leases" element={<LeasesPage />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
-            <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />
+            <Route path="/tenant/maintenance" element={<Maintenance />} />
 
             <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
           </Routes>

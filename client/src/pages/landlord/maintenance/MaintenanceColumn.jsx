@@ -11,7 +11,9 @@ const MaintenanceColumn = ({
   error = null,
   actions,
   onActionClick,
-  updatingActions, // <-- pass the object here
+  updatingActions,
+  user,
+  onCardClick,
 }) => {
   return (
     <div className="space-y-4 bg-gray-50 h-[70vh] p-6 rounded-lg flex flex-col">
@@ -28,13 +30,16 @@ const MaintenanceColumn = ({
           <EmptyState message={`No ${title.toLowerCase()} requests`} />
         ) : (
           requests.map((request) => (
-              <MaintenanceRequestCard
-                key={request.id}
-                request={request}
-                actions={actions}
-                onActionClick={onActionClick}
-                updatingActions={updatingActions} // <-- pass down correctly
-              />
+            <MaintenanceRequestCard
+              key={request.id}
+              request={request}
+              actions={actions}
+              onActionClick={onActionClick}
+              updatingActions={updatingActions}
+              currentUserRole={user.role} // pass user role from parent
+              currentUserId={user.id}
+              onCardClick={onCardClick}
+            />
           ))
         )}
       </div>

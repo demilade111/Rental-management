@@ -25,28 +25,51 @@ import {
   getCategoryDisplayName,
 } from "@/lib/maintenanceApi";
 
-const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActions = {} }) => {
+const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActions = {}, currentUserRole, currentUserId, onCardClick }) => {
+  // Filter actions based on who created the request
+  const filteredActions = actions.filter((action) => {
+    if (action === "Accept") {
+      // Hide "Accept" if the request was created by a TENANT and current user is not ADMIN
+      if (request.user?.role === "TENANT" && currentUserRole !== "ADMIN") {
+        return false;
+      }
+    }
+    return true;
+  });
+
   return (
     <div className="mb-2">
-      <Card>
-        <CardHeader className="flex items-start gap-3">
-          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+      <Card className="cursor-pointer" onClick={() => onCardClick?.(request)}>
+        <CardHeader className="flex items-center gap-3">
+          <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center">
             <User className="size-6 text-muted-foreground" />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-sm">{request.title}</CardTitle>
-            <CardDescription className="flex items-center gap-1 text-xs">
+            <CardTitle className="text-sm font-semibold leading-tight mb-0.5">{request.title}</CardTitle>
+            <CardDescription className="flex items-center gap-1 text-xs leading-tight">
               <MapPin className="size-3" />
               {request.listing?.title || "Unknown Property"}
             </CardDescription>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2 leading-tight">
               <Calendar className="size-3" />
-              {new Date(request.createdAt).toLocaleDateString()} ·{" "}
-              {getPriorityDisplayName(request.priority)}
+              {new Date(request.createdAt).toLocaleDateString()} ·
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  request.priority === "URGENT"
+                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                    : request.priority === "HIGH"
+                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                }`}
+              >
+                {getPriorityDisplayName(request.priority)}
+              </span>
             </p>
-            <p className="text-xs text-muted-foreground">
-              From: {request.user?.firstName} {request.user?.lastName}
-            </p>
+            {request.user?.id !== currentUserId && (
+              <p className="text-xs text-muted-foreground mt-1 leading-tight">
+                From: {request.user?.firstName} {request.user?.lastName}
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -55,8 +78,8 @@ const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActio
             Category: {getCategoryDisplayName(request.category)}
           </p>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          {actions.map((action) => {
+        <CardFooter className="flex justify-between" onClick={(e) => e.stopPropagation()}>
+          {filteredActions.map((action) => {
             const isUpdating = updatingActions[request.id] === action; // check per button
 
             return (

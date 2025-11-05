@@ -1,34 +1,29 @@
 import React, { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-
 import {
   maintenanceApi,
   MAINTENANCE_STATUS,
+  MAINTENANCE_PRIORITY,
   getStatusDisplayName,
 } from "@/lib/maintenanceApi";
-
-import { useAuthStore } from "@/store/authStore";
+import axios from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
-
-import {
-  MaintenanceFilters,
-  MaintenanceColumn,
-} from "@/pages/landlord/maintenance";
-
-import TenantMaintenanceForm from "./TenantMaintenanceForm";
-import api from "@/lib/axios";
+import MaintenanceSearchBar from "./MaintanenceSearchBar";
+import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
+import TenantMaintenanceForm from "./TenantMaintenanceForm";
+import { MaintenanceColumn } from "@/pages/landlord/maintenance";
 
-function TenanceMaintenance() {
+function Maintenance() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [properties, setProperties] = useState([]);
-
-  const { token, user } = useAuthStore();
-
+  const [saving, setSaving] = useState(false);
+  const [chips, setChips] = useState(["Urgent", "Request in 30 days"]);
   const [filters] = useState({
     status: "",
     priority: "",
@@ -36,134 +31,240 @@ function TenanceMaintenance() {
     listingId: "",
   });
 
-  // === Fetch Tenant Properties ===
-  useEffect(() => {
-    const fetchTenantProperties = async () => {
-      try {
-        const res = await api.get(`${API_ENDPOINTS.TENANT_LEASES.BASE}`);
-        const leases = res.data.data || [];
-console.log(leases)
-        const tenantListings = leases
-          .map((lease) => lease.listing)
-          .filter(Boolean);
+  const [formData, setFormData] = useState({
+    title: "",
+    listingId: "",
+    category: "",
+    priority: MAINTENANCE_PRIORITY.MEDIUM,
+    description: "",
+    image: null,
+  });
 
-        setProperties(tenantListings);
+  const [updatingActions, setUpdatingActions] = useState({}); // { [requestId]: action }
+
+  const token = useAuthStore((state) => state.token);
+
+  // Fetch properties
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const response = await axios.get(API_ENDPOINTS.LISTINGS.GET_ALL);
+        const data = response.data;
+        const listings = Array.isArray(data) ? data : data.listing || [];
+        setProperties(listings);
       } catch (err) {
-        toast({
-          title: "Error fetching properties",
-          variant: "destructive",
-        });
+        console.error("Error fetching listings:", err);
+        toast.error("Failed to fetch properties.");
       }
     };
 
-    fetchTenantProperties();
+    if (token) fetchListings();
   }, [token]);
 
-  // === Fetch Requests ===
+  // Fetch maintenance requests
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchMaintenanceRequests = async () => {
       if (!token) return;
       setLoading(true);
       try {
         const data = await maintenanceApi.getAllRequests(filters);
         setMaintenanceRequests(data.data || data);
       } catch (err) {
-        toast({
-          title: "Error loading maintenance requests",
-          variant: "destructive",
-        });
+        console.error("Error fetching maintenance requests:", err);
+        toast.error("Failed to fetch maintenance requests.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRequests();
+    fetchMaintenanceRequests();
   }, [token, filters]);
 
-  // === Group Helpers ===
-  const getRequestsByStatus = (status) =>
-    maintenanceRequests.filter((r) => r.status === status);
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files ? files[0] : value,
+    });
+  };
 
-  const getFilteredRequests = (requests) =>
-    !search
-      ? requests
-      : requests.filter(
-          (r) =>
-            r.title?.toLowerCase().includes(search.toLowerCase()) ||
-            r.description?.toLowerCase().includes(search.toLowerCase())
-        );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true); // start saving
+
+    try {
+      const requestData = {
+        title: formData.title,
+        listingId: formData.listingId,
+        priority: formData.priority,
+        category: formData.category,
+        description: formData.description,
+        image:null
+      };
+
+      await maintenanceApi.createRequest(requestData);
+
+      toast.success("Maintenance request created successfully!");
+      setShowModal(false);
+      setFormData({
+        title: "",
+        listingId: "",
+        category: "",
+        priority: MAINTENANCE_PRIORITY.MEDIUM,
+        description: "",
+        image: null,
+      });
+
+      const updatedRequests = await maintenanceApi.getAllRequests(filters);
+      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+    } catch (error) {
+      console.error("Error submitting request:", error);
+      toast.error("Failed to create request");
+    } finally {
+      setSaving(false); // stop saving
+    }
+  };
+
+  const handleStatusUpdate = async (requestId, actionName, newStatus) => {
+    try {
+      // set updating action for this request
+      setUpdatingActions({ ...updatingActions, [requestId]: actionName });
+
+      await maintenanceApi.updateStatus(requestId, newStatus);
+
+      const updatedRequests = await maintenanceApi.getAllRequests(filters);
+      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+
+      toast.success(`Request ${newStatus.replace(/_/g, " ").toLowerCase()} successfully!`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error(`Error updating request: ${error.message}`);
+    } finally {
+      // clear updating action
+      const updated = { ...updatingActions };
+      delete updated[requestId];
+      setUpdatingActions(updated);
+    }
+  };
+
+  const handleDeleteRequest = async (requestId) => {
+    if (!confirm("Are you sure you want to delete this maintenance request?")) return;
+
+    try {
+      // set updating action for delete
+      setUpdatingActions({ ...updatingActions, [requestId]: "Trash" });
+
+      await maintenanceApi.deleteRequest(requestId);
+
+      const updatedRequests = await maintenanceApi.getAllRequests(filters);
+      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+
+      toast.success("Request deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      toast.error(`Error deleting request: ${error.message}`);
+    } finally {
+      const updated = { ...updatingActions };
+      delete updated[requestId];
+      setUpdatingActions(updated);
+    }
+  };
+
+  const getRequestsByStatus = (status) =>
+    maintenanceRequests.filter((request) => request.status === status);
+
+  const getFilteredRequests = (requests) => {
+    if (!search) return requests;
+    return requests.filter(
+      (request) =>
+        request.title.toLowerCase().includes(search.toLowerCase()) ||
+        request.description.toLowerCase().includes(search.toLowerCase()) ||
+        request.listing?.title?.toLowerCase().includes(search.toLowerCase()) ||
+        request.user?.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+        request.user?.lastName?.toLowerCase().includes(search.toLowerCase())
+    );
+  };
 
   const columns = [
     {
       title: getStatusDisplayName(MAINTENANCE_STATUS.OPEN),
       status: MAINTENANCE_STATUS.OPEN,
+      actions: ["Cancel", "Accept"],
     },
     {
       title: getStatusDisplayName(MAINTENANCE_STATUS.IN_PROGRESS),
       status: MAINTENANCE_STATUS.IN_PROGRESS,
+      actions: ["Reply", "Finish"],
     },
     {
       title: getStatusDisplayName(MAINTENANCE_STATUS.COMPLETED),
       status: MAINTENANCE_STATUS.COMPLETED,
+      actions: ["Trash", "View"],
     },
   ];
 
+  const handleActionClick = (action, requestId) => {
+    if (action === "Accept") {
+      handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.IN_PROGRESS);
+    } else if (action === "Cancel") {
+      handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.CANCELLED);
+    } else if (action === "Finish") {
+      handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.COMPLETED);
+    } else if (action === "Trash") {
+      handleDeleteRequest(requestId);
+    } else if (action === "Reply") {
+      toast("Reply functionality coming soon!");
+    } else if (action === "View") {
+      toast("View details functionality coming soon!");
+    }
+  };
+
   return (
-    <div className="p-6 md:p-10 space-y-6">
-      <h1 className="text-2xl font-bold">My Maintenance Requests</h1>
+    <div className="px-4 md:px-8 py-4">
+      <PageHeader
+        title="Maintenance"
+        subtitle="Track and manage all property maintenance tasks"
+      />
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <MaintenanceFilters
-          search={search}
-          onSearchChange={setSearch}
-          onFilterClick={(f) => console.log("Filter clicked:", f)}
-        />
+      <MaintenanceSearchBar
+        search={search}
+        setSearch={setSearch}
+        onFilter={() => console.log("Filter clicked")}
+        onNewRequest={() => setShowModal(true)}
+        chips={chips}
+        removeChip={(label) => setChips((prev) => prev.filter((c) => c !== label))}
+      />
 
-        <Button
-          size="sm"
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-white-100 text-black border border-gray-300 hover:bg-gray-50 w-44 h-12 rounded-2xl p-1"
-        >
-          <Plus className="size-4 w-7 h-7 bg-black text-white rounded-full p-1" />
-          New Request
-        </Button>
-      </div>
-
-      {/* Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-        {columns.map((col, index) => {
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {columns.map((col) => {
           const requests = getFilteredRequests(getRequestsByStatus(col.status));
           return (
             <MaintenanceColumn
-              key={index}
+              key={col.title}
               title={col.title}
               requests={requests}
               loading={loading}
-              actions={[]}
-              onActionClick={() => {}}
+              actions={col.actions}
+              onActionClick={handleActionClick}
+              updatingActions={updatingActions} // pass down updatingActions
             />
           );
         })}
       </div>
 
-      {/* Modal */}
       {showModal && (
         <TenantMaintenanceForm
-          user={user}
+          formData={formData}
           properties={properties}
-          onClose={() => setShowModal(false)}
-          onRequestCreated={async () => {
-            const updated = await maintenanceApi.getAllRequests(filters);
-            setMaintenanceRequests(updated.data || updated);
-
-            toast({
-              title: "Request created successfully!",
-            });
-          }}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+          open={showModal}
+          setOpen={setShowModal}
+          saving={saving}
         />
       )}
     </div>
   );
 }
 
-export default TenanceMaintenance;
+export default Maintenance;

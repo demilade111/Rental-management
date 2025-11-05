@@ -77,20 +77,85 @@ async function createListings(landlordId, data) {
   return listing;
 }
 
-async function getAllListings(landlordId) {
-  const listings = await prisma.listing.findMany({
-    where: { landlordId },
-    include: {
-      amenities: true,
-      images: true,
-      landlord: {
-        select: { id: true, firstName: true, lastName: true, email: true },
+// async function getAllListings(landlordId) {
+//   const listings = await prisma.listing.findMany({
+//     where: { landlordId },
+//     include: {
+//       amenities: true,
+//       images: true,
+//       landlord: {
+//         select: { id: true, firstName: true, lastName: true, email: true },
+//       },
+//     },
+//     orderBy: { createdAt: "desc" },
+//   });
+//   return listings;
+// }
+
+async function getAllListings(userId, userRole) {
+  // TENANT: return the listing(s) from active lease (standard or custom)
+  if (userRole === "TENANT") {
+    const activeLease = await prisma.lease.findFirst({
+      where: {
+        tenantId: userId,
+        leaseStatus: "ACTIVE",
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-  return listings;
+      include: {
+        listing: {
+          include: {
+            amenities: true,
+            images: true,
+            landlord: {
+              select: { id: true, firstName: true, lastName: true, email: true },
+            },
+          },
+        },
+      },
+    });
+
+    const activeCustomLease = await prisma.customLease.findFirst({
+      where: {
+        tenantId: userId,
+        leaseStatus: "ACTIVE",
+      },
+      include: {
+        listing: {
+          include: {
+            amenities: true,
+            images: true,
+            landlord: {
+              select: { id: true, firstName: true, lastName: true, email: true },
+            },
+          },
+        },
+      },
+    });
+
+    const listings = [];
+    if (activeLease?.listing) listings.push(activeLease.listing);
+    if (activeCustomLease?.listing) listings.push(activeCustomLease.listing);
+
+    return listings;
+  }
+
+  // ADMIN: return all listings owned
+  if (userRole === "ADMIN") {
+    return prisma.listing.findMany({
+      where: { landlordId: userId },
+      include: {
+        amenities: true,
+        images: true,
+        landlord: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  return [];
 }
+
 
 async function getListingById(listingId) {
   const listing = await prisma.listing.findUnique({
