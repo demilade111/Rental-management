@@ -49,6 +49,7 @@ export const getLeaseInviteController = async (req, res) => {
             lease = await prisma.lease.findUnique({ where: { id: invite.leaseId } });
         }
 
+        // Return invite and lease data even if already signed (so frontend can check status)
         res.json({ invite, lease });
     } catch (err) {
         console.error(err);
@@ -95,6 +96,8 @@ export const signLeaseController = async (req, res) => {
         if (!invite) return res.status(404).json({ message: "Invalid token" });
         if (invite.expiresAt < new Date())
             return res.status(400).json({ message: "Invite expired" });
+        if (invite.signed)
+            return res.status(400).json({ message: "This lease has already been signed" });
 
         // Fetch the correct lease type
         let leaseModel =

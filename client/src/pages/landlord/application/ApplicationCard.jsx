@@ -59,6 +59,7 @@ const ApplicationCard = ({
                             onSelectionChange?.(app.id, checked);
                         }}
                         onClick={(e) => e.stopPropagation()}
+                        className="!border-black"
                     />
                 </div>
                 

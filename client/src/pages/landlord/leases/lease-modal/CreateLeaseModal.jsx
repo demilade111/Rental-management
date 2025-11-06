@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import {
     SelectContent,
     SelectItem
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from "@/constants/propertyTypes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
@@ -17,16 +18,21 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { Label } from "@/components/ui/label";
+import { Check, ChevronsUpDown, Search, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, listingId }) {
+export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, listingId, onSuccess }) {
     const [file, setFile] = useState(null);
     const [step, setStep] = useState(1);
 
     const [selectedListing, setSelectedListing] = useState("");
+    const [listingSearchQuery, setListingSearchQuery] = useState("");
+    const [listingPopoverOpen, setListingPopoverOpen] = useState(false);
     const [leaseName, setLeaseName] = useState("");
     const [category, setCategory] = useState("");
     const [type, setType] = useState("");
     const [description, setDescription] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
@@ -43,6 +49,9 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
             setType("");
             setDescription("");
             setSelectedListing("");
+            setListingSearchQuery("");
+            setListingPopoverOpen(false);
+            setIsSaving(false);
         }, 200);
     };
 
@@ -54,6 +63,24 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
             return res.data.listing.filter(l => l.status === "ACTIVE");
         },
     });
+
+    // Filter listings based on search query
+    const filteredListings = useMemo(() => {
+        if (!listingSearchQuery) return listings;
+        const query = listingSearchQuery.toLowerCase();
+        return listings.filter((l) => 
+            l.title?.toLowerCase().includes(query) ||
+            l.streetAddress?.toLowerCase().includes(query) ||
+            `${l.title} — ${l.streetAddress}`.toLowerCase().includes(query)
+        );
+    }, [listings, listingSearchQuery]);
+
+    // Get selected listing display text
+    const selectedListingText = useMemo(() => {
+        if (!selectedListing) return "";
+        const listing = listings.find((l) => l.id === selectedListing);
+        return listing ? `${listing.title} — ${listing.streetAddress}` : "";
+    }, [selectedListing, listings]);
 
     // Upload PDF to S3
     const uploadPdfMutation = useMutation({
@@ -88,15 +115,24 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
         onSuccess: () => {
             toast.success("Custom lease saved");
             queryClient.invalidateQueries(["customleases"]);
+            setIsSaving(false);
             handleClose();
+            // Call onSuccess callback if provided (e.g., to switch to custom tab)
+            if (onSuccess) {
+                onSuccess();
+            }
         },
-        onError: () => toast.error("Failed to submit lease"),
+        onError: () => {
+            toast.error("Failed to submit lease");
+            setIsSaving(false);
+        },
     });
 
     // Handle save lease: first upload PDF, then create lease
     const handleSaveLease = () => {
         if (!file) return toast.error("Please upload a PDF first");
 
+        setIsSaving(true);
         uploadPdfMutation.mutate(file, {
             onSuccess: (fileUrl) => {
                 createLeaseMutation.mutate({
@@ -110,11 +146,14 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                     listingId: selectedListing,
                 });
             },
-            onError: () => toast.error("Failed to upload PDF"),
+            onError: () => {
+                toast.error("Failed to upload PDF");
+                setIsSaving(false);
+            },
         });
     };
 
-    const isProcessing = uploadPdfMutation.isLoading || createLeaseMutation.isLoading;
+    const isProcessing = isSaving || uploadPdfMutation.isPending || createLeaseMutation.isPending || uploadPdfMutation.isLoading || createLeaseMutation.isLoading;
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
@@ -183,6 +222,72 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                         </DialogHeader>
 
                         <div className="space-y-6">
+                            {/* Listing Select - Searchable */}
+                            <div className="space-y-2">
+                                <Label className="text-sm text-gray-600">Select Listing</Label>
+                                <Popover open={listingPopoverOpen} onOpenChange={setListingPopoverOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={listingPopoverOpen}
+                                            className="w-full justify-between"
+                                            disabled={listings.length === 0}
+                                        >
+                                            {selectedListingText || (listings.length === 0 ? "No available listings" : "Choose a listing")}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="p-0" align="start" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                                        <div className="p-2">
+                                            <div className="relative">
+                                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="Search listings..."
+                                                    value={listingSearchQuery}
+                                                    onChange={(e) => setListingSearchQuery(e.target.value)}
+                                                    className="pl-8"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="max-h-[300px] overflow-y-auto">
+                                            {filteredListings.length > 0 ? (
+                                                <div className="p-1">
+                                                    {filteredListings.map((l) => (
+                                                        <div
+                                                            key={l.id}
+                                                            className={cn(
+                                                                "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                                                selectedListing === l.id && "bg-accent"
+                                                            )}
+                                                            onClick={() => {
+                                                                setSelectedListing(l.id === selectedListing ? "" : l.id);
+                                                                setListingPopoverOpen(false);
+                                                                setListingSearchQuery("");
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    selectedListing === l.id ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            <span className="flex-1 truncate">
+                                                                {l.title} — {l.streetAddress}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                                    {listingSearchQuery ? "No listings found." : "No available listings"}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
                             <div className="space-y-2">
                                 <Label className="text-gray-900">Custom Lease Name</Label>
                                 <Input
@@ -190,42 +295,6 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                     value={leaseName}
                                     onChange={(e) => setLeaseName(e.target.value)}
                                 />
-                            </div>
-
-                            {/* Listing Select */}
-                            <div className="space-y-2">
-                                <Label className="text-sm text-gray-600">Select Listing</Label>
-                                <Select
-                                    value={selectedListing}
-                                    onValueChange={setSelectedListing}
-                                    disabled={listings.length === 0}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue
-                                            placeholder={
-                                                listings.length === 0
-                                                    ? "No available listings"
-                                                    : selectedListing === ""
-                                                        ? "Choose a listing"
-                                                        : undefined
-                                            }
-                                        />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {listings.length > 0 ? (
-                                            listings.map((l) => (
-                                                <SelectItem key={l.id} value={l.id}>
-                                                    {l.title} — {l.streetAddress}
-                                                </SelectItem>
-                                            ))
-                                        ) : (
-                                            <div className="p-2 text-gray-500 text-sm text-center">
-                                                No available listings
-                                            </div>
-                                        )}
-                                    </SelectContent>
-                                </Select>
                             </div>
 
                             {/* Category + Type */}
@@ -295,7 +364,14 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                 onClick={handleSaveLease}
                                 disabled={!leaseName || !category || !type || !file || isProcessing}
                             >
-                                {isProcessing ? "Processing..." : "Save Lease"}
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    "Save Lease"
+                                )}
                             </Button>
                         </div>
                     </>

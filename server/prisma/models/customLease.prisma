@@ -11,9 +11,23 @@ model CustomLease {
 
   leaseStatus LeaseStatus @default(DRAFT)
 
+  // Accounting fields (manually entered from handwritten contract)
+  startDate        DateTime?
+  endDate          DateTime?
+  rentAmount       Float?
+  paymentFrequency RentCycle?
+  securityDeposit  Float?
+  depositAmount    Float?
+  paymentDay       Int?        // Due day (1-31)
+  paymentMethod    String?
+  
+  // Additional accounting metadata
+  accountingNotes  String?      // Any notes about accounting from the contract
+
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   maintenanceRequests MaintenanceRequest[]
+  payments            Payment[]
 
   // Relations
   listing  Listing? @relation(fields: [listingId], references: [id])
