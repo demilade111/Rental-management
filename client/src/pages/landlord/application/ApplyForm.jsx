@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,13 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { Upload, CheckCircle, XCircle } from "lucide-react";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import LoadingState from "@/components/shared/LoadingState";
 import { toast } from "sonner";
 import { useValidator } from "@/utils/useValidator";
+import DocumentPreview from "@/components/shared/DocumentPreview";
 
 /**
  * Multi-step application form for public applicants
@@ -38,6 +40,11 @@ const ApplyForm = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [redirectAfterSubmit, setRedirectAfterSubmit] = useState(false);
+  const documentInputRef = useRef(null);
+  const employmentProofInputRefs = useRef({});
+  
+  // Employment field errors state (indexed by employment entry index)
+  const [employmentErrors, setEmploymentErrors] = useState({});
 
   // form state
   const [form, setForm] = useState({
@@ -50,6 +57,7 @@ const ApplyForm = () => {
     monthlyIncome: "",
     occupantsCount: 0,
     petsCount: 0,
+    numberOfTenants: 1,
     message: "",
     employmentInfo: [
       // example entry: { employerName: "", jobTitle: "", income: "", duration: "", address: "", proofDocument: null }
@@ -72,6 +80,37 @@ const ApplyForm = () => {
     dateOfBirth: [
       v => !v && "Date of birth required",
     ],
+    currentAddress: [
+      v => !v?.trim() && "Current address is required",
+    ],
+    moveInDate: [
+      v => !v && "Move-in date is required",
+    ],
+    monthlyIncome: [
+      v => {
+        if (!v || (typeof v === 'string' && !v.trim())) return "Monthly income is required";
+        const num = parseFloat(v);
+        if (isNaN(num) || num <= 0) return "Monthly income must be greater than 0";
+        return null;
+      },
+    ],
+    occupantsCount: [
+      v => {
+        if (v === "" || v === null || v === undefined) return "Number of occupants is required";
+        const num = parseFloat(v);
+        if (isNaN(num) || num < 0) return "Number of occupants is required";
+        return null;
+      },
+    ],
+    numberOfTenants: [
+      v => {
+        if (v === "" || v === null || v === undefined) return "Number of tenants is required";
+        const num = parseFloat(v);
+        if (isNaN(num) || num < 1) return "Number of tenants must be at least 1";
+        return null;
+      },
+    ],
+    // message is optional, no validation needed
   });
 
 
@@ -118,6 +157,39 @@ const ApplyForm = () => {
     },
   });
 
+  // Parse requirements from applicationMeta.message (stored as JSON string)
+  const requirements = React.useMemo(() => {
+    if (!applicationMeta?.message) return null;
+    try {
+      const parsed = JSON.parse(applicationMeta.message);
+      return parsed;
+    } catch {
+      return null;
+    }
+  }, [applicationMeta]);
+
+  // Check if application is expired
+  const isExpired = React.useMemo(() => {
+    if (!applicationMeta?.expirationDate) return false;
+    return new Date() > new Date(applicationMeta.expirationDate);
+  }, [applicationMeta]);
+
+  // Check if application has already been submitted
+  const isAlreadySubmitted = React.useMemo(() => {
+    if (!applicationMeta) return false;
+    // Check if status is not PENDING (meaning it's been submitted)
+    if (applicationMeta.status && applicationMeta.status !== "PENDING") {
+      return true;
+    }
+    // Check if application has real data (not placeholder data)
+    const hasRealData = 
+      applicationMeta.fullName && 
+      applicationMeta.fullName !== "N/A" && 
+      applicationMeta.email && 
+      applicationMeta.email !== "na@example.com";
+    return hasRealData;
+  }, [applicationMeta]);
+
   useEffect(() => {
     // when metadata loads, prefill some fields (if the "application" was created with placeholder info)
     if (applicationMeta) {
@@ -127,8 +199,6 @@ const ApplyForm = () => {
           fullName: applicationMeta.fullName || f.fullName,
         }));
       }
-      // optionally read requirements from applicationMeta.message if you stored requirements there
-      // but that's optional UI behavior
     }
   }, [applicationMeta]);
 
@@ -162,8 +232,8 @@ const ApplyForm = () => {
       "That application link may be invalid or expired.";
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-white p-6 rounded shadow">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+        <div className="max-w-xl w-full bg-stone-50 p-6 rounded-lg shadow border border-stone-200">
           <h2 className="text-lg font-semibold mb-2">Application Error</h2>
           <p className="text-sm text-gray-600">{errorMessage}</p>
         </div>
@@ -171,8 +241,159 @@ const ApplyForm = () => {
     );
   }
 
+  // Check expiration
+  if (isExpired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+        <div className="max-w-xl w-full bg-stone-50 p-6 rounded-lg shadow border border-stone-200">
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="h-5 w-5 text-red-500" />
+            <h2 className="text-lg font-semibold">Application Link Expired</h2>
+          </div>
+          <p className="text-sm text-gray-600">
+            This application link has expired. Please contact the landlord for a new link.
+          </p>
+          {applicationMeta.expirationDate && (
+            <p className="text-xs text-gray-500 mt-2">
+              Expired on: {format(new Date(applicationMeta.expirationDate), "PPP")}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Check if already submitted
+  if (isAlreadySubmitted) {
+    const statusLabels = {
+      NEW: "Under Review",
+      PENDING: "Pending",
+      APPROVED: "Approved",
+      REJECTED: "Rejected",
+      CANCELLED: "Cancelled",
+    };
+
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+        <div className="max-w-xl w-full bg-stone-50 p-6 rounded-lg shadow border border-stone-200">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="h-6 w-6 text-green-500" />
+            <h2 className="text-xl font-semibold">Application Already Submitted</h2>
+          </div>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Your application has already been submitted. You cannot submit it again.
+            </p>
+            {applicationMeta.status && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-700 mb-1">Status:</p>
+                <p className="text-base font-semibold">
+                  {statusLabels[applicationMeta.status] || applicationMeta.status}
+                </p>
+              </div>
+            )}
+            {applicationMeta.fullName && applicationMeta.fullName !== "N/A" && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-700 mb-1">Applicant:</p>
+                <p className="text-base">{applicationMeta.fullName}</p>
+              </div>
+            )}
+            {applicationMeta.submittedAt && (
+              <p className="text-xs text-gray-500">
+                Submitted on: {format(new Date(applicationMeta.updatedAt), "PPP 'at' p")}
+              </p>
+            )}
+            <p className="text-sm text-gray-600 mt-4">
+              If you need to update your application, please contact the landlord.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ---------- helper handlers ----------
   const updateField = (key, value) => setForm((s) => ({ ...s, [key]: value }));
+  
+  // Validate a single employment field
+  const validateEmploymentField = (index, field, value) => {
+    const emp = form.employmentInfo[index];
+    if (!emp) return;
+    
+    let error = null;
+    
+    // Validate based on field type
+    if (field === 'employerName' && !value?.trim()) {
+      error = "Employer name is required";
+    } else if (field === 'jobTitle' && !value?.trim()) {
+      error = "Job title is required";
+    } else if (field === 'income' && (!value || parseFloat(value) <= 0)) {
+      error = "Annual income is required";
+    } else if (field === 'duration' && !value?.trim()) {
+      error = "Duration is required";
+    } else if (field === 'address' && !value?.trim()) {
+      error = "Address is required";
+    }
+    
+    setEmploymentErrors(prev => ({
+      ...prev,
+      [`${index}_${field}`]: error
+    }));
+    
+    return error;
+  };
+  
+  // Validate all employment entries
+  const validateAllEmployment = () => {
+    if (!form.employmentInfo || form.employmentInfo.length === 0) {
+      return true; // No employment entries is valid
+    }
+    
+    const newErrors = {};
+    let hasError = false;
+    
+    // Check each employment entry
+    form.employmentInfo.forEach((emp, index) => {
+      // If employment entry exists, all fields are required
+      if (!emp.employerName?.trim()) {
+        newErrors[`${index}_employerName`] = "Employer name is required";
+        hasError = true;
+      }
+      if (!emp.jobTitle?.trim()) {
+        newErrors[`${index}_jobTitle`] = "Job title is required";
+        hasError = true;
+      }
+      if (!emp.income || parseFloat(emp.income) <= 0) {
+        newErrors[`${index}_income`] = "Annual income is required";
+        hasError = true;
+      }
+      if (!emp.duration?.trim()) {
+        newErrors[`${index}_duration`] = "Duration is required";
+        hasError = true;
+      }
+      if (!emp.address?.trim()) {
+        newErrors[`${index}_address`] = "Address is required";
+        hasError = true;
+      }
+      if (!emp.proofDocumentFile) {
+        newErrors[`${index}_proofDocument`] = "Proof document is required";
+        hasError = true;
+      }
+    });
+    
+    setEmploymentErrors(newErrors);
+    return !hasError;
+  };
+  
+  // Clear employment field error
+  const clearEmploymentError = (index, field) => {
+    setEmploymentErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[`${index}_${field}`];
+      return newErrors;
+    });
+  };
+
   const addEmployment = () =>
     setForm((s) => ({
       ...s,
@@ -194,23 +415,48 @@ const ApplyForm = () => {
       arr[index] = { ...arr[index], [field]: value };
       return { ...s, employmentInfo: arr };
     });
-  const removeEmployment = (index) =>
+  const removeEmployment = (index) => {
     setForm((s) => {
       const arr = [...(s.employmentInfo || [])];
       arr.splice(index, 1);
       return { ...s, employmentInfo: arr };
     });
+    
+    // Clear errors for this employment entry
+    setEmploymentErrors(prev => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors).forEach(key => {
+        if (key.startsWith(`${index}_`)) {
+          delete newErrors[key];
+        }
+      });
+      // Reindex remaining errors
+      const reindexed = {};
+      Object.keys(newErrors).forEach(key => {
+        const [oldIdx, field] = key.split('_');
+        const oldIndex = parseInt(oldIdx);
+        if (oldIndex > index) {
+          reindexed[`${oldIndex - 1}_${field}`] = newErrors[key];
+        } else if (oldIndex < index) {
+          reindexed[key] = newErrors[key];
+        }
+      });
+      return reindexed;
+    });
+  };
 
-  const handleAddDocument = (file) => {
-    console.log("➕ Adding file:", file.name);
+  const handleAddDocument = (files) => {
+    const fileArray = Array.isArray(files) ? files : [files];
     setForm((s) => {
-      const newDocs = [...(s.documents || []), file];
-      console.log(
-        "Updated documents array:",
-        newDocs.length,
-        "files:",
-        newDocs.map((d) => d.name)
-      );
+      const newDocs = [...(s.documents || []), ...fileArray];
+      return { ...s, documents: newDocs };
+    });
+  };
+
+  const handleRemoveDocument = (index) => {
+    setForm((s) => {
+      const newDocs = [...(s.documents || [])];
+      newDocs.splice(index, 1);
       return { ...s, documents: newDocs };
     });
   };
@@ -273,6 +519,7 @@ const ApplyForm = () => {
           ? { count: Number(form.occupantsCount) }
           : null,
         pets: form.petsCount ? { count: Number(form.petsCount) } : null,
+        numberOfTenants: form.numberOfTenants ? Number(form.numberOfTenants) : null,
         documents: documentUrls,
         references: null,
         message: form.message || null,
@@ -288,8 +535,8 @@ const ApplyForm = () => {
 
   // ---------- UI Steps ----------
   return (
-    <div className="min-h-screen flex items-start justify-center py-10 px-4 md:px-8">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow p-8">
+    <div className="min-h-screen flex items-start justify-center py-10 px-4 md:px-8 bg-gray-50">
+      <div className="w-full max-w-3xl bg-stone-50 rounded-lg shadow p-8 border border-stone-200">
         {/* Header */}
         <div className="mb-6 space-y-2">
           <h1 className="text-2xl font-semibold">
@@ -298,6 +545,35 @@ const ApplyForm = () => {
           <p className="text-sm text-gray-600">
             {applicationMeta.listing?.streetAddress}
           </p>
+          {applicationMeta.expirationDate && (
+            <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+              <span>Application expires:</span>
+              <span className="font-medium">
+                {format(new Date(applicationMeta.expirationDate), "PPP")}
+              </span>
+            </div>
+          )}
+          
+          {/* Application Requirements */}
+          {requirements && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-sm mb-2 text-blue-900">Required Documents:</h3>
+              <ul className="space-y-1">
+                {Object.entries(requirements).map(([key, required]) => {
+                  if (!required) return null;
+                  const label = key
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (str) => str.toUpperCase());
+                  return (
+                    <li key={key} className="flex items-center gap-2 text-sm text-blue-800">
+                      <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <span>{label}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Stepper */}
@@ -335,7 +611,7 @@ const ApplyForm = () => {
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Full name</Label>
+                  <Label className="mb-1">Full name</Label>
                   <Input
                     value={form.fullName}
                     onChange={(e) => {
@@ -343,46 +619,50 @@ const ApplyForm = () => {
                       clearError("fullName");
                     }}
                     onBlur={(e) => validateField("fullName", e.target.value)}
-                    className={errors.fullName ? "border-red-500" : ""}
+                    className={`bg-white ${errors.fullName ? "border-red-500" : ""}`}
+                    placeholder="Enter your full name"
                   />
                   {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>Email</Label>
+                  <Label className="mb-1">Email</Label>
                   <Input
+                    type="email"
                     value={form.email}
                     onChange={(e) => {
                       updateField("email", e.target.value);
                       clearError("email");
                     }}
                     onBlur={(e) => validateField("email", e.target.value)}
-                    className={errors.email ? "border-red-500" : ""}
+                    className={`bg-white ${errors.email ? "border-red-500" : ""}`}
+                    placeholder="Enter your email address"
                   />
                   {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Phone</Label>
+                  <Label className="mb-1">Phone</Label>
                   <Input
+                    type="tel"
                     value={form.phone}
                     onChange={(e) => {
                       updateField("phone", e.target.value);
                       clearError("phone");
                     }}
                     onBlur={(e) => validateField("phone", e.target.value)}
-                    className={errors.phone ? "border-red-500" : ""}
+                    className={`bg-white ${errors.phone ? "border-red-500" : ""}`}
+                    placeholder="Enter your phone number"
                   />
                   {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Date of birth</Label>
+                  <Label className="mb-1">Date of birth</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className={`w-full text-left ${errors.dateOfBirth ? "border-red-500" : ""}`}
+                        className={`w-full text-left bg-white ${errors.dateOfBirth ? "border-red-500" : ""}`}
                       >
                         {form.dateOfBirth
                           ? format(form.dateOfBirth, "PPP")
@@ -403,20 +683,81 @@ const ApplyForm = () => {
                       />
                     </PopoverContent>
                   </Popover>
-
                   {errors.dateOfBirth && (
                     <p className="text-red-500 text-sm">{errors.dateOfBirth}</p>
                   )}
                 </div>
 
+                <div className="space-y-2">
+                  <Label className="mb-1">Monthly Income</Label>
+                  <Input
+                    type="number"
+                    value={form.monthlyIncome}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || (!isNaN(value) && parseFloat(value) >= 0)) {
+                        updateField("monthlyIncome", value);
+                        clearError("monthlyIncome");
+                      }
+                    }}
+                    onBlur={(e) => validateField("monthlyIncome", e.target.value)}
+                    className={`bg-white ${errors.monthlyIncome ? "border-red-500" : ""}`}
+                    placeholder="Enter your monthly income"
+                    min="0"
+                    step="0.01"
+                  />
+                  {errors.monthlyIncome && (
+                    <p className="text-red-500 text-sm">{errors.monthlyIncome}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="mb-1">Move-in Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full text-left bg-white ${errors.moveInDate ? "border-red-500" : ""}`}
+                      >
+                        {form.moveInDate
+                          ? format(form.moveInDate, "PPP")
+                          : "Select move-in date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0">
+                      <Calendar
+                        mode="single"
+                        selected={form.moveInDate}
+                        onSelect={(d) => {
+                          updateField("moveInDate", d);
+                          validateField("moveInDate", d);
+                        }}
+                        captionLayout="dropdown"
+                        fromYear={new Date().getFullYear()}
+                        toYear={new Date().getFullYear() + 5}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.moveInDate && (
+                    <p className="text-red-500 text-sm">{errors.moveInDate}</p>
+                  )}
+                </div>
+
                 <div className="md:col-span-2 space-y-2">
-                  <Label>Current Address</Label>
+                  <Label className="mb-1">Current Address</Label>
                   <Input
                     value={form.currentAddress}
-                    onChange={(e) =>
-                      updateField("currentAddress", e.target.value)
-                    }
+                    onChange={(e) => {
+                      updateField("currentAddress", e.target.value);
+                      clearError("currentAddress");
+                    }}
+                    onBlur={(e) => validateField("currentAddress", e.target.value)}
+                    className={`bg-white ${errors.currentAddress ? "border-red-500" : ""}`}
+                    placeholder="Enter your current address"
                   />
+                  {errors.currentAddress && (
+                    <p className="text-red-500 text-sm">{errors.currentAddress}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -442,78 +783,137 @@ const ApplyForm = () => {
                   <div key={idx} className="border p-6 rounded">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Employer</Label>
+                        <Label className="mb-1">Employer</Label>
                         <Input
                           value={emp.employerName}
-                          onChange={(e) =>
-                            updateEmployment(
-                              idx,
-                              "employerName",
-                              e.target.value
-                            )
-                          }
+                          onChange={(e) => {
+                            updateEmployment(idx, "employerName", e.target.value);
+                            clearEmploymentError(idx, "employerName");
+                          }}
+                          onBlur={(e) => validateEmploymentField(idx, "employerName", e.target.value)}
+                          className={`bg-white ${employmentErrors[`${idx}_employerName`] ? "border-red-500" : ""}`}
+                          placeholder="Enter employer name"
                         />
+                        {employmentErrors[`${idx}_employerName`] && (
+                          <p className="text-red-500 text-sm">{employmentErrors[`${idx}_employerName`]}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Job title</Label>
+                        <Label className="mb-1">Job title</Label>
                         <Input
                           value={emp.jobTitle}
-                          onChange={(e) =>
-                            updateEmployment(idx, "jobTitle", e.target.value)
-                          }
+                          onChange={(e) => {
+                            updateEmployment(idx, "jobTitle", e.target.value);
+                            clearEmploymentError(idx, "jobTitle");
+                          }}
+                          onBlur={(e) => validateEmploymentField(idx, "jobTitle", e.target.value)}
+                          className={`bg-white ${employmentErrors[`${idx}_jobTitle`] ? "border-red-500" : ""}`}
+                          placeholder="Enter your job title"
                         />
+                        {employmentErrors[`${idx}_jobTitle`] && (
+                          <p className="text-red-500 text-sm">{employmentErrors[`${idx}_jobTitle`]}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Income / Year</Label>
+                        <Label className="mb-1">Annual Income</Label>
                         <Input
                           type="number"
                           value={emp.income || ""}
-                          onChange={(e) =>
-                            updateEmployment(idx, "income", e.target.value)
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Only allow positive numbers or empty string
+                            if (value === "" || (!isNaN(value) && parseFloat(value) >= 0)) {
+                              updateEmployment(idx, "income", value);
+                              clearEmploymentError(idx, "income");
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            if (!value || parseFloat(value) <= 0) {
+                              validateEmploymentField(idx, "income", value);
+                            }
+                          }}
+                          className={`bg-white ${employmentErrors[`${idx}_income`] ? "border-red-500" : ""}`}
+                          placeholder="Enter annual income amount"
+                          min="0"
+                          step="0.01"
                         />
+                        {employmentErrors[`${idx}_income`] && (
+                          <p className="text-red-500 text-sm">{employmentErrors[`${idx}_income`]}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Duration</Label>
+                        <Label className="mb-1">Duration</Label>
                         <Input
                           value={emp.duration}
-                          onChange={(e) =>
-                            updateEmployment(idx, "duration", e.target.value)
-                          }
-                          placeholder="6 month / 1 year"
+                          onChange={(e) => {
+                            updateEmployment(idx, "duration", e.target.value);
+                            clearEmploymentError(idx, "duration");
+                          }}
+                          onBlur={(e) => validateEmploymentField(idx, "duration", e.target.value)}
+                          className={`bg-white ${employmentErrors[`${idx}_duration`] ? "border-red-500" : ""}`}
+                          placeholder="e.g., 6 months, 1 year, 2 years"
                         />
+                        {employmentErrors[`${idx}_duration`] && (
+                          <p className="text-red-500 text-sm">{employmentErrors[`${idx}_duration`]}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Address</Label>
-                        <Input
+                        <Label className="mb-1">Address</Label>
+                        <Textarea
                           value={emp.address}
-                          onChange={(e) =>
-                            updateEmployment(idx, "address", e.target.value)
-                          }
+                          onChange={(e) => {
+                            updateEmployment(idx, "address", e.target.value);
+                            clearEmploymentError(idx, "address");
+                          }}
+                          onBlur={(e) => validateEmploymentField(idx, "address", e.target.value)}
+                          className={`bg-white min-h-[88px] ${employmentErrors[`${idx}_address`] ? "border-red-500" : ""}`}
+                          placeholder="Enter employer address"
+                          rows={3}
                         />
+                        {employmentErrors[`${idx}_address`] && (
+                          <p className="text-red-500 text-sm">{employmentErrors[`${idx}_address`]}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Proof document</Label>
+                        <Label className="mb-1">Proof document</Label>
+                        {employmentErrors[`${idx}_proofDocument`] && (
+                          <p className="text-red-500 text-sm mb-1">{employmentErrors[`${idx}_proofDocument`]}</p>
+                        )}
                         <div>
-                          <Label className="block bg-gray-100 px-4 py-2 rounded cursor-pointer">
-                            Select files
-                            <Input
-                              type="file"
-                              multiple
-                              accept="image/*,application/pdf"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                updateEmployment(idx, "proofDocumentFile", file);
-                              }}
-                            />
-                          </Label>
-
+                          <input
+                            ref={(el) => {
+                              if (el) employmentProofInputRefs.current[idx] = el;
+                            }}
+                            type="file"
+                            accept="image/*,application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              updateEmployment(idx, "proofDocumentFile", file);
+                              clearEmploymentError(idx, "proofDocument");
+                            }}
+                          />
+                          {!emp.proofDocumentFile && (
+                            <label
+                              htmlFor={`proof-${idx}`}
+                              className="block border-2 border-dashed rounded-lg p-4 cursor-pointer hover:bg-gray-50 text-center"
+                              onClick={() => employmentProofInputRefs.current[idx]?.click()}
+                            >
+                              <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                              <span className="text-sm text-gray-600">Upload proof document</span>
+                            </label>
+                          )}
                           {emp.proofDocumentFile && (
-                            <div className="text-sm text-gray-600 mt-1">
-                              {emp.proofDocumentFile.name} selected
-                            </div>
+                            <DocumentPreview
+                              files={[emp.proofDocumentFile]}
+                              onRemove={() => {
+                                updateEmployment(idx, "proofDocumentFile", null);
+                              }}
+                              onFileClick={() => employmentProofInputRefs.current[idx]?.click()}
+                              inputId={`proof-${idx}`}
+                            />
                           )}
                         </div>
                       </div>
@@ -533,34 +933,84 @@ const ApplyForm = () => {
             </div>
           )}
 
-          {/* STEP 3: Occupants / Pets / Message */}
+          {/* STEP 3: Occupants / Pets / Tenants / Message */}
           {step === 3 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Number of occupants</Label>
+              <div className="space-y-2">
+                <Label className="mb-1">Number of tenants</Label>
+                <Input
+                  type="number"
+                  value={form.numberOfTenants}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(value) && parseFloat(value) >= 1)) {
+                      updateField("numberOfTenants", value);
+                      clearError("numberOfTenants");
+                    }
+                  }}
+                  onBlur={(e) => validateField("numberOfTenants", e.target.value)}
+                  className={`bg-white ${errors.numberOfTenants ? "border-red-500" : ""}`}
+                  placeholder="Enter number of tenants"
+                  min="1"
+                />
+                {errors.numberOfTenants && (
+                  <p className="text-red-500 text-sm">{errors.numberOfTenants}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="mb-1">Number of occupants</Label>
                 <Input
                   type="number"
                   value={form.occupantsCount}
-                  onChange={(e) =>
-                    updateField("occupantsCount", e.target.value)
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(value) && parseFloat(value) >= 0)) {
+                      updateField("occupantsCount", value);
+                      clearError("occupantsCount");
+                    }
+                  }}
+                  onBlur={(e) => validateField("occupantsCount", e.target.value)}
+                  className={`bg-white ${errors.occupantsCount ? "border-red-500" : ""}`}
+                  placeholder="Enter number of occupants"
+                  min="0"
                 />
+                {errors.occupantsCount && (
+                  <p className="text-red-500 text-sm">{errors.occupantsCount}</p>
+                )}
               </div>
-              <div>
-                <Label>Number of pets</Label>
+              <div className="space-y-2">
+                <Label className="mb-1">Number of pets</Label>
                 <Input
                   type="number"
                   value={form.petsCount}
-                  onChange={(e) => updateField("petsCount", e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(value) && parseFloat(value) >= 0)) {
+                      updateField("petsCount", value);
+                    }
+                  }}
+                  className="bg-white"
+                  placeholder="Enter number of pets"
+                  min="0"
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <Label>Additional message</Label>
+              <div className="md:col-span-2 space-y-2">
+                <Label className="mb-1">Additional message</Label>
                 <Textarea
                   value={form.message}
-                  onChange={(e) => updateField("message", e.target.value)}
+                  onChange={(e) => {
+                    updateField("message", e.target.value);
+                    clearError("message");
+                  }}
+                  onBlur={(e) => validateField("message", e.target.value)}
+                  className={`bg-white ${errors.message ? "border-red-500" : ""}`}
+                  placeholder="Any additional information you'd like to share with the landlord..."
+                  rows={4}
                 />
+                {errors.message && (
+                  <p className="text-red-500 text-sm">{errors.message}</p>
+                )}
               </div>
             </div>
           )}
@@ -568,44 +1018,45 @@ const ApplyForm = () => {
           {/* STEP 4: Documents & Review */}
           {step === 4 && (
             <div>
-              <div className="space-y-3">
-                <div>
-                  <Label>Upload documents (ID, payslips etc.)</Label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="mb-1">Upload documents (ID, payslips etc.)</Label>
+                  {form.documents.length === 0 && (
+                    <p className="text-red-500 text-sm">At least one document is required</p>
+                  )}
                   <input
+                    ref={documentInputRef}
                     type="file"
                     multiple
                     accept="image/*,application/pdf"
-                    className="mt-2"
+                    className="hidden"
                     onChange={(e) => {
-                      console.log("onChange FIRED!");
                       const files = Array.from(e.target.files || []);
-                      console.log(
-                        "📁 Files selected in input:",
-                        files.length,
-                        files.map((f) => f.name)
-                      );
-                      files.forEach((file) => {
-                        console.log("Calling handleAddDocument for:", file.name);
-                        handleAddDocument(file);
-                      });
+                      if (files.length > 0) {
+                        handleAddDocument(files);
+                      }
                     }}
                   />
-                </div>
-
-                <div>
-                  <h4 className="font-medium">Selected files</h4>
-                  {form.documents && form.documents.length > 0 ? (
-                    <ul className="list-disc pl-5 mt-2">
-                      {form.documents.map((file, i) => (
-                        <li key={i} className="text-gray-700">
-                          {file.name}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-2">
-                      No files selected yet
-                    </p>
+                  {form.documents.length === 0 && (
+                    <label
+                      htmlFor="document-input"
+                      className={`block border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-gray-50 text-center mt-2 ${form.documents.length === 0 ? "border-red-500" : ""}`}
+                      onClick={() => documentInputRef.current?.click()}
+                    >
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <span className="text-sm text-gray-600">Click to upload documents</span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Supports images and PDF files
+                      </p>
+                    </label>
+                  )}
+                  {form.documents.length > 0 && (
+                    <DocumentPreview
+                      files={form.documents}
+                      onRemove={handleRemoveDocument}
+                      onFileClick={() => documentInputRef.current?.click()}
+                      inputId="document-input"
+                    />
                   )}
                 </div>
 
@@ -624,7 +1075,16 @@ const ApplyForm = () => {
                     <strong>Occupants:</strong> {form.occupantsCount}
                   </p>
                   <p>
+                    <strong>Number of Tenants:</strong> {form.numberOfTenants}
+                  </p>
+                  <p>
                     <strong>Pets:</strong> {form.petsCount}
+                  </p>
+                  <p>
+                    <strong>Monthly Income:</strong> {form.monthlyIncome ? `$${form.monthlyIncome}` : "Not provided"}
+                  </p>
+                  <p>
+                    <strong>Move-in Date:</strong> {form.moveInDate ? format(form.moveInDate, "PPP") : "Not selected"}
                   </p>
                   <p className="mt-2 text-sm text-gray-600">
                     <strong>Note:</strong> By submitting you agree that the
@@ -649,7 +1109,57 @@ const ApplyForm = () => {
           <div className="flex items-center gap-3">
             {step < 4 && (
               <Button className="rounded-2xl" onClick={() => {
-                if (validateAll(form)) {
+                // Validate based on current step
+                let canProceed = false;
+                
+                if (step === 1) {
+                  // Step 1: Personal info validation - only validate Step 1 fields
+                  const step1Fields = {
+                    fullName: form.fullName,
+                    email: form.email,
+                    phone: form.phone,
+                    dateOfBirth: form.dateOfBirth,
+                    currentAddress: form.currentAddress,
+                    monthlyIncome: form.monthlyIncome,
+                    moveInDate: form.moveInDate,
+                  };
+                  canProceed = validateAll(step1Fields);
+                  if (!canProceed) {
+                    // Show which fields have errors
+                    const errorFields = Object.keys(errors).filter(key => errors[key] && step1Fields.hasOwnProperty(key));
+                    if (errorFields.length > 0) {
+                      toast.error(`Please fill in: ${errorFields.join(", ")}`);
+                    } else {
+                      toast.error("Please fill in all required fields in step 1.");
+                    }
+                  }
+                } else if (step === 2) {
+                  // Step 2: Employment validation - if employment entries exist, they must be complete
+                  canProceed = validateAllEmployment();
+                  if (!canProceed) {
+                    toast.error("Please complete all employment entries. Employer name and job title are required.");
+                  }
+                } else if (step === 3) {
+                  // Step 3: Validate only required fields (occupantsCount, numberOfTenants)
+                  const step3Fields = {
+                    occupantsCount: form.occupantsCount,
+                    numberOfTenants: form.numberOfTenants,
+                  };
+                  canProceed = validateAll(step3Fields);
+                  if (!canProceed) {
+                    toast.error("Please fill in all required fields in step 3.");
+                  }
+                } else if (step === 4) {
+                  // Step 4: Validate documents
+                  if (!form.documents || form.documents.length === 0) {
+                    toast.error("Please upload at least one document.");
+                    canProceed = false;
+                  } else {
+                    canProceed = true;
+                  }
+                }
+                
+                if (canProceed) {
                   setStep(step + 1);
                 }
               }}>Next </Button>
