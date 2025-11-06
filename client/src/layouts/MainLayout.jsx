@@ -11,6 +11,7 @@ import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
+import Accounting from "@/pages/landlord/accounting/Accounting";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const MainLayout = () => {
         { label: "Applications", id: "applications", path: "/landlord/applications" },
         { label: "Leases", id: "leases", path: "/landlord/leases" },
         { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
+        { label: "Accounting", id: "accounting", path: "/landlord/accounting" },
         // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
@@ -62,6 +64,7 @@ const MainLayout = () => {
             <Route path="/landlord/applications" element={<Applications />} />
             {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
             <Route path="/landlord/leases" element={<LeasesPage />} />
+            <Route path="/landlord/accounting" element={<Accounting />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<Maintenance />} />

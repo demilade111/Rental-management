@@ -44,7 +44,6 @@ function Maintenance() {
 
   const token = useAuthStore((state) => state.token);
 
-  // Fetch properties
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -61,7 +60,6 @@ function Maintenance() {
     if (token) fetchListings();
   }, [token]);
 
-  // Fetch maintenance requests
   useEffect(() => {
     const fetchMaintenanceRequests = async () => {
       if (!token) return;
