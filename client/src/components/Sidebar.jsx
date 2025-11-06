@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Menu, X, ChevronLeft, ChevronRight, HelpCircle, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +9,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -154,7 +156,9 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
             className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
               } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-300/20 flex items-center justify-center flex-shrink-0">
+              <HelpCircle className="w-5 h-5" />
+            </div>
             {!isCollapsed && <span className="text-[16px]">Help & Support</span>}
           </button>
 
@@ -162,16 +166,20 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
             className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
               } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-300/20 flex items-center justify-center flex-shrink-0">
+              <SettingsIcon className="w-5 h-5" />
+            </div>
             {!isCollapsed && <span className="text-[16px]">Settings</span>}
           </button>
 
           <button
-            onClick={handleLogout}
+            onClick={() => setLogoutOpen(true)}
             className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
               } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-300/20 flex items-center justify-center flex-shrink-0">
+              <LogOut className="w-5 h-5" />
+            </div>
             {!isCollapsed && <span className="text-[16px]">Logout</span>}
           </button>
         </div>
@@ -182,6 +190,22 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         className={`transition-all duration-300 ease-in-out lg:ml-[${isCollapsed ? "70px" : "220px"
           }]`}
       />
+
+      {/* Logout confirmation */}
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-2xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="rounded-2xl" onClick={handleLogout}>Logout</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
