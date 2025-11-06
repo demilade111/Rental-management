@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 
 const Pagination = ({ page, totalPages, totalItems, onPageChange }) => {
     return (
-        <div className="flex flex-row items-center justify-between mt-8 gap-2">
+        <div className="flex flex-row items-center justify-between w-full gap-2 mb-4">
             <div className="text-gray-600 font-semibold text-md">
                 Showing page {page} of {totalPages} — Total: {totalItems}
             </div>

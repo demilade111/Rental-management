@@ -336,3 +336,57 @@ export async function deleteApplication(applicationId, landlordId) {
 
   return { message: "Application deleted successfully" };
 }
+
+/**
+ * Bulk delete applications
+ */
+export async function bulkDeleteApplications(applicationIds, landlordId) {
+  if (!Array.isArray(applicationIds) || applicationIds.length === 0) {
+    const err = new Error("Application IDs array is required and must not be empty");
+    err.status = 400;
+    throw err;
+  }
+
+  // Verify all applications belong to the landlord and can be deleted
+  const applications = await prisma.requestApplication.findMany({
+    where: {
+      id: { in: applicationIds },
+    },
+  });
+
+  if (applications.length !== applicationIds.length) {
+    const err = new Error("Some applications were not found");
+    err.status = 404;
+    throw err;
+  }
+
+  // Check permissions and validation
+  const errors = [];
+  for (const app of applications) {
+    if (app.landlordId !== landlordId) {
+      errors.push(`Application ${app.id}: You do not have permission to delete this application`);
+    }
+    if (app.status === "APPROVED" && app.leaseId) {
+      errors.push(`Application ${app.id}: Cannot delete approved application with an active lease`);
+    }
+  }
+
+  if (errors.length > 0) {
+    const err = new Error(errors.join("; "));
+    err.status = 400;
+    throw err;
+  }
+
+  // Delete all applications
+  const result = await prisma.requestApplication.deleteMany({
+    where: {
+      id: { in: applicationIds },
+      landlordId, // Extra safety check
+    },
+  });
+
+  return {
+    message: `Successfully deleted ${result.count} application(s)`,
+    deletedCount: result.count,
+  };
+}

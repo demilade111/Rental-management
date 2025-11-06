@@ -5,6 +5,7 @@ import {
   getApplicationByPublicIdController,
   updateApplicationStatusController,
   deleteApplicationController,
+  bulkDeleteApplicationsController,
   submitPublicApplicationController,
 } from "../controllers/requestApplicationController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
@@ -222,6 +223,14 @@ router.delete(
   authenticate,
   authorize(["ADMIN"]),
   deleteApplicationController
+);
+
+// Bulk delete
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize(["ADMIN"]),
+  bulkDeleteApplicationsController
 );
 
 export default router;
