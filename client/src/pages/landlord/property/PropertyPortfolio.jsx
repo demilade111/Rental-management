@@ -105,7 +105,7 @@ const PropertyPortfolio = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
       <div className="flex-shrink-0">
-        <PageHeader title="Portfolio" subtitle="Per Property" />
+        <PageHeader title="Portfolio" subtitle="Per Property" total={displayTotal} />
 
         <PropertyTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         <PropertySearchBar
@@ -153,7 +153,7 @@ const PropertyPortfolio = () => {
         <Pagination
           page={page}
           totalPages={displayTotalPages}
-          total={displayTotal}
+          totalItems={displayTotal}
           onPageChange={setPage}
         />
       </div>
