@@ -1,4 +1,8 @@
 import { prisma } from "../prisma/client.js";
+import {
+  createMaintenanceRequestNotification,
+  createMaintenanceMessageNotification,
+} from "./notificationService.js";
 
 const dedupe = (arr) => Array.from(new Set(arr));
 
@@ -99,6 +103,47 @@ async function createMaintenanceRequest(userId, userRole, data) {
       ...(customLeaseId && { customLease: true }),
     },
   });
+
+  // Create notification for the other party (tenant → landlord, landlord → tenant)
+  try {
+    if (userRole === "TENANT") {
+      // Notify landlord about new maintenance request
+      await createMaintenanceRequestNotification(maintenanceRequest, maintenanceRequest.listing.landlordId);
+    } else if (userRole === "ADMIN") {
+      // Notify tenant(s) about new maintenance request from landlord
+      // Get all active tenants for this listing
+      const activeLeases = await prisma.lease.findMany({
+        where: {
+          listingId,
+          leaseStatus: "ACTIVE",
+        },
+        select: { tenantId: true },
+      });
+      
+      // Also check custom leases
+      const activeCustomLeases = await prisma.customLease.findMany({
+        where: {
+          listingId,
+          leaseStatus: "ACTIVE",
+        },
+        select: { tenantId: true },
+      });
+
+      // Get unique tenant IDs
+      const tenantIds = [...new Set([
+        ...activeLeases.map(l => l.tenantId),
+        ...activeCustomLeases.map(l => l.tenantId),
+      ])];
+
+      // Create notifications for all tenants
+      for (const tenantId of tenantIds) {
+        await createMaintenanceRequestNotification(maintenanceRequest, tenantId);
+      }
+    }
+  } catch (error) {
+    // Log error but don't fail the request creation
+    console.error("Error creating maintenance request notification:", error);
+  }
 
   return maintenanceRequest;
 }
@@ -380,10 +425,28 @@ async function getMaintenanceMessages(requestId, userId, userRole) {
     err.status = 404;
     throw err;
   }
-  const isLandlord = req.listing.landlordId === userId;
-  const isCreator = req.userId === userId;
-  const isTenant = req.lease?.tenantId === userId || req.customLease?.tenantId === userId;
-  if (!isLandlord && !isCreator && !isTenant) {
+  const isLandlord = req.listing.landlordId === userId; // ADMIN role - owner of the listing
+  const isCreator = req.userId === userId; // User who created the request (can be ADMIN or TENANT)
+  const isTenantOfLease = req.lease?.tenantId === userId;
+  const isTenantOfCustomLease = req.customLease?.tenantId === userId;
+
+  // Fallback: tenant has an active (standard/custom) lease on this listing even if the request doesn't store lease linkage
+  let isTenantOfListingActiveLease = false;
+  if (userRole === "TENANT" && !isTenantOfLease && !isTenantOfCustomLease) {
+    const [activeLease, activeCustomLease] = await Promise.all([
+      prisma.lease.findFirst({
+        where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
+        select: { id: true },
+      }),
+      prisma.customLease.findFirst({
+        where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
+        select: { id: true },
+      }),
+    ]);
+    isTenantOfListingActiveLease = Boolean(activeLease || activeCustomLease);
+  }
+
+  if (!isLandlord && !isCreator && !isTenantOfLease && !isTenantOfCustomLease && !isTenantOfListingActiveLease) {
     const err = new Error("Unauthorized to view messages");
     err.status = 403;
     throw err;
@@ -406,15 +469,33 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
     where: { id: requestId },
     include: { listing: true, lease: true, customLease: true },
   });
-  console.log(req);
   if (!req) {
     const err = new Error("Maintenance request not found");
     err.status = 404;
     throw err;
   }
-  const isLandlord = req.listing.landlordId === userId;
-  const isTenant = req.lease?.tenantId === userId || req.customLease?.tenantId === userId;
-  if (!isLandlord && !isTenant) {
+  const isLandlord = req.listing.landlordId === userId; // ADMIN role - owner of the listing
+  const isCreator = req.userId === userId; // User who created the request (can be ADMIN or TENANT)
+  const isTenantOfLease = req.lease?.tenantId === userId;
+  const isTenantOfCustomLease = req.customLease?.tenantId === userId;
+
+  // Fallback: tenant has an active (standard/custom) lease on this listing even if the request doesn't store lease linkage
+  let isTenantOfListingActiveLease = false;
+  if (userRole === "TENANT" && !isTenantOfLease && !isTenantOfCustomLease) {
+    const [activeLease, activeCustomLease] = await Promise.all([
+      prisma.lease.findFirst({
+        where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
+        select: { id: true },
+      }),
+      prisma.customLease.findFirst({
+        where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
+        select: { id: true },
+      }),
+    ]);
+    isTenantOfListingActiveLease = Boolean(activeLease || activeCustomLease);
+  }
+
+  if (!isLandlord && !isCreator && !isTenantOfLease && !isTenantOfCustomLease && !isTenantOfListingActiveLease) {
     const err = new Error("Unauthorized to add message");
     err.status = 403;
     throw err;
@@ -427,6 +508,68 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
     },
     include: { sender: { select: { id: true, firstName: true, lastName: true, role: true } } },
   });
+
+  // Create notification for the other party
+  try {
+    // Get all messages to determine unread count
+    const allMessages = await prisma.maintenanceMessage.findMany({
+      where: { maintenanceRequestId: requestId },
+      select: { senderId: true },
+    });
+
+    // Determine recipients (landlord or tenant(s))
+    const recipients = [];
+    
+    if (isLandlord) {
+      // Landlord sent message, notify tenant(s)
+      if (req.lease?.tenantId) {
+        recipients.push(req.lease.tenantId);
+      }
+      if (req.customLease?.tenantId) {
+        recipients.push(req.customLease.tenantId);
+      }
+      // Also check for active tenants on the listing
+      const activeLeases = await prisma.lease.findMany({
+        where: { listingId: req.listingId, leaseStatus: "ACTIVE" },
+        select: { tenantId: true },
+      });
+      const activeCustomLeases = await prisma.customLease.findMany({
+        where: { listingId: req.listingId, leaseStatus: "ACTIVE" },
+        select: { tenantId: true },
+      });
+      const allTenantIds = [...new Set([
+        ...activeLeases.map(l => l.tenantId),
+        ...activeCustomLeases.map(l => l.tenantId),
+      ])];
+      recipients.push(...allTenantIds);
+    } else {
+      // Tenant sent message, notify landlord
+      recipients.push(req.listing.landlordId);
+    }
+
+    // Remove sender from recipients
+    const uniqueRecipients = [...new Set(recipients.filter(id => id !== userId))];
+
+    // Get unread count for each recipient (messages not from them)
+    for (const recipientId of uniqueRecipients) {
+      const unreadCount = allMessages.filter(m => m.senderId !== recipientId).length;
+      if (unreadCount > 0) {
+        // Fetch full request data for notification
+        const requestWithData = await prisma.maintenanceRequest.findUnique({
+          where: { id: requestId },
+          include: {
+            listing: true,
+            user: true,
+          },
+        });
+        await createMaintenanceMessageNotification(requestWithData, recipientId, unreadCount);
+      }
+    }
+  } catch (error) {
+    // Log error but don't fail the message creation
+    console.error("Error creating maintenance message notification:", error);
+  }
+
   return message;
 }
 export {
