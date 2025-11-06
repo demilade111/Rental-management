@@ -21,6 +21,9 @@ export const RentalInformationSection = ({
 }) => {
   return (
     <div className="border-b border-gray-300 space-y-6 pb-8">
+      <label className="block text-sm font-medium mb-4">
+        Rental Information
+      </label>
       {/* Rent Cycle */}
       <div>
         <label className="block text-sm font-medium mb-2">Rent Cycle</label>

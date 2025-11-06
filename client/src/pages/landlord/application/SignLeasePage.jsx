@@ -7,7 +7,8 @@ import SignaturePad from "react-signature-pad-wrapper";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { Button } from "@/components/ui/button";
-import { FileEdit } from "lucide-react";
+import { FileEdit, CheckCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function SignLeasePage() {
     const { token } = useParams();
@@ -17,6 +18,33 @@ export default function SignLeasePage() {
     const sigPadRef = useRef(null);
     const [pdfLoaded, setPdfLoaded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAlreadySigned, setIsAlreadySigned] = useState(false);
+    const [isLoadingInvite, setIsLoadingInvite] = useState(true);
+
+    // Check if lease is already signed
+    useEffect(() => {
+        const checkLeaseStatus = async () => {
+            try {
+                const res = await api.get(`${API_ENDPOINTS.LEASES_INVITE.BASE}/invite/${token}`);
+                if (res.data.invite?.signed) {
+                    setIsAlreadySigned(true);
+                }
+            } catch (err) {
+                // If error is about already signed, show that message
+                if (err.response?.data?.message?.includes("already been signed")) {
+                    setIsAlreadySigned(true);
+                } else {
+                    toast.error(err.response?.data?.message || "Failed to load lease information");
+                }
+            } finally {
+                setIsLoadingInvite(false);
+            }
+        };
+
+        if (token) {
+            checkLeaseStatus();
+        }
+    }, [token]);
 
     useEffect(() => {
         if (isLoading) return;
@@ -59,6 +87,37 @@ export default function SignLeasePage() {
     const clearSignature = () => {
         sigPadRef.current?.clear();
     };
+
+    // Show already signed message
+    if (isLoadingInvite) {
+        return (
+            <div className="min-h-screen w-full flex items-center justify-center">
+                <p className="text-sm text-gray-500">Loading lease information...</p>
+            </div>
+        );
+    }
+
+    if (isAlreadySigned) {
+        return (
+            <div className="min-h-screen w-full flex items-center justify-center py-8 px-4">
+                <Card className="max-w-md w-full text-center py-10 px-6">
+                    <CardContent className="flex flex-col items-center gap-4">
+                        <CheckCircle className="w-16 h-16 text-green-500" />
+                        <h1 className="text-2xl font-bold">Lease Already Signed</h1>
+                        <p className="text-gray-700">
+                            This lease has already been signed. You cannot sign it again.
+                        </p>
+                        <Button
+                            className="mt-4 rounded-2xl"
+                            onClick={() => navigate("/tenant/dashboard")}
+                        >
+                            Go to Dashboard
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen w-full flex flex-col items-center py-8 px-4">

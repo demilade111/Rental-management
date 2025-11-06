@@ -132,6 +132,7 @@ const Applications = () => {
             if (!listInfo?.hasLease) {
                 setRedirectUrl("/landlord/leases");
                 setShowLeaseRedirectModal(true);
+                setSelectedApplication(app); // Store the app to get listing name
                 toast.error(`Cannot send lease. Listing doesn't have any lease attached.`);
                 return;
             }
@@ -234,23 +235,25 @@ const Applications = () => {
     };
 
     return (
-        <div className="min-h-screen px-4 md:px-8 py-4 relative">
-            <PageHeader
-                title="Applications"
-                subtitle="Manage rental applications"
-                total={displayTotal}
-            />
+        <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+            <div className="flex-shrink-0">
+                <PageHeader
+                    title="Applications"
+                    subtitle="Manage rental applications"
+                    total={displayTotal}
+                />
 
-            <ApplicationSearchBar
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onGenerateLink={() => setModalOpen(true)}
-                onFilter={() => setFilterModalOpen(true)}
-            />
+                <ApplicationSearchBar
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    onGenerateLink={() => setModalOpen(true)}
+                    onFilter={() => setFilterModalOpen(true)}
+                />
+            </div>
 
-            <div className="rounded overflow-hidden">
+            <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
                 {/* Table Header */}
-                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4`}>
+                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -264,7 +267,7 @@ const Applications = () => {
                     <div className="text-center border-l border-gray-200 pl-10">Actions</div>
                 </div>
 
-                <div className="max-h-[60vh] overflow-y-auto">
+                <div className="flex-1 overflow-y-auto min-h-0">
                     {listingsLoading || appsLoading ? (
                         <LoadingState message="Loading applications..." />
                     ) : filteredApps.length > 0 ? (
@@ -285,11 +288,9 @@ const Applications = () => {
                         <div className="p-4 text-center text-gray-500">No applications found.</div>
                     )}
                 </div>
-            </div>
 
-            {/* Pagination - Fixed at bottom */}
-            <div className="fixed bottom-8 z-40 w-full" style={{ left: '220px', right: '0', maxWidth: 'calc(100vw - 220px)' }}>
-                <div className="px-4 md:px-8 pb-4">
+                {/* Pagination - Inside table container */}
+                <div className="flex-shrink-0 mt-4">
                     <Pagination
                         page={displayPage}
                         totalPages={displayTotalPages}
@@ -330,8 +331,12 @@ const Applications = () => {
 
             <LeaseRedirectModal
                 isOpen={showLeaseRedirectModal}
-                onClose={() => setShowLeaseRedirectModal(false)}
+                onClose={() => {
+                    setShowLeaseRedirectModal(false);
+                    setSelectedApplication(null);
+                }}
                 redirectUrl={redirectUrl}
+                listingName={selectedApplication?.listing?.title || selectedApplication?.listing?.streetAddress || "N/A"}
             />
 
             {/* Shadcn modal for invite URL */}

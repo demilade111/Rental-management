@@ -50,10 +50,10 @@ const MainLayout = () => {
         setActiveNav={handleNavChange}
       />
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header user={user} isLandlord={isLandlord} />
 
-        <div className="pb-10">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <Routes>
             <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />

@@ -28,9 +28,39 @@ export const createCustomLease = async (landlordId, data) => {
 };
 
 export const getAllCustomLeases = async (userId, role) => {
-    if (role === "LANDLORD") {
+    const include = {
+        listing: {
+            select: {
+                id: true,
+                title: true,
+                streetAddress: true,
+                city: true,
+                state: true,
+                country: true,
+            },
+        },
+        tenant: {
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+            },
+        },
+        landlord: {
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+            },
+        },
+    };
+
+    if (role === "LANDLORD" || role === "ADMIN") {
         return prisma.customLease.findMany({
             where: { landlordId: userId },
+            include,
             orderBy: { createdAt: "desc" },
         });
     }
@@ -38,11 +68,15 @@ export const getAllCustomLeases = async (userId, role) => {
     if (role === "TENANT") {
         return prisma.customLease.findMany({
             where: { tenantId: userId },
+            include,
             orderBy: { createdAt: "desc" },
         });
     }
 
-    return prisma.customLease.findMany();
+    return prisma.customLease.findMany({
+        include,
+        orderBy: { createdAt: "desc" },
+    });
 };
 
 export const getCustomLeaseById = (id) => {

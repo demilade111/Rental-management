@@ -23,6 +23,9 @@ export const PropertyAddressSection = ({
 }) => {
   return (
     <div className="border-b border-gray-300 space-y-6 pb-8">
+      <label className="block text-sm font-medium mb-4">
+        Property Address
+      </label>
       <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
         <Select

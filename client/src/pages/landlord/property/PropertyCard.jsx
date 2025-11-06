@@ -1,10 +1,103 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Home, DollarSign } from 'lucide-react';
 import { getPropertyCategory, PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
 import { useNavigate } from 'react-router-dom';
+import api from '@/lib/axios';
+import API_ENDPOINTS from '@/lib/apiEndpoints';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const PropertyCard = ({ property }) => {
+// Thumbnail with signed URL resolving + shimmer and graceful fallback
+const ListingThumbnail = ({ images, alt }) => {
+    const [resolvedSrc, setResolvedSrc] = useState();
+    const [loading, setLoading] = useState(true);
+    const [errored, setErrored] = useState(false);
+
+    // Derive raw source from various shapes
+    const rawSrc = (() => {
+        if (!images) return undefined;
+        if (typeof images === 'string') return images;
+        if (Array.isArray(images) && images.length > 0) {
+            const first = images[0];
+            if (typeof first === 'string') return first;
+            if (first && typeof first === 'object') {
+                if (first instanceof File) return undefined;
+                return first.url || first.fileUrl || first.src || undefined;
+            }
+        }
+        return undefined;
+    })();
+
+    useEffect(() => {
+        let cancelled = false;
+        async function resolve() {
+            if (!rawSrc) {
+                setResolvedSrc(undefined);
+                setLoading(false);
+                return;
+            }
+            try {
+                const u = new URL(rawSrc);
+                const isS3Unsigned = u.hostname.includes('s3.') && !rawSrc.includes('X-Amz-Signature');
+                if (!isS3Unsigned) {
+                    if (!cancelled) {
+                        setResolvedSrc(encodeURI(rawSrc));
+                        setLoading(false);
+                    }
+                    return;
+                }
+                const key = u.pathname.startsWith('/') ? u.pathname.slice(1) : u.pathname;
+                if (!key) {
+                    if (!cancelled) {
+                        setResolvedSrc(encodeURI(rawSrc));
+                        setLoading(false);
+                    }
+                    return;
+                }
+                const resp = await api.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-download-url`, { params: { key } });
+                const signed = resp.data?.data?.downloadURL || resp.data?.downloadURL;
+                if (!cancelled) {
+                    setResolvedSrc(signed || encodeURI(rawSrc));
+                    setLoading(false);
+                }
+            } catch {
+                if (!cancelled) {
+                    setResolvedSrc(encodeURI(rawSrc));
+                    setLoading(false);
+                }
+            }
+        }
+        setLoading(true);
+        setErrored(false);
+        resolve();
+        return () => { cancelled = true; };
+    }, [rawSrc]);
+
+    if (!rawSrc || errored) {
+        return (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <Home className="w-12 h-12 text-gray-400" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative w-full h-full">
+            {loading && (
+                <div className="absolute inset-0 animate-pulse bg-gray-200" />
+            )}
+            <img
+                src={resolvedSrc}
+                alt={alt}
+                className="w-full h-full object-cover"
+                onLoad={() => setLoading(false)}
+                onError={() => { setErrored(true); setLoading(false); }}
+            />
+        </div>
+    );
+};
+
+const PropertyCard = ({ property, isSelected = false, onSelectionChange }) => {
     const navigate = useNavigate();
     
     const handleClick = () => {
@@ -14,16 +107,26 @@ const PropertyCard = ({ property }) => {
     return (
         <Card onClick={handleClick} className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
             <div className="flex flex-col md:flex-row">
-   
-                <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0">
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <Home className="w-12 h-12 text-gray-400" />
+                {/* Checkbox - at the front */}
+                {onSelectionChange && (
+                    <div className="flex items-center justify-center p-4 pl-4 pr-2">
+                        <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                                onSelectionChange(property.id, Boolean(checked));
+                            }}
+                            className="!border-black"
+                            onClick={(e) => e.stopPropagation()}
+                        />
                     </div>
+                )}
+   
+                <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0 overflow-hidden">
+                    <ListingThumbnail images={property?.images} alt={property.title || property.name || 'Listing image'} />
                 </div>
 
                 {/* Property Details */}
                 <div className="flex-1 flex flex-col md:flex-row items-start md:items-center p-4 gap-4 md:gap-6">
-        
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base mb-1">{property.title}</h3>
                         <p className="text-xs text-gray-600">{property.streetAddress}</p>

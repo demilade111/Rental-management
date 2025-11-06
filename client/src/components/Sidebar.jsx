@@ -80,31 +80,70 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
           )}
 
           {/* Nav Items */}
-          <nav className="flex-1 space-y-1 overflow-y-auto">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
-                  } px-3 py-2 rounded-tl-full rounded-bl-full transition cursor-pointer ${activeNav === item.id
-                    ? "bg-white"
-                    : "hover:bg-gray-300/10"
-                  }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex-shrink-0 ${activeNav === item.id ? "bg-primary" : "bg-gray-300"
-                    }`}
-                ></div>
-                {!isCollapsed && (
-                  <span
-                    className={`text-[16px] whitespace-nowrap ${activeNav === item.id ? "text-gray-900" : "text-white"
+          <nav className="flex-1 space-y-0 overflow-y-auto">
+            {navItems.map((item, index) => {
+              const activeIndex = navItems.findIndex((nav) => nav.id === activeNav);
+              const isActive = activeNav === item.id;
+              const isBeforeActive = activeIndex !== -1 && index === activeIndex - 1;
+              const isAfterActive = activeIndex !== -1 && index === activeIndex + 1;
+
+              // Determine rounded corners
+              let roundedClasses = "";
+              if (isActive) {
+                // Active item: no right corners rounded, just left corners
+                roundedClasses = "rounded-tl-full rounded-bl-full";
+              } else if (isBeforeActive) {
+                // Item before active: left corners + bottom-right corner
+                roundedClasses = "rounded-tl-full rounded-bl-full rounded-br-full";
+              } else if (isAfterActive) {
+                // Item after active: left corners + top-right corner
+                roundedClasses = "rounded-tl-full rounded-bl-full rounded-tr-full";
+              } else {
+                // Regular items: only left corners
+                roundedClasses = "rounded-tl-full rounded-bl-full";
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item.id)}
+                  className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
+                    } ${isActive ? "pl-3 pr-0" : "px-3"} py-2.5 ${roundedClasses} transition-all duration-200 ease-in-out cursor-pointer ${isActive
+                      ? "bg-white"
+                      : "hover:bg-gray-300/10 active:bg-gray-300/20"
+                    } relative overflow-visible`}
+                >
+                  {/* Background overlay for clipped-in rounded corners on adjacent items - matching active color */}
+                  {/* {isBeforeActive && (
+                    <div className="absolute -right-4 bottom-0 w-8 h-8 bg-white border-white">
+                      <div className="absolute right-0 bottom-0 w-8 h-8 bg-primary rounded-br-full"></div>
+                    </div>
+                  )} */}
+                  {/* {isAfterActive && (
+                    <div className="absolute -right-4 top-0 w-8 h-8 bg-white border-white">
+                      <div className="absolute right-0 top-0 w-8 h-8 bg-primary rounded-tr-full"></div>
+                    </div>
+                  )} */}
+
+                  <div
+                    className={`w-8 h-8 rounded-full flex-shrink-0 relative z-10 transition-all duration-200 ease-in-out ${isActive
+                        ? "bg-[#1F363D]"
+                        : "bg-gray-300 hover:bg-gray-400"
                       }`}
-                  >
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            ))}
+                  ></div>
+                  {!isCollapsed && (
+                    <span
+                      className={`text-[16px] whitespace-nowrap relative z-10 transition-colors duration-200 ease-in-out ${isActive
+                          ? "text-[#1F363D] font-semibold"
+                          : "text-white"
+                        }`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
         </div>

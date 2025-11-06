@@ -1,9 +1,9 @@
 import React from 'react';
 
 const LeaseTabs = ({ activeTab, setActiveTab }) => (
-    <div className="flex gap-2 mb-6">
+    <div className="flex gap-2">
         <div className="bg-gray-200 rounded-lg border-2 border-gray-200 space-x-0.5">
-            {['active', 'non-active', 'in-progress'].map((tab) => (
+            {['standard', 'custom'].map((tab) => (
                 <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}

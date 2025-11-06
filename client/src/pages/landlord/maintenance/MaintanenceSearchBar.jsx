@@ -77,7 +77,7 @@ export default function MaintenanceSearchBar({
             <div className="flex flex-col md:flex-row gap-3 md:justify-between items-center">
 
                 {/* Search + Filter + Chips */}
-                <div className="flex gap-3 items-center flex-wrap">
+                <div className="flex gap-3 flex-1 md:max-w-md items-center flex-wrap">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[200px]">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -86,7 +86,7 @@ export default function MaintenanceSearchBar({
                             placeholder="Search.."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 bg-gray-50 border-gray-300 w-64"
+                            className="pl-10 bg-gray-50 border-gray-300"
                         />
                     </div>
 
