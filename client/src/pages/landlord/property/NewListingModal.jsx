@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -9,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AmenitiesSection } from "./AmenitiesSection";
+import { AmenitiesSection, PREDEFINED_AMENITIES } from "./AmenitiesSection";
 import PhotoUploadSection from "./PhotoUploadSection";
 import { useAuthStore } from "../../../store/authStore";
 import { Country, State, City } from "country-state-city";
@@ -23,6 +24,7 @@ import {
 } from "./sections";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Plus, X } from "lucide-react";
 
 const NewListingModal = ({ isOpen, onClose }) => {
   const token = useAuthStore((state) => state.token);
@@ -32,10 +34,22 @@ const NewListingModal = ({ isOpen, onClose }) => {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [showAddAmenityInput, setShowAddAmenityInput] = useState(false);
+  const [newAmenity, setNewAmenity] = useState("");
 
   useEffect(() => {
     setCountries(Country.getAllCountries());
   }, []);
+
+  // Preselect all amenities when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        amenities: [...PREDEFINED_AMENITIES],
+      }));
+    }
+  }, [isOpen]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -59,7 +73,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
     phoneNumber: "",
     email: "",
     notes: "",
-    amenities: [],
+    amenities: [...PREDEFINED_AMENITIES], // Preselect all predefined amenities
     images: [],
   });
 
@@ -92,6 +106,24 @@ const NewListingModal = ({ isOpen, onClose }) => {
         delete newErrors.amenities;
         return newErrors;
       });
+    }
+  };
+
+  const handleAddCustomAmenity = () => {
+    if (newAmenity.trim() && !formData.amenities.includes(newAmenity.trim())) {
+      handleAmenitiesChange([...formData.amenities, newAmenity.trim()]);
+      setNewAmenity("");
+      setShowAddAmenityInput(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCustomAmenity();
+    } else if (e.key === "Escape") {
+      setShowAddAmenityInput(false);
+      setNewAmenity("");
     }
   };
 
@@ -231,10 +263,12 @@ const NewListingModal = ({ isOpen, onClose }) => {
       phoneNumber: "",
       email: "",
       notes: "",
-      amenities: [],
+      amenities: [...PREDEFINED_AMENITIES], // Preselect all predefined amenities
       images: [],
     });
     setFieldErrors({});
+    setShowAddAmenityInput(false);
+    setNewAmenity("");
   };
 
   const handleSubmit = async (e) => {
@@ -251,21 +285,37 @@ const NewListingModal = ({ isOpen, onClose }) => {
       if (formData.images && formData.images.length > 0) {
         for (const file of formData.images) {
           if (file instanceof File) {
-            const uploadForm = new FormData();
-            uploadForm.append("file", file);
-
-            const uploadRes = await api.post(
-              API_ENDPOINTS.UPLOADS.BASE,
-              uploadForm,
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
+            try {
+              // Get presigned URL from backend
+              const presignRes = await api.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-url`, {
+                params: {
+                  fileName: encodeURIComponent(file.name),
+                  fileType: file.type,
+                  category: "listings",
                 },
-              }
-            );
+              });
 
-            uploadedUrls.push(uploadRes.data.url);
+              const { uploadURL, fileUrl } = presignRes.data.data || presignRes.data;
+
+              // Upload file directly to S3 using presigned URL
+              const putRes = await fetch(uploadURL, {
+                method: "PUT",
+                headers: { "Content-Type": file.type },
+                body: file,
+              });
+
+              if (!putRes.ok) {
+                throw new Error(`Upload failed for ${file.name}`);
+              }
+
+              uploadedUrls.push(fileUrl);
+            } catch (uploadErr) {
+              console.error("Image upload error:", uploadErr);
+              toast.error(`Failed to upload ${file.name}`);
+              throw uploadErr; // Re-throw to stop the submission
+            }
           } else if (typeof file === "string") {
+            // Already a URL, use as is
             uploadedUrls.push(file);
           }
         }
@@ -277,11 +327,24 @@ const NewListingModal = ({ isOpen, onClose }) => {
 
       console.log("Submitting listing with data:", formData);
 
+      // Normalize phone to only allowed characters (backend regex: digits, space, -, +, parentheses)
+      const rawPhone = formData.phoneNumber || "";
+      const normalizedPhone = rawPhone.replace(/[^0-9\s\-+()]/g, "").trim();
+
+      // Pre-validate: require at least 6 digits after removing non-digits
+      const phoneDigits = normalizedPhone.replace(/\D/g, "");
+      if (normalizedPhone && phoneDigits.length > 0 && phoneDigits.length < 6) {
+        setFieldErrors((prev) => ({ ...prev, phoneNumber: "Phone number is too short" }));
+        toast.error("Please enter a valid phone number");
+        return;
+      }
+
       const submitData = {
         ...formData,
         propertyType: formData.propertyType,
         amenities: normalizedAmenities,
         images: uploadedUrls,
+        phoneNumber: normalizedPhone || undefined,
         bedrooms: parseInt(formData.bedrooms) || 0,
         bathrooms: parseInt(formData.bathrooms) || 0,
         totalSquareFeet: parseInt(formData.totalSquareFeet) || 0,
@@ -373,8 +436,10 @@ const NewListingModal = ({ isOpen, onClose }) => {
             />
 
             <div className="border-b border-gray-300 space-y-6 pb-8">
+              <label className="block text-sm font-medium mb-4">
+                Property Description
+              </label>
               <div className="space-y-2">
-                <Label htmlFor="description">Property Description</Label>
                 <Textarea
                   id="description"
                   name="description"
@@ -396,9 +461,59 @@ const NewListingModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="border-b border-gray-300 space-y-6 pb-8">
-              <label className="block text-sm font-medium mb-2">
-                Amenities
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium mb-4">
+                  Amenities
+                </label>
+                <div className="flex items-center gap-2 ml-auto">
+                  {!showAddAmenityInput ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAddAmenityInput(true)}
+                      className="flex items-center gap-1 text-gray-600 text-sm font-medium underline hover:text-blue-800"
+                      disabled={isPending}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Amenity
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={newAmenity}
+                        onChange={(e) => setNewAmenity(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder="Enter amenity name"
+                        className="text-sm h-8 w-40"
+                        disabled={isPending}
+                        autoFocus
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleAddCustomAmenity}
+                        disabled={isPending || !newAmenity.trim()}
+                        className="h-8 px-3"
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowAddAmenityInput(false);
+                          setNewAmenity("");
+                        }}
+                        disabled={isPending}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
               <AmenitiesSection
                 selectedAmenities={formData.amenities}
                 onAmenitiesChange={handleAmenitiesChange}
@@ -412,7 +527,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="border-b border-gray-300 space-y-6 pb-8">
-              <label className="block text-sm font-medium mb-2">Photos</label>
+              <label className="block text-sm font-medium mb-4">Photos</label>
               <PhotoUploadSection
                 images={formData.images}
                 onImagesChange={handleImagesChange}
@@ -429,6 +544,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
               formData={formData}
               fieldErrors={fieldErrors}
               handleChange={handleChange}
+              setFormData={setFormData}
               isPending={isPending}
             />
 

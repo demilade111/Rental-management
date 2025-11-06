@@ -124,3 +124,18 @@ enum ListingStatus {
   ACTIVE
   RENTED
 }
+
+// ========== PAYMENT ==========
+enum PaymentType {
+  RENT
+  DEPOSIT
+  REFUND
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Bell } from "lucide-react";
+import { BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -195,14 +195,14 @@ const NotificationDropdown = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative"
+          className="relative h-10 w-10"
           onClick={() => setOpen(!open)}
         >
-          <Bell className="h-6 w-6" />
+          <BellRing className="h-8 w-8" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
