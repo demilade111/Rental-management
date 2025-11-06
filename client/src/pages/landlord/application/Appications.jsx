@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
@@ -15,6 +15,8 @@ import ApplicationDetailsDialog from "./ApplicationDetailsDialog";
 import LeaseRedirectModal from "./LeaseRedirectModal";
 import { useAuthStore } from "@/store/authStore";
 import Pagination from "@/components/shared/Pagination";
+import BulkDeleteActionBar from "@/components/shared/BulkDeleteActionBar";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Shadcn/ui imports for modal
 import {
@@ -43,6 +45,9 @@ const Applications = () => {
     // State for Shadcn modal
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [inviteUrl, setInviteUrl] = useState("");
+    
+    // State for bulk selection
+    const [selectedItems, setSelectedItems] = useState(new Set());
 
     const { user } = useAuthStore();
 
@@ -68,8 +73,37 @@ const Applications = () => {
     // filter out listings that already have an active application
     const availableListings = getAvailableListings(listings, applicationsData.applications);
 
-    // filtering applications by modal
+    // filtering applications by modal (frontend filtering)
+    // Note: filterApplications always filters out non-ACTIVE listings, so filteredApps may be less than API total
     const filteredApps = filterApplications(applicationsData?.applications || [], searchQuery, filters);
+    
+    // Clear selection when filters or page change
+    useEffect(() => {
+        setSelectedItems(new Set());
+    }, [searchQuery, filters.status, filters.startDate, filters.endDate, page]);
+    
+    // Check if user has applied explicit filters (search, status, dates)
+    // Note: listing status filter (ACTIVE only) is always applied by filterApplications, so we don't count it
+    const hasExplicitFilters = searchQuery.trim() !== "" || filters.status || filters.startDate || filters.endDate;
+    
+    // Calculate pagination totals
+    // Since filterApplications always filters by listing status (ACTIVE only), we need to use filtered count
+    // The displayed total should always match what's actually shown (filteredApps)
+    const filteredTotal = filteredApps.length;
+    const apiTotal = applicationsData?.pagination?.total || 0;
+    
+    // Always use filtered count for display total to match what's actually displayed
+    // This ensures the total matches the visible items (since filterApplications always filters by ACTIVE)
+    const displayTotal = filteredTotal;
+    
+    // For totalPages: When explicit filters are applied, calculate based on filtered count
+    // When no explicit filters, use API total for proper pagination (but total will still show filtered count)
+    const displayTotalPages = hasExplicitFilters 
+        ? Math.ceil(filteredTotal / limit) || 1
+        : Math.ceil(apiTotal / limit) || 1;
+    
+    // When explicit filters are applied, always show page 1 since we're filtering current page's data
+    const displayPage = hasExplicitFilters ? 1 : (applicationsData?.pagination?.page || 1);
 
     // Mutation to update status
     const updateStatusMutation = useMutation({
@@ -146,12 +180,65 @@ const Applications = () => {
         setDialogOpen(true);
     };
 
+    // Handle selection change
+    const handleSelectionChange = (id, checked) => {
+        setSelectedItems((prev) => {
+            const newSet = new Set(prev);
+            if (checked) {
+                newSet.add(id);
+            } else {
+                newSet.delete(id);
+            }
+            return newSet;
+        });
+    };
+
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            // Select all visible applications
+            const allIds = new Set(filteredApps.map(app => app.id));
+            setSelectedItems(allIds);
+        } else {
+            // Deselect all
+            setSelectedItems(new Set());
+        }
+    };
+
+    // Check if all visible items are selected
+    const allSelected = filteredApps.length > 0 && filteredApps.every(app => selectedItems.has(app.id));
+    const someSelected = filteredApps.some(app => selectedItems.has(app.id)) && !allSelected;
+
+    // Handle bulk delete
+    const bulkDeleteMutation = useMutation({
+        mutationFn: async (ids) => {
+            const res = await api.post(`${API_ENDPOINTS.APPLICATIONS.BULK_DELETE}`, { ids });
+            return res.data;
+        },
+        onSuccess: (data) => {
+            const count = selectedItems.size;
+            toast.success(data.message || data.data?.message || `Successfully deleted ${count} application(s)`);
+            setSelectedItems(new Set());
+            refetchApplications();
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to delete applications");
+        },
+    });
+
+    const handleBulkDelete = (ids) => {
+        bulkDeleteMutation.mutate(Array.from(ids));
+    };
+
+    const handleClearSelection = () => {
+        setSelectedItems(new Set());
+    };
+
     return (
-        <div className="min-h-screen px-4 md:px-8 py-4">
+        <div className="min-h-screen px-4 md:px-8 py-4 relative">
             <PageHeader
                 title="Applications"
                 subtitle="Manage rental applications"
-                total={applicationsData?.pagination?.total || 0}
+                total={displayTotal}
             />
 
             <ApplicationSearchBar
@@ -163,11 +250,18 @@ const Applications = () => {
 
             <div className="rounded overflow-hidden">
                 {/* Table Header */}
-                <div className="grid grid-cols-4 mb-3 bg-gray-900 p-4 text-white font-semibold rounded-2xl text-center divide-x divide-gray-200">
-                    <div>Applicant Info</div>
-                    <div>Listing Info</div>
-                    <div>Status</div>
-                    <div>Actions</div>
+                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4`}>
+                    <div className="flex items-center justify-center">
+                        <Checkbox
+                            checked={allSelected}
+                            onCheckedChange={handleSelectAll}
+                            className="data-[state=checked]:bg-white data-[state=checked]:border-white"
+                        />
+                    </div>
+                    <div className="text-center">Applicant Info</div>
+                    <div className="text-center border-l border-gray-200 pl-10">Listing Info</div>
+                    <div className="text-center border-l border-gray-200 pl-10">Status</div>
+                    <div className="text-center border-l border-gray-200 pl-10">Actions</div>
                 </div>
 
                 <div className="max-h-[60vh] overflow-y-auto">
@@ -183,19 +277,31 @@ const Applications = () => {
                                 onReject={handleReject}
                                 onDelete={handleDelete}
                                 onView={handleView}
+                                isSelected={selectedItems.has(app.id)}
+                                onSelectionChange={handleSelectionChange}
                             />
                         ))
                     ) : (
                         <div className="p-4 text-center text-gray-500">No applications found.</div>
                     )}
                 </div>
+            </div>
 
-                <Pagination
-                    page={applicationsData?.pagination?.page || 1}
-                    totalPages={applicationsData?.pagination?.totalPages || 1}
-                    totalItems={applicationsData?.pagination?.total || 0}
-                    onPageChange={(newPage) => setPage(newPage)}
-                />
+            {/* Pagination - Fixed at bottom */}
+            <div className="fixed bottom-8 z-40 w-full" style={{ left: '220px', right: '0', maxWidth: 'calc(100vw - 220px)' }}>
+                <div className="px-4 md:px-8 pb-4">
+                    <Pagination
+                        page={displayPage}
+                        totalPages={displayTotalPages}
+                        totalItems={displayTotal}
+                        onPageChange={(newPage) => {
+                            if (!hasExplicitFilters) {
+                                setPage(newPage);
+                            }
+                            // When explicit filters are applied, pagination is disabled since we only have current page data
+                        }}
+                    />
+                </div>
             </div>
 
             {listings.length > 0 && (
@@ -262,6 +368,15 @@ const Applications = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Bulk Delete Action Bar */}
+            <BulkDeleteActionBar
+                selectedItems={Array.from(selectedItems)}
+                onDelete={handleBulkDelete}
+                onClearSelection={handleClearSelection}
+                resourceName="applications"
+                isDeleting={bulkDeleteMutation.isPending}
+            />
         </div>
     );
 };
