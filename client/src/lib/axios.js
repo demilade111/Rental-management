@@ -69,8 +69,7 @@ api.interceptors.response.use(
 
       if (!token) {
         isRefreshing = false;
-        useAuthStore.getState().logout();
-        window.location.href = "/login";
+        // Don't automatically logout - let user stay logged in until manual logout
         return Promise.reject(error);
       }
 
@@ -94,8 +93,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        useAuthStore.getState().logout();
-        window.location.href = "/login";
+        // Don't automatically logout - let user stay logged in until manual logout
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
