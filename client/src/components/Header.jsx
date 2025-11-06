@@ -1,4 +1,5 @@
 import { useLocation } from "react-router-dom";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Header = ({ user, isLandlord }) => {
   const location = useLocation();
@@ -19,9 +20,7 @@ const Header = ({ user, isLandlord }) => {
         <div />
       )}
 
-      <span className="text-sm text-gray-600">
-        {isLandlord ? "Noti" : "Noti"}
-      </span>
+      <NotificationDropdown />
     </div>
   );
 };

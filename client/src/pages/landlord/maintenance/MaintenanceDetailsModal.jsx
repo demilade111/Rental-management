@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
     Dialog,
     DialogContent,
@@ -12,13 +12,36 @@ import axios from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { maintenanceApi } from "@/lib/maintenanceApi";
 import { SendIcon } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+
+// Move outside to prevent recreation on every render
+const ImageWithShimmer = React.memo(function ImageWithShimmer({ src, alt }) {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="h-28 w-40 relative flex-shrink-0 snap-start">
+            {!loaded && (
+                <div className="h-full w-full rounded-md bg-gray-200 dark:bg-gray-800 shimmer-container">
+                    <div className="shimmer-bar" />
+                </div>
+            )}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setLoaded(true)}
+                className={`h-28 w-40 rounded-md object-cover border absolute inset-0 ${loaded ? "opacity-100" : "opacity-0"}`}
+            />
+        </div>
+    );
+});
 
 const MaintenanceDetailsModal = ({ request, open, onClose }) => {
+    const { user } = useAuthStore();
+    const currentUserId = user?.id;
     const sliderRef = useRef(null);
     const canScroll = (request?.images || []).length > 1;
     const scrollBy = 220;
-    const scrollLeft = () => sliderRef.current?.scrollBy({ left: -scrollBy, behavior: "smooth" });
-    const scrollRight = () => sliderRef.current?.scrollBy({ left: scrollBy, behavior: "smooth" });
+    const scrollLeft = useCallback(() => sliderRef.current?.scrollBy({ left: -scrollBy, behavior: "smooth" }), []);
+    const scrollRight = useCallback(() => sliderRef.current?.scrollBy({ left: scrollBy, behavior: "smooth" }), []);
 
     // Translate vertical mouse wheel to horizontal scroll on the images strip only
     const handleWheel = (e) => {
@@ -44,8 +67,10 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
     );
     const [resolvedUrls, setResolvedUrls] = useState([]);
     const [messages, setMessages] = useState([]);
+    const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
     const [messageBody, setMessageBody] = useState("");
+    const messagesEndRef = useRef(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -86,34 +111,48 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
         };
     }, [imageUrls]);
 
+    // Memoize resolved URLs to prevent recalculation on every render
+    const stableResolvedUrls = useMemo(() => resolvedUrls, [resolvedUrls]);
+
     useEffect(() => {
-        if (!open || !request?.id) return;
+        if (!open || !request?.id) {
+            // Clear messages when modal closes
+            setMessages([]);
+            return;
+        }
+        // Load messages immediately when modal opens
+        setLoadingMessages(true);
         (async () => {
             try {
                 const res = await maintenanceApi.getMessages(request.id);
-                setMessages(res.data || res);
-            } catch (_) { }
+                const msgs = res.data || res;
+                setMessages(Array.isArray(msgs) ? msgs : []);
+            } catch (_) {
+                setMessages([]);
+            } finally {
+                setLoadingMessages(false);
+            }
         })();
     }, [open, request?.id]);
 
-    const ImageWithShimmer = ({ src, alt }) => {
-        const [loaded, setLoaded] = useState(false);
-        return (
-            <div className="h-28 w-40 relative flex-shrink-0 snap-start">
-                {!loaded && (
-                    <div className="h-full w-full rounded-md bg-gray-200 dark:bg-gray-800 shimmer-container">
-                        <div className="shimmer-bar" />
-                    </div>
-                )}
-                <img
-                    src={src}
-                    alt={alt}
-                    onLoad={() => setLoaded(true)}
-                    className={`h-28 w-40 rounded-md object-cover border absolute inset-0 ${loaded ? "opacity-100" : "opacity-0"}`}
-                />
-            </div>
-        );
-    };
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    const handleSendMessage = useCallback(async () => {
+        if (!messageBody.trim() || sending) return;
+        try {
+            setSending(true);
+            const res = await maintenanceApi.sendMessage(request.id, messageBody.trim());
+            const msg = res.data || res;
+            setMessages((prev) => [...prev, msg]);
+            setMessageBody("");
+        } catch (_) {
+        } finally {
+            setSending(false);
+        }
+    }, [messageBody, sending, request?.id]);
 
     if (!request) return null;
 
@@ -163,7 +202,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                         <div className="text-sm whitespace-pre-wrap">{request.description}</div>
                     </div>
 
-                    {resolvedUrls.length > 0 && (
+                    {stableResolvedUrls.length > 0 && (
                         <div className="mt-3">
                             <div className="flex items-center justify-between mb-2">
                                 <label className="block text-sm font-medium mb-1">Image(s)</label>
@@ -180,7 +219,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                                 style={{ overscrollBehaviorX: "contain", touchAction: "pan-x" }}
                                 onWheel={handleWheel}
                             >
-                                {resolvedUrls.map((url) => (
+                                {stableResolvedUrls.map((url) => (
                                     <ImageWithShimmer key={url} src={url} alt="maintenance" />
                                 ))}
                             </div>
@@ -191,35 +230,44 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                         <div className="flex flex-col gap-2 bg-orange-50/50 p-3 rounded-sm border border-gray-300">
 
                             <p className="text-[14px]  text-semibold mb-2">Messages</p>
-                            <div className="max-h-56 w-1/2">
-                                {messages.length === 0 ? (
-                                    <p className="text-xs text-muted-foreground">No messages yet.</p>
+                            <div className="max-h-56 w-full">
+                                {loadingMessages ? (
+                                    <p className="text-xs text-muted-foreground p-2">Loading messages...</p>
+                                ) : messages.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground p-2">No messages yet.</p>
                                 ) : (
-                                    <div className="max-h-56 overflow-y-auto space-y-1">
-                                        {messages.map((m, index) => {
-                                            const isLast = index === messages.length - 1;
-
+                                    <div className="max-h-56 overflow-y-auto space-y-2 px-2">
+                                        {messages.map((m) => {
+                                            const isSent = m.senderId === currentUserId;
                                             return (
                                                 <div
                                                     key={m.id}
-                                                    className={
-                                                        `text-sm bg-blue-100 p-4 rounded-2xl ` +
-                                                        (isLast ? `rounded-bl-none` : ``)
-                                                    }
+                                                    className={`flex ${isSent ? "justify-end" : "justify-start"}`}
                                                 >
-                                                    <p className="font-medium text-xs mb-1">
-                                                        {m.sender?.firstName} {m.sender?.lastName}:
-                                                    </p>
-                                                    {m.body}
-                                                    <p className="text-[8px] text-muted-foreground mt-3">
-                                                        {new Date(m.createdAt).toLocaleString([], {
-                                                            dateStyle: "short",
-                                                            timeStyle: "short",
-                                                        })}
-                                                    </p>
+                                                    <div
+                                                        className={`text-sm p-3 rounded-2xl max-w-[70%] ${
+                                                            isSent
+                                                                ? "bg-blue-500 text-white rounded-br-none"
+                                                                : "bg-gray-200 dark:bg-gray-700 rounded-bl-none"
+                                                        }`}
+                                                    >
+                                                        {!isSent && (
+                                                            <p className="font-medium text-xs mb-1 opacity-80">
+                                                                {m.sender?.firstName} {m.sender?.lastName}
+                                                            </p>
+                                                        )}
+                                                        <p className={isSent ? "text-white" : ""}>{m.body}</p>
+                                                        <p className={`text-[8px] mt-2 ${isSent ? "text-blue-100" : "text-muted-foreground"}`}>
+                                                            {new Date(m.createdAt).toLocaleString([], {
+                                                                dateStyle: "short",
+                                                                timeStyle: "short",
+                                                            })}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             );
                                         })}
+                                        <div ref={messagesEndRef} />
                                     </div>
                                 )}
                             </div>
@@ -233,18 +281,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                                 />
                                 <Button
                                     disabled={sending || !messageBody.trim()}
-                                    onClick={async () => {
-                                        try {
-                                            setSending(true);
-                                            const res = await maintenanceApi.sendMessage(request.id, messageBody.trim());
-                                            const msg = res.data || res;
-                                            setMessages((prev) => [...prev, msg]);
-                                            setMessageBody("");
-                                        } catch (_) {
-                                        } finally {
-                                            setSending(false);
-                                        }
-                                    }}
+                                    onClick={handleSendMessage}
                                 >
                                     <SendIcon className="size-4" />
                                     {sending ? "Sending..." : "Send"}

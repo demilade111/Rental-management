@@ -50,20 +50,20 @@ function Maintenance() {
   const { user } = useAuthStore();
 
   const loadListings = useCallback(async () => {
-    try {
-      const response = await axios.get(API_ENDPOINTS.LISTINGS.GET_ALL);
-      const data = response.data;
-      const listings = Array.isArray(data) ? data : data.listing || [];
+      try {
+        const response = await axios.get(API_ENDPOINTS.LISTINGS.GET_ALL);
+        const data = response.data;
+        const listings = Array.isArray(data) ? data : data.listing || [];
 
-      if (user.role === "TENANT" && listings.length > 0) {
+        if (user.role === "TENANT" && listings.length > 0) {
         setFormData((prev) => ({ ...prev, listingId: listings[0].id }));
-      }
+        }
 
-      setProperties(listings);
-    } catch (err) {
-      console.error("Error fetching listings:", err);
-      toast.error("Failed to fetch properties.");
-    }
+        setProperties(listings);
+      } catch (err) {
+        console.error("Error fetching listings:", err);
+        toast.error("Failed to fetch properties.");
+      }
   }, [user.role]);
 
   useEffect(() => {
@@ -72,17 +72,17 @@ function Maintenance() {
   }, [token, loadListings]);
 
   const loadMaintenanceRequests = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    try {
-      const data = await maintenanceApi.getAllRequests(filters);
-      setMaintenanceRequests(data.data || data);
-    } catch (err) {
-      console.error("Error fetching maintenance requests:", err);
-      toast.error("Failed to fetch maintenance requests.");
-    } finally {
-      setLoading(false);
-    }
+      if (!token) return;
+      setLoading(true);
+      try {
+        const data = await maintenanceApi.getAllRequests(filters);
+        setMaintenanceRequests(data.data || data);
+      } catch (err) {
+        console.error("Error fetching maintenance requests:", err);
+        toast.error("Failed to fetch maintenance requests.");
+      } finally {
+        setLoading(false);
+      }
   }, [token, filters]);
 
   useEffect(() => {
@@ -181,7 +181,7 @@ function Maintenance() {
     } finally {
       setUpdatingActions((prev) => {
         const updated = { ...prev };
-        delete updated[requestId];
+      delete updated[requestId];
         return updated;
       });
     }
@@ -204,7 +204,7 @@ function Maintenance() {
     } finally {
       setUpdatingActions((prev) => {
         const updated = { ...prev };
-        delete updated[requestId];
+      delete updated[requestId];
         return updated;
       });
     }
@@ -254,21 +254,21 @@ function Maintenance() {
 
   const columns = useMemo(
     () => [
-      {
-        title: getStatusDisplayName(MAINTENANCE_STATUS.OPEN),
-        status: MAINTENANCE_STATUS.OPEN,
-        actions: ["Cancel", "Accept"],
-      },
-      {
-        title: getStatusDisplayName(MAINTENANCE_STATUS.IN_PROGRESS),
-        status: MAINTENANCE_STATUS.IN_PROGRESS,
-        actions: ["Reply", "Finish"],
-      },
-      {
-        title: getStatusDisplayName(MAINTENANCE_STATUS.COMPLETED),
-        status: MAINTENANCE_STATUS.COMPLETED,
-        actions: ["Trash", "View"],
-      },
+    {
+      title: getStatusDisplayName(MAINTENANCE_STATUS.OPEN),
+      status: MAINTENANCE_STATUS.OPEN,
+      actions: ["Cancel", "Accept"],
+    },
+    {
+      title: getStatusDisplayName(MAINTENANCE_STATUS.IN_PROGRESS),
+      status: MAINTENANCE_STATUS.IN_PROGRESS,
+      actions: ["Reply", "Finish"],
+    },
+    {
+      title: getStatusDisplayName(MAINTENANCE_STATUS.COMPLETED),
+      status: MAINTENANCE_STATUS.COMPLETED,
+      actions: ["Trash", "View"],
+    },
     ],
     []
   );
@@ -282,12 +282,14 @@ function Maintenance() {
       handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.COMPLETED);
     } else if (action === "Trash") {
       handleDeleteRequest(requestId);
-    } else if (action === "Reply") {
-      toast("Reply functionality coming soon!");
-    } else if (action === "View") {
-      toast("View details functionality coming soon!");
+    } else if (action === "Reply" || action === "View") {
+      // Find the request and open details modal
+      const request = maintenanceRequests.find((r) => r.id === requestId);
+      if (request) {
+        setSelectedRequest(request);
+      }
     }
-  }, [handleStatusUpdate, handleDeleteRequest]);
+  }, [handleStatusUpdate, handleDeleteRequest, maintenanceRequests]);
 
   const handleOpenModal = useCallback(() => {
     if (user.role === "TENANT" && properties.length > 0) {

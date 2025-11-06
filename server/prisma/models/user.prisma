@@ -22,6 +22,7 @@ model User {
   landlordApplications RequestApplication[] @relation("LandlordApplications")
   tenantApplications   RequestApplication[] @relation("TenantApplications")
   MaintenanceMessage   MaintenanceMessage[]
+  notifications        Notification[]       @relation("UserNotifications")
 
   @@map("users")
 }
