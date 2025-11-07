@@ -1,7 +1,7 @@
 // Centralized API endpoints configuration
 // Update these endpoints in one place to affect all API calls
 
-const API_VERSION = "";
+const API_VERSION = "/api/v1";
 
 export const API_ENDPOINTS = {
   // Auth endpoints

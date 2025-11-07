@@ -13,9 +13,6 @@
     "db:reset": "prisma db push --force-reset && npm run prisma:seed",
     "db:seed": "npm run prisma:seed"
   },
-  "prisma": {
-    "seed": "node prisma/seed.js"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
