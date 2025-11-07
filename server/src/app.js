@@ -35,7 +35,6 @@ app.use("/api/v1/customleases", customLeaseRoutes);
 app.use("/api/v1/applications", requestApplicationRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 
-// Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get("/", (_req, res) => {
