@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   APPLICATIONS: {
     BASE: `${API_VERSION}/applications`,
     BY_ID: (id) => `${API_VERSION}/applications/${id}`,
+    BULK_DELETE: `${API_VERSION}/applications/bulk-delete`,
   },
 
   // Lease endpoints

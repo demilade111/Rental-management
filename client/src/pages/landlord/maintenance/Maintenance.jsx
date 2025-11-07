@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import {
   maintenanceApi,
   MAINTENANCE_STATUS,
@@ -15,6 +13,7 @@ import MaintenanceColumn from "./MaintenanceColumn";
 import MaintenanceSearchBar from "./MaintanenceSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
+import MaintenanceDetailsModal from "./MaintenanceDetailsModal";
 
 function Maintenance() {
   const [search, setSearch] = useState("");
@@ -23,13 +22,16 @@ function Maintenance() {
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [properties, setProperties] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [chips, setChips] = useState(["Urgent", "Request in 30 days"]);
-  const [filters] = useState({
+  const [chips, setChips] = useState([]);
+  const [filters, setFilters] = useState({
     status: "",
     priority: "",
     category: "",
     listingId: "",
   });
+  const [within7Days, setWithin7Days] = useState(false);
+  const [within30Days, setWithin30Days] = useState(false);
+  const [withinToday, setWithinToday] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -38,32 +40,38 @@ function Maintenance() {
     priority: MAINTENANCE_PRIORITY.MEDIUM,
     description: "",
     image: null,
+    images: [],
   });
 
   const [updatingActions, setUpdatingActions] = useState({}); // { [requestId]: action }
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   const token = useAuthStore((state) => state.token);
+  const { user } = useAuthStore();
 
-  // Fetch properties
-  useEffect(() => {
-    const fetchListings = async () => {
+  const loadListings = useCallback(async () => {
       try {
         const response = await axios.get(API_ENDPOINTS.LISTINGS.GET_ALL);
         const data = response.data;
         const listings = Array.isArray(data) ? data : data.listing || [];
+
+        if (user.role === "TENANT" && listings.length > 0) {
+        setFormData((prev) => ({ ...prev, listingId: listings[0].id }));
+        }
+
         setProperties(listings);
       } catch (err) {
         console.error("Error fetching listings:", err);
         toast.error("Failed to fetch properties.");
       }
-    };
+  }, [user.role]);
 
-    if (token) fetchListings();
-  }, [token]);
-
-  // Fetch maintenance requests
   useEffect(() => {
-    const fetchMaintenanceRequests = async () => {
+    if (!token) return;
+    loadListings();
+  }, [token, loadListings]);
+
+  const loadMaintenanceRequests = useCallback(async () => {
       if (!token) return;
       setLoading(true);
       try {
@@ -75,31 +83,65 @@ function Maintenance() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchMaintenanceRequests();
   }, [token, filters]);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: files ? files[0] : value,
-    });
-  };
+  useEffect(() => {
+    loadMaintenanceRequests();
+  }, [loadMaintenanceRequests]);
 
-  const handleSubmit = async (e) => {
+  const handleChange = useCallback((e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? (name === "images" ? Array.from(files) : files[0]) : value,
+    }));
+  }, []);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setSaving(true); // start saving
 
     try {
+      // Upload images if any and collect their URLs
+      const imageFiles = Array.isArray(formData.images) ? formData.images : [];
+      const uploadedImageUrls = [];
+
+      for (const file of imageFiles) {
+        try {
+          const presignRes = await axios.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-url`, {
+            params: { fileName: file.name, fileType: file.type, category: "maintenance" },
+          });
+          const { uploadURL, fileUrl } = presignRes.data.data || presignRes.data;
+
+          const putRes = await fetch(uploadURL, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+          if (!putRes.ok) throw new Error(`Upload failed for ${file.name}`);
+
+          uploadedImageUrls.push(fileUrl);
+        } catch (uploadErr) {
+          console.error("Image upload error:", uploadErr);
+          toast.error(`Failed to upload ${file.name}`);
+        }
+      }
+
       const requestData = {
         title: formData.title,
-        listingId: formData.listingId,
+        listingId:
+          user.role === "TENANT"
+            ? properties[0]?.id
+            : formData.listingId,
         priority: formData.priority,
         category: formData.category,
         description: formData.description,
+        images: uploadedImageUrls,
       };
+
+      if (user.role === "TENANT") {
+        delete requestData.listingId;
+      }
 
       await maintenanceApi.createRequest(requestData);
 
@@ -112,79 +154,106 @@ function Maintenance() {
         priority: MAINTENANCE_PRIORITY.MEDIUM,
         description: "",
         image: null,
+        images: [],
       });
 
-      const updatedRequests = await maintenanceApi.getAllRequests(filters);
-      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+      await loadMaintenanceRequests();
     } catch (error) {
       console.error("Error submitting request:", error);
       toast.error("Failed to create request");
     } finally {
       setSaving(false); // stop saving
     }
-  };
+  }, [formData, user.role, properties, loadMaintenanceRequests]);
 
-  const handleStatusUpdate = async (requestId, actionName, newStatus) => {
+  const handleStatusUpdate = useCallback(async (requestId, actionName, newStatus) => {
     try {
-      // set updating action for this request
-      setUpdatingActions({ ...updatingActions, [requestId]: actionName });
+      setUpdatingActions((prev) => ({ ...prev, [requestId]: actionName }));
 
       await maintenanceApi.updateStatus(requestId, newStatus);
 
-      const updatedRequests = await maintenanceApi.getAllRequests(filters);
-      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+      await loadMaintenanceRequests();
 
       toast.success(`Request ${newStatus.replace(/_/g, " ").toLowerCase()} successfully!`);
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error(`Error updating request: ${error.message}`);
     } finally {
-      // clear updating action
-      const updated = { ...updatingActions };
+      setUpdatingActions((prev) => {
+        const updated = { ...prev };
       delete updated[requestId];
-      setUpdatingActions(updated);
+        return updated;
+      });
     }
-  };
+  }, [loadMaintenanceRequests]);
 
-  const handleDeleteRequest = async (requestId) => {
+  const handleDeleteRequest = useCallback(async (requestId) => {
     if (!confirm("Are you sure you want to delete this maintenance request?")) return;
 
     try {
-      // set updating action for delete
-      setUpdatingActions({ ...updatingActions, [requestId]: "Trash" });
+      setUpdatingActions((prev) => ({ ...prev, [requestId]: "Trash" }));
 
       await maintenanceApi.deleteRequest(requestId);
 
-      const updatedRequests = await maintenanceApi.getAllRequests(filters);
-      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+      await loadMaintenanceRequests();
 
       toast.success("Request deleted successfully!");
     } catch (error) {
       console.error("Error deleting request:", error);
       toast.error(`Error deleting request: ${error.message}`);
     } finally {
-      const updated = { ...updatingActions };
+      setUpdatingActions((prev) => {
+        const updated = { ...prev };
       delete updated[requestId];
-      setUpdatingActions(updated);
+        return updated;
+      });
     }
-  };
+  }, [loadMaintenanceRequests]);
 
-  const getRequestsByStatus = (status) =>
-    maintenanceRequests.filter((request) => request.status === status);
+  const getRequestsByStatus = useCallback(
+    (status) => maintenanceRequests.filter((request) => request.status === status),
+    [maintenanceRequests]
+  );
 
-  const getFilteredRequests = (requests) => {
-    if (!search) return requests;
-    return requests.filter(
-      (request) =>
-        request.title.toLowerCase().includes(search.toLowerCase()) ||
-        request.description.toLowerCase().includes(search.toLowerCase()) ||
-        request.listing?.title?.toLowerCase().includes(search.toLowerCase()) ||
-        request.user?.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-        request.user?.lastName?.toLowerCase().includes(search.toLowerCase())
-    );
-  };
+  const lowerSearch = useMemo(() => search.trim().toLowerCase(), [search]);
+  const getFilteredRequests = useCallback(
+    (requests) => {
+      const base = !lowerSearch
+        ? requests
+        : requests.filter((request) => {
+        const inTitle = request.title?.toLowerCase().includes(lowerSearch);
+        const inDesc = request.description?.toLowerCase().includes(lowerSearch);
+        const inListing = request.listing?.title?.toLowerCase().includes(lowerSearch);
+        const inFirst = request.user?.firstName?.toLowerCase().includes(lowerSearch);
+        const inLast = request.user?.lastName?.toLowerCase().includes(lowerSearch);
+        return inTitle || inDesc || inListing || inFirst || inLast;
+      });
+      if (!within7Days && !within30Days && !withinToday) return base;
+      const now = new Date();
+      const nowMs = now.getTime();
+      const dayMs = 24 * 60 * 60 * 1000;
+      const in7 = (t) => nowMs - t <= 7 * dayMs;
+      const in30 = (t) => nowMs - t <= 30 * dayMs;
+      const isToday = (d) => {
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      };
 
-  const columns = [
+      return base.filter((r) => {
+        const d = new Date(r.createdAt);
+        const t = d.getTime();
+        if (Number.isNaN(t)) return false;
+        const matches7 = within7Days && in7(t);
+        const matches30 = within30Days && in30(t);
+        const matchesToday = withinToday && isToday(d);
+        // If multiple chips active, show items matching ANY of them
+        return matches7 || matches30 || matchesToday;
+      });
+    },
+    [lowerSearch, within7Days, within30Days, withinToday]
+  );
+
+  const columns = useMemo(
+    () => [
     {
       title: getStatusDisplayName(MAINTENANCE_STATUS.OPEN),
       status: MAINTENANCE_STATUS.OPEN,
@@ -200,9 +269,11 @@ function Maintenance() {
       status: MAINTENANCE_STATUS.COMPLETED,
       actions: ["Trash", "View"],
     },
-  ];
+    ],
+    []
+  );
 
-  const handleActionClick = (action, requestId) => {
+  const handleActionClick = useCallback((action, requestId) => {
     if (action === "Accept") {
       handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.IN_PROGRESS);
     } else if (action === "Cancel") {
@@ -211,12 +282,55 @@ function Maintenance() {
       handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.COMPLETED);
     } else if (action === "Trash") {
       handleDeleteRequest(requestId);
-    } else if (action === "Reply") {
-      toast("Reply functionality coming soon!");
-    } else if (action === "View") {
-      toast("View details functionality coming soon!");
+    } else if (action === "Reply" || action === "View") {
+      // Find the request and open details modal
+      const request = maintenanceRequests.find((r) => r.id === requestId);
+      if (request) {
+        setSelectedRequest(request);
+      }
     }
-  };
+  }, [handleStatusUpdate, handleDeleteRequest, maintenanceRequests]);
+
+  const handleOpenModal = useCallback(() => {
+    if (user.role === "TENANT" && properties.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        listingId: properties[0].id,
+      }));
+    }
+    setShowModal(true);
+  }, [user.role, properties]);
+
+  const handleSearchFilter = useCallback((payload) => {
+    if (!payload) return;
+    if (Object.prototype.hasOwnProperty.call(payload, "priority") || Object.prototype.hasOwnProperty.call(payload, "category")) {
+      setFilters((prev) => ({
+        ...prev,
+        ...(payload.priority !== undefined ? { priority: payload.priority } : {}),
+        ...(payload.category !== undefined ? { category: payload.category } : {}),
+      }));
+    }
+    if (payload.chip) {
+      if (payload.chip === "Urgent") {
+        setFilters((prev) => ({ ...prev, priority: payload.active ? "URGENT" : "" }));
+      }
+      if (payload.chip === "Requests in 7 days") {
+        setWithin7Days(!!payload.active);
+      }
+      if (payload.chip === "Requests in 30 days") {
+        setWithin30Days(!!payload.active);
+      }
+      if (payload.chip === "Today") {
+        setWithinToday(!!payload.active);
+      }
+    }
+  }, []);
+
+  const handleOpenDetails = useCallback((request) => {
+    setSelectedRequest(request);
+  }, []);
+  const handleCloseDetails = useCallback(() => setSelectedRequest(null), []);
+
 
   return (
     <div className="px-4 md:px-8 py-4">
@@ -228,10 +342,11 @@ function Maintenance() {
       <MaintenanceSearchBar
         search={search}
         setSearch={setSearch}
-        onFilter={() => console.log("Filter clicked")}
-        onNewRequest={() => setShowModal(true)}
+        onFilter={handleSearchFilter}
+        onNewRequest={handleOpenModal}
         chips={chips}
         removeChip={(label) => setChips((prev) => prev.filter((c) => c !== label))}
+        currentFilters={filters}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -245,7 +360,9 @@ function Maintenance() {
               loading={loading}
               actions={col.actions}
               onActionClick={handleActionClick}
-              updatingActions={updatingActions} // pass down updatingActions
+              updatingActions={updatingActions} 
+              user={user}
+              onCardClick={handleOpenDetails}
             />
           );
         })}
@@ -260,6 +377,15 @@ function Maintenance() {
           open={showModal}
           setOpen={setShowModal}
           saving={saving}
+          userRole={user.role}
+        />
+      )}
+
+      {selectedRequest && (
+        <MaintenanceDetailsModal
+          request={selectedRequest}
+          open={!!selectedRequest}
+          onClose={handleCloseDetails}
         />
       )}
     </div>

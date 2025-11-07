@@ -5,6 +5,8 @@ import {
   fetchMaintenanceRequestById,
   updateMaintenance,
   deleteMaintenance,
+  fetchMaintenanceMessages,
+  postMaintenanceMessage,
 } from "../controllers/maintenanceController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -158,6 +160,15 @@ router.patch(
   authorize(["ADMIN", "TENANT"]),
   updateMaintenance
 );
-router.delete("/:id", authenticate, deleteMaintenance);
+router.delete("/:id", authenticate, authorize(["ADMIN", "TENANT"]), deleteMaintenance);
+
+// messages
+router.get("/:id/messages", authenticate, fetchMaintenanceMessages);
+router.post(
+  "/:id/messages",
+  authenticate,
+  authorize(["ADMIN", "TENANT"]),
+  postMaintenanceMessage
+);
 
 export default router;

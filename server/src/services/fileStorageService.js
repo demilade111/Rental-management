@@ -9,8 +9,20 @@ export async function generateUploadUrl(
 ) {
   const folder = category || "general";
   const sanitizedFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "");
+  // sanitize file name (keep extension)
+  const lastDot = fileName.lastIndexOf(".");
+  const base = lastDot > 0 ? fileName.slice(0, lastDot) : fileName;
+  const ext = lastDot > 0 ? fileName.slice(lastDot) : "";
+  const safeBase = base
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "") // remove non word/space/hyphen
+    .trim()
+    .replace(/[\s_]+/g, "-") // spaces/underscores to hyphen
+    .toLowerCase();
+  const safeExt = ext.replace(/[^.a-zA-Z0-9]/g, "");
+  const safeName = safeBase || "file";
 
-  const Key = `${sanitizedFolder}/${Date.now()}-${fileName}`;
+  const Key = `${sanitizedFolder}/${Date.now()}-${safeName}${safeExt}`;
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET,
     Key,

@@ -26,16 +26,19 @@ export function useValidator(initialForm = {}, rules = {}) {
         const newErrors = {};
         let hasError = false;
 
-        Object.keys(rules).forEach(field => {
-            const value = formData[field];
-            const ruleSet = rules[field];
+        // Only validate fields that exist in formData and have rules
+        Object.keys(formData).forEach(field => {
+            if (rules[field]) {
+                const value = formData[field];
+                const ruleSet = rules[field];
 
-            for (const rule of ruleSet) {
-                const msg = rule(value);
-                if (msg) {
-                    newErrors[field] = msg;
-                    hasError = true;
-                    break;
+                for (const rule of ruleSet) {
+                    const msg = rule(value);
+                    if (msg) {
+                        newErrors[field] = msg;
+                        hasError = true;
+                        break;
+                    }
                 }
             }
         });

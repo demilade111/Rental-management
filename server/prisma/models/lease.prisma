@@ -66,6 +66,7 @@ model Lease {
   landlord            User                 @relation("LandlordLeases", fields: [landlordId], references: [id])
   maintenanceRequests MaintenanceRequest[]
   applications        RequestApplication[]
+  payments            Payment[]
 
   @@index([tenantId])
   @@index([landlordId])

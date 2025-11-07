@@ -13,7 +13,7 @@ import leaseRoutes from "./routes/leaseRoute.js";
 import customLeaseRoutes from "./routes/customLeaseRoutes.js";
 import requestApplicationRoutes from "./routes/requestApplicationRoute.js";
 import leaseInviteRoutes from "./routes/leaseInviteRoutes.js";
-import paymentRoute from "./routes/paymentRoute.js";
+import notificationRoutes from "./routes/notificationRoute.js";
 
 const require = createRequire(import.meta.url);
 const swaggerUi = require("swagger-ui-express");
@@ -33,7 +33,7 @@ app.use("/api/v1/leases", leaseRoutes);
 app.use("/api/v1/leases-invite", leaseInviteRoutes);
 app.use("/api/v1/customleases", customLeaseRoutes);
 app.use("/api/v1/applications", requestApplicationRoutes);
-app.use("/api/v1/payments", paymentRoute);
+app.use("/api/v1/notifications", notificationRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 

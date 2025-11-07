@@ -24,7 +24,7 @@ model Listing {
   securityDeposit     Float?
   petDeposit          Float?
   availableDate       DateTime
-  status              ListingStatus @default(ACTIVE)
+  status              ListingStatus        @default(ACTIVE)
   description         String?
   contactName         String?
   phoneNumber         String?

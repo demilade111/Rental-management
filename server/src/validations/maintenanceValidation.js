@@ -25,6 +25,7 @@ export const createMaintenanceRequestSchema = z.object({
   ]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   images: z.array(z.string().trim().min(1)).max(10).optional(),
+  listingId: z.string().optional(),
 });
 
 export const updateMaintenanceRequestSchema = z.object({

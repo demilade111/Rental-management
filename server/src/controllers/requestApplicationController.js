@@ -8,10 +8,12 @@ import {
   getApplicationByPublicId,
   updateApplicationStatus,
   deleteApplication,
+  bulkDeleteApplications,
 } from "../services/requestApplicationService.js";
 import {
   CreatedResponse,
   SuccessResponse,
+  ErrorResponse,
   HandleError,
 } from "../utils/httpResponse.js";
 import { prisma, ApplicationStatus } from "../prisma/client.js";
@@ -87,6 +89,23 @@ export async function submitPublicApplicationController(req, res) {
       return res
         .status(403)
         .json({ message: "This application link has expired." });
+    }
+
+    // Check if application has already been submitted
+    // An application is considered submitted if:
+    // 1. Status is not PENDING (e.g., NEW, APPROVED, REJECTED, etc.)
+    // 2. OR it has real data (not placeholder data)
+    const isSubmitted = 
+      application.status !== "PENDING" ||
+      (application.fullName && application.fullName !== "N/A" && application.email && application.email !== "na@example.com");
+
+    if (isSubmitted) {
+      return res
+        .status(403)
+        .json({ 
+          message: "This application has already been submitted. You cannot submit it again.",
+          status: application.status,
+        });
     }
 
     const updatedApplication = await prisma.requestApplication.update({
@@ -180,6 +199,23 @@ export async function deleteApplicationController(req, res) {
     const result = await deleteApplication(id, landlordId);
 
     return SuccessResponse(res, 200, result.message);
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+export async function bulkDeleteApplicationsController(req, res) {
+  try {
+    const { ids } = req.body;
+    const landlordId = req.user.id;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return ErrorResponse(res, 400, "Application IDs array is required and must not be empty");
+    }
+
+    const result = await bulkDeleteApplications(ids, landlordId);
+
+    return SuccessResponse(res, 200, result.message, { deletedCount: result.deletedCount });
   } catch (error) {
     return HandleError(res, error);
   }
