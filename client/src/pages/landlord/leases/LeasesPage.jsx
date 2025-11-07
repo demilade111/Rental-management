@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Search, SlidersHorizontal, X, Plus, User2 } from "lucide-react";
+import CreateLeaseModal from "./lease-modal/CreateLeaseModal";
 
 export default function LeasesPage() {
   const [activeTab, setActiveTab] = useState("active");
@@ -14,10 +15,15 @@ export default function LeasesPage() {
   const [leases, setLeases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   const removeChip = (label) =>
     setChips((prev) => prev.filter((c) => c !== label));
 
+  // Fetch leases from backend
   useEffect(() => {
     const fetchLeases = async () => {
       try {
@@ -54,6 +60,12 @@ export default function LeasesPage() {
     fetchLeases();
   }, []);
 
+  const handleUploadCustom = (file) => {
+    setUploadedFile(file);
+    setOpenDrawer(true);
+    setOpenModal(false);
+  };
+
   return (
     <div className="h-full w-full px-6 py-6">
       <div className="flex items-end justify-between gap-4">
@@ -67,7 +79,7 @@ export default function LeasesPage() {
             <User2 className="mr-2 h-4 w-4" />
             My Leases
           </Button>
-          <Button>
+          <Button onClick={() => setShowCreateModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Lease
           </Button>
@@ -118,6 +130,22 @@ export default function LeasesPage() {
           </Badge>
         ))}
       </div>
+
+      <CreateLeaseModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateStandard={() => {
+          setShowCreateModal(false);
+          // navigate to your guided lease creation flow
+          window.location.href = "/landlord/leases/create";
+        }}
+        onUploadCustom={(file) => {
+          console.log("Custom file selected:", file);
+          // handle upload here
+              setOpenDrawer(true);
+
+        }}
+      />
 
       <Separator className="my-6" />
 

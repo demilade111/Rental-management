@@ -9,8 +9,9 @@ import PropertyPortfolio from "@/pages/landlord/property/PropertyPortfolio";
 import PropertyDetails from "@/pages/landlord/property/PropertyDetails";
 import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
-import TenanceMaintenance from "@/pages/tenant/maintenance/Maintenance";
+import TenanceMaintenance from "@/pages/tenant/maintenance/TenantMaintenance";
 import Applications from "@/pages/landlord/application/Appications";
+import LeasesPage from "@/pages/landlord/leases/LeasesPage";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -24,9 +25,9 @@ const MainLayout = () => {
         { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
         { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
         { label: "Applications", id: "applications", path: "/landlord/applications" },
+        { label: "Leases", id: "leases", path: "/landlord/leases" },
         { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
-        { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
-        { label: "My Leases", id: "leases", path: "/landlord/leases" },
+        // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
@@ -60,8 +61,8 @@ const MainLayout = () => {
             <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
             <Route path="/landlord/maintenance" element={<Maintenance />} />
             <Route path="/landlord/applications" element={<Applications />} />
-            <Route path="/landlord/analytics" element={<Analytics />} />
-            <Route path="/landlord/leases" element={<MyLeasesTemplates />} />
+            {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
+            <Route path="/landlord/leases" element={<LeasesPage />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<TenanceMaintenance />} />

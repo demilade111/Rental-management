@@ -2,7 +2,9 @@ import { useLocation } from "react-router-dom";
 
 const Header = ({ user, isLandlord }) => {
   const location = useLocation();
-  const showGreeting = location.pathname === "/landlord/dashboard";
+  const showGreeting =
+    location.pathname === "/landlord/dashboard" ||
+    location.pathname === "/tenant/dashboard";
 
   return (
     <div className="px-8 py-6 flex justify-between items-center">

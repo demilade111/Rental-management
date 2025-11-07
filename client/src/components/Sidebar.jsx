@@ -54,10 +54,9 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         className={`
           bg-primary fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
           text-white transform transition-all duration-300 ease-in-out
-          ${
-            isMobileMenuOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+          ${isMobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
           }
         `}
         style={{
@@ -65,7 +64,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         }}
       >
         {/* Top section */}
-        <div className="p-4">
+        <div className="p-4 pr-0">
           {!isCollapsed && (
             <div className="mb-8 flex items-center justify-between">
               <h1 className="text-lg font-semibold text-gray-300 whitespace-nowrap">
@@ -86,31 +85,43 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center ${
-                  isCollapsed ? "justify-center" : "space-x-3"
-                } px-3 py-2 rounded-lg transition cursor-pointer ${
-                  activeNav === item.id
-                    ? "bg-gray-400/10"
-                    : "hover:bg-gray-400/10"
-                }`}
+                className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
+                  } px-3 py-2 rounded-tl-full rounded-bl-full transition cursor-pointer ${activeNav === item.id
+                    ? "bg-white"
+                    : "hover:bg-gray-300/10"
+                  }`}
               >
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <div
+                  className={`w-8 h-8 rounded-full flex-shrink-0 ${activeNav === item.id ? "bg-primary" : "bg-gray-300"
+                    }`}
+                ></div>
                 {!isCollapsed && (
-                  <span className="text-[16px] whitespace-nowrap">
+                  <span
+                    className={`text-[16px] whitespace-nowrap ${activeNav === item.id ? "text-gray-900" : "text-white"
+                      }`}
+                  >
                     {item.label}
                   </span>
                 )}
               </button>
             ))}
           </nav>
+
         </div>
 
         {/* Bottom Section */}
         <div className="border-t border-gray-700 pt-4 mt-auto p-4 space-y-2">
           <button
-            className={`w-full flex items-center ${
-              isCollapsed ? "justify-center" : "space-x-3"
-            } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
+              } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+            {!isCollapsed && <span className="text-[16px]">Help & Support</span>}
+          </button>
+
+          <button
+            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
+              } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
           >
             <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
             {!isCollapsed && <span className="text-[16px]">Settings</span>}
@@ -118,9 +129,8 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
 
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center ${
-              isCollapsed ? "justify-center" : "space-x-3"
-            } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
+              } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
           >
             <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
             {!isCollapsed && <span className="text-[16px]">Logout</span>}
@@ -130,9 +140,8 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
 
       {/* Content wrapper with proper left margin on desktop */}
       <div
-        className={`transition-all duration-300 ease-in-out lg:ml-[${
-          isCollapsed ? "70px" : "220px"
-        }]`}
+        className={`transition-all duration-300 ease-in-out lg:ml-[${isCollapsed ? "70px" : "220px"
+          }]`}
       />
     </>
   );

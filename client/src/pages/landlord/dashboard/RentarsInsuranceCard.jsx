@@ -16,7 +16,7 @@ const RentersInsuranceCard = () => {
         <div className="bg-card rounded-lg border border-gray-400 p-6">
             <h2 className="text-[32px] font-bold mb-10">Renters Insurance</h2>
             <div className="flex items-center gap-8">
-                <div className="w-38 h-64 flex-shrink-0 p-0 -ml-3">
+                <div className="w-38 h-72 flex-shrink-0 p-0 -ml-3 mt-4">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                             <XAxis type="category" dataKey="category" hide />

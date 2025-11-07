@@ -12,27 +12,38 @@ import { toast } from "sonner";
 import { filterApplications } from "@/utils/filterApplications";
 import { getAvailableListings } from "@/utils/getAvailableListings";
 import ApplicationDetailsDialog from "./ApplicationDetailsDialog";
-import { useListingLeaseCheck } from "@/services/listingServices";
 import LeaseRedirectModal from "./LeaseRedirectModal";
 import { useAuthStore } from "@/store/authStore";
 import Pagination from "@/components/shared/Pagination";
 
+// Shadcn/ui imports for modal
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 const Applications = () => {
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10); // items per page
+    const [limit, setLimit] = useState(10);
     const [modalOpen, setModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedListingId, setSelectedListingId] = useState(null);
     const [filterModalOpen, setFilterModalOpen] = useState(false);
-    const [filters, setFilters] = useState({
-        status: "",
-        startDate: "",
-        endDate: "",
-    });
+    const [filters, setFilters] = useState({ status: "", startDate: "", endDate: "" });
     const [showLeaseRedirectModal, setShowLeaseRedirectModal] = useState(false);
     const [redirectUrl, setRedirectUrl] = useState(null);
+
+    // State for Shadcn modal
+    const [inviteModalOpen, setInviteModalOpen] = useState(false);
+    const [inviteUrl, setInviteUrl] = useState("");
+
     const { user } = useAuthStore();
 
     // Fetch listings
@@ -44,16 +55,15 @@ const Applications = () => {
         },
     });
 
-    // Fetch applications - no refetching on search typing
+    // Fetch applications
     const { data: applicationsData = {}, refetch: refetchApplications, isLoading: appsLoading } = useQuery({
         queryKey: ["applications", page, limit],
         queryFn: async () => {
             const res = await api.get(`${API_ENDPOINTS.APPLICATIONS.BASE}?page=${page}&limit=${limit}`);
+            // console.log(res.data)
             return res.data.data || res.data;
         },
     });
-
-    const { data: listInfo, isLoading } = useListingLeaseCheck(selectedListingId);
 
     // filter out listings that already have an active application
     const availableListings = getAvailableListings(listings, applicationsData.applications);
@@ -65,40 +75,72 @@ const Applications = () => {
     const updateStatusMutation = useMutation({
         mutationFn: async ({ id, status }) => {
             const res = await api.patch(`${API_ENDPOINTS.APPLICATIONS.BASE}/${id}/status`, { status });
-            return res.data.data; // assuming your controller returns { data: result }
+            return res.data.data;
         },
-        onSuccess: (updatedApp) => {
-            toast.success(`Application ${updatedApp.application.status.toLowerCase()}`);
-            // Option 1: refetch the whole applications list
+        onSuccess: () => {
+            toast.success("Application status updated");
             refetchApplications();
         },
-        onError: (err) => {
-            console.error(err);
-            toast.error("Failed to update status");
-        },
+        onError: () => toast.error("Failed to update status"),
     });
 
     const handleApprove = (id) => updateStatusMutation.mutate({ id, status: "APPROVED" });
     const handleReject = (id) => updateStatusMutation.mutate({ id, status: "REJECTED" });
-    const handleSendLease = (app) => {
 
-        setSelectedListingId(app?.listing.id); // triggers hook
-        // console.log(leaseInfo)
+    const handleSendLease = async (app) => {
+        const listingId = app?.listing?.id;
+        if (!listingId) return toast.error("Listing ID not found");
 
-        if (!listInfo?.hasLease) {
-            setRedirectUrl("/landlord/leases");
-            setShowLeaseRedirectModal(true);
-            toast.error(`Cannot send lease. Listing doesn't have any lease attcahed it.`);
-            return;
+        try {
+            const res = await api.get(`${API_ENDPOINTS.LISTINGS.BY_ID(listingId)}/check-leases`);
+            const listInfo = res.data.data;
+
+            if (!listInfo?.hasLease) {
+                setRedirectUrl("/landlord/leases");
+                setShowLeaseRedirectModal(true);
+                toast.error(`Cannot send lease. Listing doesn't have any lease attached.`);
+                return;
+            }
+
+            let leaseRes = await api.get(`${API_ENDPOINTS.CUSTOM_LEASES.BY_LISTING_ID(listingId)}`);
+            let lease = leaseRes.data.lease;
+            let leaseType = "CUSTOM";
+
+            if (!lease) {
+                const defaultLease = await api.get(`${API_ENDPOINTS.LEASES.BY_LISTING_ID(listingId)}`);
+                if (!defaultLease.data.lease) {
+                    toast.error("No lease found for this listing");
+                    return;
+                }
+                lease = defaultLease.data.lease;
+                leaseType = "STANDARD";
+            }
+
+            const inviteRes = await api.post(`${API_ENDPOINTS.LEASES_INVITE.BASE}/${lease.id}/invite`, {
+                tenantId: app.tenantId,
+                leaseType,
+            });
+
+            const invite = inviteRes.data.invite;
+
+            // Show modal instead of copying
+            setInviteUrl(invite.url);
+            setInviteModalOpen(true);
+
+            // update tenant + status
+            await api.put(`${API_ENDPOINTS.CUSTOM_LEASES.BY_ID(lease.id)}`, {
+                tenantId: app.tenantId,
+                listingId,
+                leaseStatus: "ACTIVE",
+            });
+
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to check lease");
         }
-        // proceed to send lease
-        toast.success(`Lease sent for application ${app.id}`);
     };
 
-    const handleDelete = (id) => {
-        toast.success(`Application ${id} deleted`);
-    };
-
+    const handleDelete = (id) => toast.success(`Application ${id} deleted`);
     const handleView = (app) => {
         setSelectedApplication(app);
         setDialogOpen(true);
@@ -106,9 +148,12 @@ const Applications = () => {
 
     return (
         <div className="min-h-screen px-4 md:px-8 py-4">
-            <PageHeader title="Applications" subtitle="Manage rental applications" total={applicationsData?.pagination?.total || 0} />
+            <PageHeader
+                title="Applications"
+                subtitle="Manage rental applications"
+                total={applicationsData?.pagination?.total || 0}
+            />
 
-            {/* Search Bar */}
             <ApplicationSearchBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
@@ -116,36 +161,32 @@ const Applications = () => {
                 onFilter={() => setFilterModalOpen(true)}
             />
 
-            {/* Applications Table */}
             <div className="rounded overflow-hidden">
                 {/* Table Header */}
                 <div className="grid grid-cols-4 mb-3 bg-gray-900 p-4 text-white font-semibold rounded-2xl text-center divide-x divide-gray-200">
-                    <div className="flex items-center justify-center px-4">Applicant Info</div>
-                    <div className="flex items-center justify-center px-4">Listing Info</div>
-                    <div className="flex items-center justify-center px-4">Status</div>
-                    <div className="flex items-center justify-center px-4">Actions</div>
+                    <div>Applicant Info</div>
+                    <div>Listing Info</div>
+                    <div>Status</div>
+                    <div>Actions</div>
                 </div>
 
                 <div className="max-h-[60vh] overflow-y-auto">
                     {listingsLoading || appsLoading ? (
-                        // Show loading state only for table body
                         <LoadingState message="Loading applications..." />
+                    ) : filteredApps.length > 0 ? (
+                        filteredApps.map((app) => (
+                            <ApplicationCard
+                                key={app.id}
+                                app={app}
+                                onApprove={handleApprove}
+                                onSendLease={handleSendLease}
+                                onReject={handleReject}
+                                onDelete={handleDelete}
+                                onView={handleView}
+                            />
+                        ))
                     ) : (
-                        filteredApps.length > 0 ? (
-                            filteredApps.map((app) => (
-                                <ApplicationCard
-                                    key={app.id}
-                                    app={app}
-                                    onApprove={handleApprove}
-                                    onSendLease={handleSendLease}
-                                    onReject={handleReject}
-                                    onDelete={handleDelete}
-                                    onView={handleView}
-                                />
-                            ))
-                        ) : (
-                            <div className="p-4 text-center text-gray-500">No applications found.</div>
-                        )
+                        <div className="p-4 text-center text-gray-500">No applications found.</div>
                     )}
                 </div>
 
@@ -155,10 +196,8 @@ const Applications = () => {
                     totalItems={applicationsData?.pagination?.total || 0}
                     onPageChange={(newPage) => setPage(newPage)}
                 />
-
             </div>
 
-            {/* Generate Application Dialog */}
             {listings.length > 0 && (
                 <GenerateApplicationDialog
                     isOpen={modalOpen}
@@ -171,28 +210,59 @@ const Applications = () => {
                 />
             )}
 
-            {/* Filter Applications Dialog */}
             <FilterApplicationDialog
                 isOpen={filterModalOpen}
                 onClose={() => setFilterModalOpen(false)}
                 onApply={(data) => setFilters(data)}
             />
 
-            {/* Application Details Dialog */}
             <ApplicationDetailsDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
                 application={selectedApplication}
             />
 
-            {/* lease redirect modal */}
             <LeaseRedirectModal
                 isOpen={showLeaseRedirectModal}
                 onClose={() => setShowLeaseRedirectModal(false)}
                 redirectUrl={redirectUrl}
             />
-        </div>
 
+            {/* Shadcn modal for invite URL */}
+            <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
+                <DialogContent className="sm:max-w-lg p-8">
+                    <DialogHeader>
+                        <DialogTitle>Lease Sign Link</DialogTitle>
+                        <DialogDescription>
+                            Share this link with the tenant to sign the lease.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        <Input
+                            type="text"
+                            className="w-full p-2 border rounded"
+                            value={inviteUrl}
+                            readOnly
+                            onFocus={(e) => e.target.select()}
+                        />
+                    </div>
+                    <DialogFooter className="mt-4 flex justify-end gap-2">
+                        <Button
+                            onClick={() => {
+                                navigator.clipboard.writeText(inviteUrl);
+                                toast.success("Copied!");
+                            }}
+                            className="rounded-2xl"
+                        >
+                            Copy
+                        </Button>
+                        <Button className="rounded-2xl" variant="secondary" onClick={() => setInviteModalOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 };
 

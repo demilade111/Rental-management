@@ -1,0 +1,24 @@
+model CustomLease {
+  id         String  @id @default(cuid())
+  listingId  String?
+  landlordId String
+  tenantId   String?
+
+  leaseName    String
+  description  String?
+  propertyType String?
+  fileUrl      String
+
+  leaseStatus LeaseStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  listing  Listing? @relation(fields: [listingId], references: [id])
+  tenant   User?    @relation("TenantCustomLeases", fields: [tenantId], references: [id])
+  landlord User     @relation("LandlordCustomLeases", fields: [landlordId], references: [id])
+
+  @@index([listingId])
+  @@index([landlordId])
+}

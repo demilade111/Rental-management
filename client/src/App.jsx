@@ -14,6 +14,9 @@ import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
 import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
 import MainLayout from "./layouts/MainLayout";
 import ApplyForm from "./pages/landlord/application/ApplyForm";
+import SignLeasePage from "./pages/landlord/application/SignLeasePage";
+import ThankYouApplyPage from "./pages/landlord/application/ThankYouApplyPage";
+import ThankYouSigningPage from "./pages/landlord/application/ThankYouSigningPage";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +71,33 @@ function App() {
           />
 
           <Route
+            path="/leases-invite/sign/:token"
+            element={
+              <PublicRoute>
+                <SignLeasePage />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/apply/thank-you"
+            element={
+              <ThankYouApplyPage
+                landlordEmail={location.state?.landlordEmail || null}
+              />
+            }
+          />
+
+          <Route
+            path="/signing/thank-you"
+            element={
+              <ThankYouSigningPage
+                landlordEmail={location.state?.landlordEmail || null}
+              />
+            }
+          />
+
+          <Route
             path="/onboarding/tenant"
             element={
               <ProtectedRoute allowedRoles={["TENANT"]}>
@@ -102,51 +132,3 @@ function App() {
 }
 
 export default App;
-
-// import { useEffect } from "react";
-// import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// import { useAuthStore } from "./store/authStore";
-// import SignUp from "./pages/auth/SignUp";
-// import Login from "./pages/auth/Login";
-// import TenantOnboarding from "./pages/onboarding/TenantOnboarding";
-// import LandlordOnboarding from "./pages/onboarding/LandlordOnboarding";
-// import Dashboard from "./pages/landlord/dashboard/Dashboard";
-// import MainLayout from "./layouts/MainLayout";
-// import Maintenance from "./pages/landlord/Maintenance";
-
-// const queryClient = new QueryClient();
-
-// function App() {
-//   const initializeAuth = useAuthStore((state) => state.initializeAuth);
-
-//   useEffect(() => {
-//     initializeAuth();
-//   }, [initializeAuth]);
-
-//   return (
-//     <QueryClientProvider client={queryClient}>
-//       <BrowserRouter>
-//         <Routes>
-//           {/* Default route redirects to login */}
-//           <Route path="/" element={<Navigate to="/login" replace />} />
-
-//           {/* Public routes */}
-//           <Route path="/login" element={<Login />} />
-//           <Route path="/signup" element={<SignUp />} />
-
-//           {/* Onboarding routes (no restriction) */}
-//           <Route path="/onboarding/tenant" element={<TenantOnboarding />} />
-//           <Route path="/maintenance/landlord" element={<Maintenance />} />
-//           <Route path="/onboarding/landlord" element={<LandlordOnboarding />} />
-
-//           {/* Main layout & dashboard (fully open) */}
-//           <Route path="/dashboard" element={<Dashboard />} />
-//           <Route path="/*" element={<MainLayout />} />
-//         </Routes>
-//       </BrowserRouter>
-//     </QueryClientProvider>
-//   );
-// }
-
-// export default App;

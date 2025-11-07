@@ -88,6 +88,18 @@ const Dashboard = () => {
       status: "Ongoing",
       title: "There is no hot water",
     },
+    {
+      address: "850 Nelson st",
+      time: "22d",
+      status: "Done",
+      title: "Fridge is not working",
+    },
+    {
+      address: "456 Cherry st",
+      time: "1m",
+      status: "Ongoing",
+      title: "There is no hot water",
+    },
   ];
 
   const getStatusColor = (status) => {
@@ -116,7 +128,7 @@ const Dashboard = () => {
 
           {/* Applicants */}
           <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col">
-            <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4">
+            <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-10">
               Applicants
             </h3>
             <div className="flex-1 overflow-x-auto overflow-y-auto">
@@ -144,7 +156,7 @@ const Dashboard = () => {
                       </td>
                     </tr>
                   ))}
-                </tbody>
+                </tbody> 
               </table>
             </div>
           </div>
@@ -154,30 +166,25 @@ const Dashboard = () => {
         </div>
 
         {/* Maintenance Sidebar */}
-        <div className="w-full lg:w-1/4">
-          <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 max-h-[500px] lg:max-h-[calc(100vh-120px)] flex flex-col lg:sticky lg:top-6">
+        <div className="w-full lg:w-1/4 h-[calc(100vh-180px)] flex flex-col">
+          <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col flex-1">
             <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4">
               Maintenance
             </h3>
 
             {/* Scrollable table */}
-            <div className="flex-1 overflow-x-auto overflow-y-auto">
+            <div className="flex-1 overflow-y-auto">
               <table className="w-full border-collapse min-w-[300px]">
                 <tbody className="divide-y divide-gray-100">
                   {maintenance.map((item, idx) => (
                     <React.Fragment key={idx}>
                       <tr className="border-b-0">
-                        {/* Address */}
                         <td className="text-xs sm:text-sm font-semibold text-gray-900 pt-3">
                           {item.address}
                         </td>
-
-                        {/* Time */}
                         <td className="text-xs text-gray-500 text-right pt-3 whitespace-nowrap">
                           {item.time}
                         </td>
-
-                        {/* Status */}
                         <td className="text-right pt-3">
                           <span
                             className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${getStatusColor(
@@ -188,12 +195,7 @@ const Dashboard = () => {
                           </span>
                         </td>
                       </tr>
-
-                      {/* Title Row */}
-                      <tr
-                        key={`${idx}-title`}
-                        className="border-b border-gray-100"
-                      >
+                      <tr key={`${idx}-title`} className="border-b border-gray-100">
                         <td colSpan="3" className="text-xs text-gray-600 pb-3">
                           {item.title}
                         </td>
@@ -204,7 +206,6 @@ const Dashboard = () => {
               </table>
             </div>
 
-            {/* Footer button */}
             <div className="mt-4 text-center">
               <button
                 type="button"

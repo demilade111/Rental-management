@@ -14,7 +14,6 @@ model Lease {
   signedContract   String?
   notes            String?
 
-
   propertyCategory PropertyCategory?
   residentialType  ResidentialType?
   commercialType   CommercialType?
@@ -24,13 +23,10 @@ model Lease {
   propertyCountry  String?
   propertyZipCode  String?
 
+  leaseTermType LeaseTermType?
 
-  leaseTermType    LeaseTermType?
+  paymentDay Int? // due day (1–31)
 
-
-  paymentDay       Int? // due day (1–31)
-
-  
   acceptsCash        Boolean @default(false)
   acceptsCheque      Boolean @default(false)
   acceptsDirectDebit Boolean @default(false)
@@ -38,38 +34,32 @@ model Lease {
   acceptsOther       Boolean @default(false)
   customPaymentInfo  String?
 
-
-  rentIncreaseNoticeType     NoticeType?
+  rentIncreaseNoticeType       NoticeType?
   customRentIncreaseNoticeDays Int?
 
-
-  hasSecurityDeposit     Boolean @default(false)
-  discloseBankInfo       Boolean @default(false)
-  depositAmount          Float?
-  depositBankName        String?
-  depositAccountInfo     String?
+  hasSecurityDeposit      Boolean            @default(false)
+  discloseBankInfo        Boolean            @default(false)
+  depositAmount           Float?
+  depositBankName         String?
+  depositAccountInfo      String?
   depositReturnNoticeType DepositNoticeType?
   customDepositNoticeDays Int?
 
+  landlordType        LandlordType?
+  landlordFullName    String?
+  landlordEmail       String?
+  landlordPhone       String?
+  landlordAddress     String?
+  additionalLandlords Json?
 
-  landlordType       LandlordType?
-  landlordFullName   String?
-  landlordEmail      String?
-  landlordPhone      String?
-  landlordAddress    String?
-  additionalLandlords Json? 
+  tenantFullName    String?
+  tenantEmail       String?
+  tenantPhone       String?
+  additionalTenants Json?
 
-
-  tenantFullName   String?
-  tenantEmail      String?
-  tenantPhone      String?
-  additionalTenants Json? 
-
-
-  allowsOccupants  Boolean @default(false)
-  occupants        Json?
+  allowsOccupants   Boolean @default(false)
+  occupants         Json?
   numberOfOccupants Int?
-
 
   listing             Listing              @relation(fields: [listingId], references: [id])
   tenant              User                 @relation("TenantLeases", fields: [tenantId], references: [id])
