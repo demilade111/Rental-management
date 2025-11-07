@@ -11,6 +11,7 @@ import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
+import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
 import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
 
 
@@ -73,6 +74,7 @@ const navItems = isLandlord
             <Route path="/tenant/accounting" element={<TenantAccounting />} />
 
             <Route path="/tenant/maintenance" element={<Maintenance />} />
+            <Route path="/tenant/rental-info" element={<RentalInformation />} />
 
             <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
           </Routes>
