@@ -1,0 +1,111 @@
+import React from "react";
+import { Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+/**
+ * Reusable Bulk Delete Action Bar Component
+ * 
+ * @param {Object} props
+ * @param {Array} props.selectedItems - Array of selected item IDs
+ * @param {Function} props.onDelete - Function to call when delete is confirmed
+ * @param {Function} props.onClearSelection - Function to clear selection
+ * @param {string} props.resourceName - Name of the resource (e.g., "applications", "maintenance requests")
+ * @param {boolean} props.isDeleting - Loading state for delete operation
+ * @param {string} props.confirmMessage - Custom confirmation message
+ */
+const BulkDeleteActionBar = ({
+  selectedItems = [],
+  onDelete,
+  onClearSelection,
+  resourceName = "items",
+  isDeleting = false,
+  confirmMessage,
+}) => {
+  const [open, setOpen] = React.useState(false);
+
+  const handleDelete = () => {
+    onDelete(selectedItems);
+    setOpen(false);
+  };
+
+  const selectedCount = selectedItems.length;
+  const displayMessage =
+    confirmMessage ||
+    `Are you sure you want to delete ${selectedCount} ${resourceName}? This action cannot be undone.`;
+
+  if (selectedCount === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className="fixed z-50 w-full" style={{ left: '220px', right: '0', maxWidth: 'calc(100vw - 220px)', bottom: '60px' }}>
+        <div className="flex justify-between items-center px-4 md:px-8">
+          <div className="flex-1"></div>
+        <div className="bg-white dark:bg-gray-800 border border-gray-300 rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 w-fit">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {selectedCount} {selectedCount === 1 ? resourceName.slice(0, -1) : resourceName} selected
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClearSelection}
+            disabled={isDeleting}
+            className="rounded-lg"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setOpen(true)}
+            disabled={isDeleting}
+            className="rounded-lg"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete {selectedCount}
+          </Button>
+        </div>
+        </div>
+          <div className="flex-1"></div>
+        </div>
+      </div>
+
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription>{displayMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default BulkDeleteActionBar;
+

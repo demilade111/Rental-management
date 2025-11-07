@@ -11,7 +11,7 @@ const ApplicationDetailsDialog = ({ open, onClose, application }) => {
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent
                 onInteractOutside={(e) => e.preventDefault()}
-                className="max-h-[90vh] overflow-y-auto sm:max-w-2xl p-10 pt-12"
+                className="max-h-[90vh] overflow-y-auto sm:max-w-4xl lg:max-w-5xl p-6 sm:p-10 pt-6 sm:pt-12"
             >
                 <DialogHeader>
                     <DialogTitle className="text-2xl mb-4">Application Details</DialogTitle>
@@ -66,26 +66,53 @@ const ApplicationDetailsDialog = ({ open, onClose, application }) => {
 
                         {/* BOTTOM SECTION: Employment History */}
                         {Array.isArray(application.employmentInfo) && application.employmentInfo.length > 0 && (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <h3 className="font-semibold text-lg text-gray-900">Employment History</h3>
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
                                     {application.employmentInfo.map((job, idx) => (
-                                        <div key={idx} className="border rounded-lg p-3 bg-gray-50">
-                                            <p><b>Employer:</b> {job.employerName}</p>
-                                            <p><b>Job Title:</b> {job.jobTitle}</p>
-                                            <p><b>Duration:</b> {job.duration}</p>
-                                            <p><b>Income:</b> {job.income}</p>
-                                            <p><b>Address:</b> {job.address}</p>
-                                            {job.proofDocument && (
-                                                <a
-                                                    href={job.proofDocument}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-blue-600 underline text-sm block mt-1"
-                                                >
-                                                    View Proof Document
-                                                </a>
-                                            )}
+                                        <div key={idx} className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                            <div className="space-y-2">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-gray-700">Employer</p>
+                                                        <p className="text-sm text-gray-900">{job.employerName || "Not provided"}</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-700">Job Title</p>
+                                                    <p className="text-sm text-gray-900">{job.jobTitle || "Not provided"}</p>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-700">Duration</p>
+                                                        <p className="text-sm text-gray-900">{job.duration || "Not provided"}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-700">Income</p>
+                                                        <p className="text-sm text-gray-900">
+                                                            {job.income ? `$${Number(job.income).toLocaleString()}` : "Not provided"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {job.address && (
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-700">Address</p>
+                                                        <p className="text-sm text-gray-900 break-words">{job.address}</p>
+                                                    </div>
+                                                )}
+                                                {job.proofDocument && (
+                                                    <div className="pt-2 border-t border-gray-200">
+                                                        <a
+                                                            href={job.proofDocument}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-blue-600 hover:text-blue-800 underline text-sm inline-flex items-center gap-1"
+                                                        >
+                                                            View Proof Document
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

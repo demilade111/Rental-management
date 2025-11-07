@@ -17,10 +17,14 @@ model User {
   tenantLeases         Lease[]              @relation("TenantLeases")
   tenantCustomLeases   CustomLease[]        @relation("TenantCustomLeases")
   landlordCustomLeases CustomLease[]        @relation("LandlordCustomLeases")
+  landlordPayments     Payment[]            @relation("LandlordPayments")
+  tenantPayments       Payment[]            @relation("TenantPayments")
   listings             Listing[]            @relation("LandlordListings")
   maintenanceRequests  MaintenanceRequest[]
   landlordApplications RequestApplication[] @relation("LandlordApplications")
   tenantApplications   RequestApplication[] @relation("TenantApplications")
+  MaintenanceMessage   MaintenanceMessage[]
+  notifications        Notification[]       @relation("UserNotifications")
 
   @@map("users")
 }

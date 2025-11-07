@@ -27,29 +27,29 @@ async function createListing(req, res) {
 
 async function fetchAllListings(req, res) {
   try {
-    const landlordId = req.user?.id; // from JWT decoded payload or session
+    const userId = req.user?.id;       // from JWT payload
+    const userRole = req.user?.role;   // TENANT, LANDLORD, ADMIN
 
-    if (!landlordId) {
+    if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "Unauthorized: landlord not found",
+        message: "Unauthorized: user not found",
       });
     }
 
-    const listings = await getAllListings(landlordId);
+    const listings = await getAllListings(userId, userRole);
 
-    const response = {
+    return res.status(200).json({
       success: true,
       message: "Listings fetched successfully",
       timestamp: new Date().toISOString(),
       listing: listings,
-    };
-
-    return res.status(200).json(response);
+    });
   } catch (error) {
     return HandleError(res, error);
   }
 }
+
 
 async function fetchListingById(req, res) {
   try {

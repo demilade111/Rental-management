@@ -1,175 +1,143 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import LeaseCard from "./LeaseCard";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Search, SlidersHorizontal, X, Plus, User2 } from "lucide-react";
+import LeaseTabs from "./LeaseTabs";
+import PageHeader from "@/components/shared/PageHeader";
 import CreateLeaseModal from "./lease-modal/CreateLeaseModal";
+import LeaseSearchBar from "./LeaseSearchBar";
+import CustomLeases from "./CustomLeases";
+
+import LoadingState from "@/components/shared/LoadingState";
+import ErrorState from "@/components/shared/ErrorState";
+import EmptyState from "@/components/shared/EmptyState";
+
+import api from "@/lib/axios";
+import API_ENDPOINTS from "@/lib/apiEndpoints";
 
 export default function LeasesPage() {
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState("standard"); // Changed default to "standard"
   const [search, setSearch] = useState("");
   const [chips, setChips] = useState(["Long term"]);
-  const [leases, setLeases] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [openDrawer, setOpenDrawer] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [customLeasesTotal, setCustomLeasesTotal] = useState(0);
 
+  // react-query fetch - only fetch when on standard tab
+  const {
+    data: leases = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["leases"],
+    queryFn: async () => {
+      const res = await api.get(API_ENDPOINTS.LEASES.BASE);
+      const data = res.data;
+      return Array.isArray(data) ? data : data.data || [];
+    },
+    enabled: activeTab === "standard", // Only fetch when on standard tab
+  });
+
+  // chip removal
   const removeChip = (label) =>
     setChips((prev) => prev.filter((c) => c !== label));
 
-  // Fetch leases from backend
-  useEffect(() => {
-    const fetchLeases = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const token = localStorage.getItem("token");
+  // Filtering logic
+  const filteredLeases = useMemo(() => {
+    return leases.filter((lease) => {
+      const matchTab =
+        activeTab === "active"
+          ? lease.status === "ACTIVE"
+          : lease.status === "ENDED";
 
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/v1/leases`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+      const matchSearch =
+        lease.tenantName?.toLowerCase().includes(search.toLowerCase()) ||
+        lease.propertyAddress?.toLowerCase().includes(search.toLowerCase());
 
-        if (!res.ok) {
-          const err = await res.text();
-          throw new Error(err || "Failed to load leases");
-        }
+      return matchTab && matchSearch;
+    });
+  }, [leases, activeTab, search]);
 
-        const data = await res.json();
-        console.log("Leases fetched:", data);
-        setLeases(data?.data || []); 
-      } catch (err) {
-        console.error("Lease fetch error:", err);
-        setError("Failed to load leases. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Show custom leases if active tab is "custom"
+  if (activeTab === "custom") {
+    return (
+      <div className="h-full flex flex-col overflow-hidden">
+        <div className="px-4 md:px-8 py-4 flex-shrink-0">
+          <PageHeader title="Leases" subtitle="Per property" total={customLeasesTotal} />
+          <LeaseTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+        
+        {/* Custom Leases Component */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden px-4 md:px-8 pb-4">
+          <CustomLeases onTotalChange={setCustomLeasesTotal} />
+        </div>
+      </div>
+    );
+  }
 
-    fetchLeases();
-  }, []);
-
-  const handleUploadCustom = (file) => {
-    setUploadedFile(file);
-    setOpenDrawer(true);
-    setOpenModal(false);
-  };
+  // Calculate total for standard leases
+  const standardLeasesTotal = filteredLeases.length;
 
   return (
-    <div className="h-full w-full px-6 py-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Leases</h1>
-          <p className="text-sm text-muted-foreground mt-1">Per Property</p>
-        </div>
+    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+      <div className="flex-shrink-0">
+        <PageHeader title="Leases" subtitle="Per property" total={standardLeasesTotal} />
 
-        <div className="flex gap-2">
-          <Button variant="secondary">
-            <User2 className="mr-2 h-4 w-4" />
-            My Leases
-          </Button>
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Lease
-          </Button>
-        </div>
+        {/* Tabs */}
+        <LeaseTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
+        {/* Search + New Lease */}
+        <LeaseSearchBar
+          search={search}
+          setSearch={setSearch}
+          onFilter={() => console.log("open filter drawer")}
+          onNewLease={() => setShowCreateModal(true)}
+          chips={chips}
+          removeChip={removeChip}
+        />
       </div>
 
-      <div className="mt-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-[360px] grid-cols-3">
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="non-active">Non-Active</TabsTrigger>
-            <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {/* Content Area - Only table content scrolls */}
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* Loading */}
+        {isLoading && (
+          <div className="flex-1 flex items-center justify-center">
+            <LoadingState message="Loading leases..." />
+          </div>
+        )}
+
+        {/* Error */}
+        {isError && (
+          <div className="flex-1 flex items-center justify-center">
+            <ErrorState message={error.message} />
+          </div>
+        )}
+
+        {/* Empty */}
+        {!isLoading && !isError && filteredLeases.length === 0 && (
+          <div className="flex-1 flex items-center justify-center">
+            <EmptyState message="No leases found." />
+          </div>
+        )}
+
+        {/* List - Only this scrolls */}
+        {!isLoading && !isError && filteredLeases.length > 0 && (
+          <div className="flex-1 overflow-y-auto min-h-0 mt-4 space-y-4 pb-4">
+            {filteredLeases.map((lease) => (
+              <LeaseCard key={lease.id} lease={lease} />
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            className="pl-9 w-[360px]"
-            placeholder="Search by name or address"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <Button variant="outline">
-          <SlidersHorizontal className="mr-2 h-4 w-4" />
-          Filters
-        </Button>
-
-        {chips.map((label) => (
-          <Badge
-            key={label}
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1"
-          >
-            {label}
-            <button
-              onClick={() => removeChip(label)}
-              className="ml-1 rounded hover:bg-muted/60"
-              aria-label={`Remove ${label}`}
-              type="button"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </Badge>
-        ))}
-      </div>
-
+      {/* Modal */}
       <CreateLeaseModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreateStandard={() => {
-          setShowCreateModal(false);
-          // navigate to your guided lease creation flow
-          window.location.href = "/landlord/leases/create";
-        }}
-        onUploadCustom={(file) => {
-          console.log("Custom file selected:", file);
-          // handle upload here
-              setOpenDrawer(true);
-
+        onSuccess={() => {
+          // Switch to custom tab after creating a custom lease
+          setActiveTab("custom");
         }}
       />
-
-      <Separator className="my-6" />
-
-      {loading && (
-        <p className="text-gray-500 text-sm mt-2">Loading leases...</p>
-      )}
-
-      {error && (
-        <p className="text-red-600 text-sm mt-2">{error}</p>
-      )}
-
-      {!loading && !error && leases.length > 0 && (
-        <div className="mt-6">
-          {leases.map((lease) => (
-            <LeaseCard key={lease.id} lease={lease} />
-          ))}
-        </div>
-      )}
-
-      {!loading && !error && leases.length === 0 && (
-        <p className="text-sm text-gray-500 mt-4">
-          No leases found.
-        </p>
-      )}
     </div>
   );
 }

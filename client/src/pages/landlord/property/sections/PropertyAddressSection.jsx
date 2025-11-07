@@ -1,4 +1,13 @@
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export const PropertyAddressSection = ({
   formData,
@@ -14,100 +23,112 @@ export const PropertyAddressSection = ({
 }) => {
   return (
     <div className="border-b border-gray-300 space-y-6 pb-8">
-      <div>
-        <label className="block text-sm font-medium mb-2">Country</label>
-        <select
-          name="country"
+      <label className="block text-sm font-medium mb-4">
+        Property Address
+      </label>
+      <div className="space-y-2">
+        <Label htmlFor="country">Country</Label>
+        <Select
           value={formData.country}
-          onChange={handleCountryChange}
-          className="w-full text-sm p-2 border border-gray-300 rounded-md"
-          required
+          onValueChange={(value) =>
+            handleCountryChange({ target: { name: "country", value } })
+          }
           disabled={isPending}
+          required
         >
-          <option value="" disabled>
-            Select country
-          </option>
-          {countries.map((c) => (
-            <option key={c.isoCode} value={c.isoCode}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="country" className="w-full">
+            <SelectValue placeholder="Select country" />
+          </SelectTrigger>
+          <SelectContent>
+            {countries.map((c) => (
+              <SelectItem key={c.isoCode} value={c.isoCode}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {fieldErrors.country && (
-          <p className="mt-1 text-red-400 text-sm">{fieldErrors.country}</p>
+          <p className="text-sm text-destructive">{fieldErrors.country}</p>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">State</label>
-          <select
-            name="state"
+        <div className="space-y-2">
+          <Label htmlFor="state">State</Label>
+          <Select
             value={formData.state}
-            onChange={handleStateChange}
-            className="w-full p-2 text-sm border border-gray-300 rounded-md"
-            required
+            onValueChange={(value) =>
+              handleStateChange({ target: { name: "state", value } })
+            }
             disabled={!formData.country || isPending}
+            required
           >
-            <option value="" disabled>
-              Select state
-            </option>
-            {states.map((s) => (
-              <option key={s.isoCode} value={s.isoCode}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="state" className="w-full">
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {states.map((s) => (
+                <SelectItem key={s.isoCode} value={s.isoCode}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {fieldErrors.state && (
-            <p className="mt-1 text-red-400 text-sm">{fieldErrors.state}</p>
+            <p className="text-sm text-destructive">{fieldErrors.state}</p>
           )}
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-2">City</label>
-          <select
-            name="city"
+
+        <div className="space-y-2">
+          <Label htmlFor="city">City</Label>
+          <Select
             value={formData.city}
-            onChange={handleCityChange}
-            className="w-full text-sm p-2 border border-gray-300 rounded-md"
-            required
+            onValueChange={(value) =>
+              handleCityChange({ target: { name: "city", value } })
+            }
             disabled={!formData.state || isPending}
+            required
           >
-            <option value="" disabled>
-              Select city
-            </option>
-            {cities.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="city" className="w-full">
+              <SelectValue placeholder="Select city" />
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map((c) => (
+                <SelectItem key={c.name} value={c.name}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {fieldErrors.city && (
-            <p className="mt-1 text-red-400 text-sm">{fieldErrors.city}</p>
+            <p className="text-sm text-destructive">{fieldErrors.city}</p>
           )}
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-2">Street Address</label>
-        <textarea
+      <div className="space-y-2">
+        <Label htmlFor="streetAddress">Street Address</Label>
+        <Textarea
+          id="streetAddress"
           name="streetAddress"
           value={formData.streetAddress}
           onChange={handleChange}
-          className="w-full text-sm p-2 border border-gray-300 bg-gray-100 rounded-md min-h-[120px]"
           placeholder="Enter full address.."
+          className="min-h-[120px] resize-none"
           required
           disabled={isPending}
         />
         {fieldErrors.streetAddress && (
-          <p className="mt-1 text-red-400 text-sm">
+          <p className="text-sm text-destructive">
             {fieldErrors.streetAddress}
           </p>
         )}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-2">ZIP</label>
+      <div className="space-y-2">
+        <Label htmlFor="zipCode">ZIP</Label>
         <Input
+          id="zipCode"
           name="zipCode"
           value={formData.zipCode}
           onChange={handleChange}
@@ -116,7 +137,7 @@ export const PropertyAddressSection = ({
           disabled={isPending}
         />
         {fieldErrors.zipCode && (
-          <p className="mt-1 text-red-400 text-sm">{fieldErrors.zipCode}</p>
+          <p className="text-sm text-destructive">{fieldErrors.zipCode}</p>
         )}
       </div>
     </div>

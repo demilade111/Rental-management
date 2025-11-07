@@ -5,12 +5,15 @@ import {
   getLeaseByIdController,
   updateLeaseController,
   deleteLeaseController,
+  getTenantLeasesController,
 } from "../controllers/leaseController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
 
 const router = Router();
 
+
+router.get('/tenant', authenticate, authorize(["TENANT"]), getTenantLeasesController);
 /**
  * @swagger
  * /api/v1/leases:

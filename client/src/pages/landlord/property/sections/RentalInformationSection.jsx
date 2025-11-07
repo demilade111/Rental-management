@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { RENTCYCLE_OPTIONS } from "@/constants/rentCycles";
@@ -20,30 +21,36 @@ export const RentalInformationSection = ({
 }) => {
   return (
     <div className="border-b border-gray-300 space-y-6 pb-8">
+      <label className="block text-sm font-medium mb-4">
+        Rental Information
+      </label>
+      {/* Rent Cycle */}
       <div>
         <label className="block text-sm font-medium mb-2">Rent Cycle</label>
-        <select
-          name="rentCycle"
+        <Select
           value={formData.rentCycle}
-          onChange={handleChange}
-          className="w-full text-sm p-2 border border-gray-300 rounded-md"
-          required
+          onValueChange={(value) =>
+            handleChange({ target: { name: "rentCycle", value } })
+          }
           disabled={isPending}
         >
-          <option value="" disabled>
-            Select rent cycle
-          </option>
-          {RENTCYCLE_OPTIONS.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select rent cycle" />
+          </SelectTrigger>
+          <SelectContent>
+            {RENTCYCLE_OPTIONS.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {fieldErrors.rentCycle && (
           <p className="mt-1 text-red-400 text-sm">{fieldErrors.rentCycle}</p>
         )}
       </div>
 
+      {/* Rent Amount & Security Deposit */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-2">Rent</label>
@@ -57,9 +64,7 @@ export const RentalInformationSection = ({
             disabled={isPending}
           />
           {fieldErrors.rentAmount && (
-            <p className="mt-1 text-red-400 text-sm">
-              {fieldErrors.rentAmount}
-            </p>
+            <p className="mt-1 text-red-400 text-sm">{fieldErrors.rentAmount}</p>
           )}
         </div>
         <div>
@@ -83,6 +88,7 @@ export const RentalInformationSection = ({
         </div>
       </div>
 
+      {/* Available From */}
       <div>
         <label className="block text-sm font-medium mb-2">Available From</label>
         <Popover>

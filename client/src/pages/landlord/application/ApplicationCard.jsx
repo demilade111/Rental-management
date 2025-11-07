@@ -5,6 +5,7 @@ import { Check, Eye, Send, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const getStatusColor = (status) => {
     switch (status) {
@@ -19,7 +20,16 @@ const getStatusColor = (status) => {
     }
 };
 
-const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onView }) => {
+const ApplicationCard = ({ 
+    app, 
+    onApprove, 
+    onReject, 
+    onSendLease, 
+    onDelete, 
+    onView,
+    isSelected = false,
+    onSelectionChange,
+}) => {
     const navigate = useNavigate();
     const [isSending, setIsSending] = useState(false);
 
@@ -40,9 +50,21 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
 
     return (
         <Card className="border border-gray-300 hover:shadow-md cursor-pointer transition-shadow mb-3 p-3">
-            <div className="grid grid-cols-4 gap-4 items-center justify-items-start">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr] gap-4 items-center">
+                {/* Checkbox for bulk selection */}
+                <div className="flex items-center justify-center">
+                    <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                            onSelectionChange?.(app.id, checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="!border-black"
+                    />
+                </div>
+                
                 {/* Column 1: Applicant Info */}
-                <div className="text-[16px] text-gray-700 truncate pl-10">
+                <div className="text-[16px] text-gray-700 truncate">
                     {app.fullName}
                     {app.createdAt && (
                         <div className="text-sm font-normal text-gray-600 text-wrap">
@@ -52,7 +74,7 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
                 </div>
 
                 {/* Column 2: Listing Info */}
-                <div className="text-[16px] font-semibold text-gray-900 truncate pl-10">
+                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-10">
                     {app.listing.title}
                     {app.listing.streetAddress && (
                         <div className="text-sm font-normal text-wrap text-gray-600">
@@ -62,14 +84,14 @@ const ApplicationCard = ({ app, onApprove, onReject, onSendLease, onDelete, onVi
                 </div>
 
                 {/* Column 3: Status */}
-                <div className="flex justify-center mx-auto">
+                <div className="flex justify-center mr-auto border-l border-gray-300 pl-10">
                     <Badge className={`${getStatusColor(app.status)} whitespace-nowrap text-sm px-3 py-1 text-gray-900 border-0`}>
                         {app.status}
                     </Badge>
                 </div>
 
                 {/* Column 4: Actions */}
-                <div className="flex gap-6 justify-center mr-auto">
+                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-10">
                     <div className="flex gap-3 justify-center">
                         {["PENDING", "NEW"].includes(app.status) && (
                             <Button

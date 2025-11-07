@@ -1,7 +1,7 @@
 // Centralized API endpoints configuration
 // Update these endpoints in one place to affect all API calls
 
-const API_VERSION = "/api/v1";
+const API_VERSION = "";
 
 export const API_ENDPOINTS = {
   // Auth endpoints
@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   APPLICATIONS: {
     BASE: `${API_VERSION}/applications`,
     BY_ID: (id) => `${API_VERSION}/applications/${id}`,
+    BULK_DELETE: `${API_VERSION}/applications/bulk-delete`,
   },
 
   // Lease endpoints
@@ -41,7 +42,13 @@ export const API_ENDPOINTS = {
   CUSTOM_LEASES: {
     BASE: `${API_VERSION}/customleases`,
     BY_ID: (id) => `${API_VERSION}/customleases/${id}`,
-    BY_LISTING_ID: (listingId) => `${API_VERSION}/customleases/by-listing/${listingId}`,
+    BY_LISTING_ID: (listingId) =>
+      `${API_VERSION}/customleases/by-listing/${listingId}`,
+  },
+
+  // get all the tenant leases
+  TENANT_LEASES: {
+    BASE: `${API_VERSION}/leases/tenant`,
   },
 
   // leases invite endpoints
@@ -53,6 +60,12 @@ export const API_ENDPOINTS = {
   MAINTENANCE: {
     BASE: `${API_VERSION}/maintenance`,
     BY_ID: (id) => `${API_VERSION}/maintenance/${id}`,
+  },
+
+  PAYMENTS: {
+    BASE: `${API_VERSION}/payments`,
+    TENANT: `${API_VERSION}/payments/tenant`,
+    UPLOAD_PROOF: (id) => `${API_VERSION}/payments/upload-proof/${id}`,
   },
 
   // User endpoints

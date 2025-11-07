@@ -14,6 +14,7 @@ import {
   HandleError,
   CreatedResponse,
 } from "../utils/httpResponse.js";
+import { prisma } from "../prisma/client.js";
 
 export const createLeaseController = async (req, res) => {
   try {
@@ -84,3 +85,48 @@ export const deleteLeaseController = async (req, res) => {
     return HandleError(res, error);
   }
 };
+
+export const getTenantLeasesController = async (req, res) => {
+  try {
+    console.log('herer')
+    const tenantId = req.user.id;
+
+    // 1. Find the invite for this tenant
+    const invite = await prisma.leaseInvite.findFirst({
+      where: { tenantId },
+    });
+
+    if (!invite) {
+      return res.json({ data: [], type: null });
+    }
+
+    // 2. Based on CUSTOM vs STANDARD
+    if (invite.leaseType === "CUSTOM") {
+      const customLeases = await prisma.customLease.findMany({
+        where: { tenantId },
+        include: {
+          listing: true,
+          landlord: true,
+          tenant: true,
+        },
+      });
+
+      return res.json({ data: customLeases, type: "CUSTOM" });
+    }
+
+    // 3. STANDARD leases fallback
+    const leases = await prisma.lease.findMany({
+      where: { tenantId },
+      include: {
+        listing: true,
+        landlord: true,
+        tenant: true,
+      },
+    });
+
+    return res.json({ data: leases, type: "STANDARD" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch tenant leases" });
+  }
+}
