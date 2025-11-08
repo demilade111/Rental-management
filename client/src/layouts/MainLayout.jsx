@@ -1,4 +1,10 @@
-import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -11,7 +17,12 @@ import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
+<<<<<<< HEAD
 import Accounting from "@/pages/landlord/accounting/Accounting";
+=======
+import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
+import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
+>>>>>>> 4ed9fae3b5808dbb855d9a5faa0b872d7bff5f57
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -20,19 +31,38 @@ const MainLayout = () => {
 
   const isLandlord = user?.role === "ADMIN";
 
+  // In MainLayout.jsx, update this section:
+
   const navItems = isLandlord
     ? [
         { label: "Dashboard", id: "dashboard", path: "/landlord/dashboard" },
         { label: "Portfolio", id: "portfolio", path: "/landlord/portfolio" },
-        { label: "Applications", id: "applications", path: "/landlord/applications" },
+        {
+          label: "Applications",
+          id: "applications",
+          path: "/landlord/applications",
+        },
         { label: "Leases", id: "leases", path: "/landlord/leases" },
+<<<<<<< HEAD
         { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
         { label: "Accounting", id: "accounting", path: "/landlord/accounting" },
         // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
+=======
+        {
+          label: "Maintenance",
+          id: "maintenance",
+          path: "/landlord/maintenance",
+        },
+>>>>>>> 4ed9fae3b5808dbb855d9a5faa0b872d7bff5f57
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
-        { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" },
+        {
+          label: "Maintenance",
+          id: "maintenance",
+          path: "/tenant/maintenance",
+        },
+        { label: "Accounting", id: "accounting", path: "/tenant/accounting" },
       ];
 
   const activeNav =
@@ -59,7 +89,10 @@ const MainLayout = () => {
           <Routes>
             <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
-            <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
+            <Route
+              path="/landlord/portfolio/:id"
+              element={<PropertyDetails />}
+            />
             <Route path="/landlord/maintenance" element={<Maintenance />} />
             <Route path="/landlord/applications" element={<Applications />} />
             {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
@@ -68,8 +101,13 @@ const MainLayout = () => {
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<Maintenance />} />
+            <Route path="/tenant/accounting" element={<TenantAccounting />} />
+            <Route path="/tenant/rental-info" element={<RentalInformation />} />
 
-            <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
+            <Route
+              path="*"
+              element={<Navigate to="/landlord/dashboard" replace />}
+            />
           </Routes>
         </div>
       </div>

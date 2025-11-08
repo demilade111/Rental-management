@@ -7,7 +7,7 @@ import {
 
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await getUserById(req.user.userId);
+    const user = await getUserById(req.user.id);
 
     if (!user) return NotFound(res, "User not found");
 

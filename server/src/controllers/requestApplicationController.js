@@ -74,7 +74,7 @@ export async function submitPublicApplicationController(req, res) {
     const data = req.body;
 
 
-    const application = await prisma.requestApplication.findUnique({
+    const application = await prisma.RequestApplication.findUnique({
       where: { publicId },
     });
 
@@ -108,7 +108,7 @@ export async function submitPublicApplicationController(req, res) {
         });
     }
 
-    const updatedApplication = await prisma.requestApplication.update({
+    const updatedApplication = await prisma.RequestApplication.update({
       where: { publicId },
       data: {
         fullName: data.fullName,

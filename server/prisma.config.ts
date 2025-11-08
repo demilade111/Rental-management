@@ -1,13 +1,10 @@
-import { defineConfig } from "@prisma/config";
-import * as dotenv from "dotenv";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+// prisma/prisma.config.ts
+import { defineConfig } from '@prisma/config';
+import * as dotenv from 'dotenv';
+
 
 dotenv.config();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const schemaPath = path.resolve(__dirname, "prisma");
-
 export default defineConfig({
-  schema: schemaPath,
+  schema: './prisma/schema.prisma',
 });
