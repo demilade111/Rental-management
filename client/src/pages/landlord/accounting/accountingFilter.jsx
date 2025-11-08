@@ -53,10 +53,9 @@ const AccountingFilter = ({ filter, setFilter }) => {
               <SelectValue placeholder="Choose category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Rent">Rent</SelectItem>
-              <SelectItem value="Maintenance">Maintenance</SelectItem>
-              <SelectItem value="Deposit">Deposit</SelectItem>
-              <SelectItem value="Overdue">Overdue</SelectItem>
+              <SelectItem value="Outstanding Balances">Outstanding Balances</SelectItem>
+              <SelectItem value="Overdue Payments">Overdue Payments</SelectItem>
+              <SelectItem value="Paid Amounts (Month)">Paid Amounts</SelectItem>
             </SelectContent>
           </Select>
 
