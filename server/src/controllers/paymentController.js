@@ -1,24 +1,32 @@
-import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import { uploadToS3 } from "../utils/s3Upload.js";
 import { SuccessResponse, HandleError } from "../utils/httpResponse.js";
+import { prisma } from "../prisma/client.js";
 
-const prisma = new PrismaClient();
-
-// Configure Multer to store files in memory (for S3 upload)
 export const upload = multer({ storage: multer.memoryStorage() });
 
 export const getTenantPayments = async (req, res) => {
   try {
-    const tenantId = req.user.id;
+    const tenantId = req.user?.id;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized - User not authenticated",
+      });
+    }
 
     const payments = await prisma.payment.findMany({
       where: { tenantId },
-      orderBy: { date: "desc" },
+      orderBy: { createdAt: "desc" },
     });
 
-    return SuccessResponse(res, 200, "Payments fetched successfully", payments);
+    return SuccessResponse(res, 200, "Payments fetched successfully", {
+      payments,
+      total: payments.length,
+    });
   } catch (error) {
+    console.error("getTenantPayments error:", error);
     return HandleError(res, error);
   }
 };
@@ -33,10 +41,8 @@ export const uploadPaymentProof = async (req, res) => {
 
     const file = req.file;
 
-    // ✅ Upload file to S3, get public URL
     const fileUrl = await uploadToS3(file, `payments/${paymentId}`);
 
-    // ✅ Update database with file URL & status
     const updatedPayment = await prisma.payment.update({
       where: { id: paymentId },
       data: {

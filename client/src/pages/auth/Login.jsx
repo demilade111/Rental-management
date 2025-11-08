@@ -7,7 +7,8 @@ import api from "@/lib/axios.js";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner"; // <-- import toast
+import { toast } from "sonner";
+import { handleApiError } from "@/lib/errorHandler.js";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,8 +28,17 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
-      return response.data;
+      try {
+        const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
+        return response.data;
+      } catch (error) {
+        // Add more context to the error
+        const enhancedError = {
+          ...error,
+          timestamp: new Date().toISOString(),
+        };
+        throw enhancedError;
+      }
     },
     onSuccess: (data) => {
       toast.success("Login successful!");
@@ -42,26 +52,35 @@ export default function LoginPage() {
       }, 1500);
     },
     onError: (err) => {
-      // Prevent default error handling to avoid page blinking
-      console.error("Login error:", err);
-      
-      // Handle different error response formats
-      const errorMessage = 
-        err.response?.data?.message || 
-        err.response?.data?.error || 
-        err.response?.data?.data?.message ||
-        err.message || 
-        "Invalid email or password. Please try again.";
-      
-      // Show toast with longer duration
-      toast.error(errorMessage, {
-        duration: 5000, // Show for 5 seconds
+      handleApiError(err, toast, "Login", {
+        defaultMessage: "Invalid email or password. Please try again.",
+        duration: 5000,
+        showDetails: true,
       });
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Client-side validation
+    if (!formData.email || !formData.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+    
+    if (!formData.password || !formData.password.trim()) {
+      toast.error("Password is required");
+      return;
+    }
+    
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    
     loginMutation.mutate(formData);
   };
 

@@ -2,7 +2,7 @@ import { prisma } from "../prisma/client.js";
 import { generatePublicId } from "../utils/generatePublicId.js";
 
 export async function createApplication(landlordId, data) {
-  const listing = await prisma.listing.findUnique({
+  const listing = await prisma.Listing.findUnique({
     where: { id: data.listingId },
   });
 
@@ -23,15 +23,15 @@ export async function createApplication(landlordId, data) {
   const publicId = generatePublicId();
   const employmentInfoData = data.employmentInfo
     ? data.employmentInfo.map((info) => ({
-      employerName: info.employerName,
-      jobTitle: info.jobTitle,
-      income: info.income,
-      duration: info.duration,
-      address: info.address,
-      proofDocument: info.proofDocument,
-    }))
+        employerName: info.employerName,
+        jobTitle: info.jobTitle,
+        income: info.income,
+        duration: info.duration,
+        address: info.address,
+        proofDocument: info.proofDocument,
+      }))
     : [];
-  const application = await prisma.requestApplication.create({
+  const application = await prisma.RequestApplication.create({
     data: {
       publicId,
       listingId: data.listingId,
@@ -58,7 +58,7 @@ export async function createApplication(landlordId, data) {
           : undefined,
     },
     include: {
-      listing: {
+      Listing: {
         select: {
           id: true,
           title: true,
@@ -68,8 +68,8 @@ export async function createApplication(landlordId, data) {
           rentAmount: true,
         },
       },
-      employmentInfo: true,
-      tenant: {
+      EmploymentInfo: true,
+      users_RequestApplication_tenantIdTousers: {
         select: {
           id: true,
           firstName: true,
@@ -105,15 +105,15 @@ export async function getAllApplicationsByLandlord(
   }
 
   // Get total count first
-  const total = await prisma.requestApplication.count({
+  const total = await prisma.RequestApplication.count({
     where: whereClause,
   });
 
   // Get paginated data
-  const applications = await prisma.requestApplication.findMany({
+  const applications = await prisma.RequestApplication.findMany({
     where: whereClause,
     include: {
-      listing: {
+      Listing: {
         select: {
           id: true,
           title: true,
@@ -124,8 +124,8 @@ export async function getAllApplicationsByLandlord(
           rentAmount: true,
         },
       },
-      employmentInfo: true,
-      tenant: {
+      EmploymentInfo: true,
+      users_RequestApplication_tenantIdTousers: {
         select: {
           id: true,
           firstName: true,
@@ -134,7 +134,7 @@ export async function getAllApplicationsByLandlord(
           phone: true,
         },
       },
-      lease: {
+      Lease: {
         select: {
           id: true,
           startDate: true,
@@ -154,63 +154,81 @@ export async function getAllApplicationsByLandlord(
 }
 
 export async function getApplicationByPublicId(publicId) {
-  const application = await prisma.requestApplication.findUnique({
-    where: { publicId },
-    include: {
-      listing: {
-        select: {
-          id: true,
-          title: true,
-          streetAddress: true,
-          city: true,
-          state: true,
-          rentAmount: true,
-          securityDeposit: true,
-          bedrooms: true,
-          bathrooms: true,
-          description: true,
-          images: {
-            take: 5,
+  try {
+    if (!publicId || typeof publicId !== "string") {
+      const err = new Error("Invalid application ID");
+      err.status = 400;
+      throw err;
+    }
+
+    const application = await prisma.RequestApplication.findUnique({
+      where: { publicId },
+      include: {
+        Listing: {
+          select: {
+            id: true,
+            title: true,
+            streetAddress: true,
+            city: true,
+            state: true,
+            rentAmount: true,
+            securityDeposit: true,
+            bedrooms: true,
+            bathrooms: true,
+            description: true,
+            images: {
+              take: 5,
+            },
+          },
+        },
+        EmploymentInfo: true,
+        users_RequestApplication_landlordIdTousers: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
           },
         },
       },
-      employmentInfo: true,
-      landlord: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-        },
-      },
-    },
-  });
+    });
 
-  if (!application) {
-    const err = new Error("Application not found");
-    err.status = 404;
-    throw err;
-  }
-
-  if (application.expirationDate) {
-    const now = new Date();
-    const expiration = new Date(application.expirationDate);
-    console.log("Current time:", now.toISOString());
-    console.log("Expiration time:", expiration.toISOString());
-    if (now > expiration) {
-      const err = new Error("This application link has expired.");
-      err.status = 403;
+    if (!application) {
+      const err = new Error("Application not found");
+      err.status = 404;
       throw err;
     }
-  } else {
-  }
 
-  return application;
+    // Check expiration
+    if (application.expirationDate) {
+      const now = new Date();
+      const expiration = new Date(application.expirationDate);
+      console.log("Current time:", now.toISOString());
+      console.log("Expiration time:", expiration.toISOString());
+      if (now > expiration) {
+        const err = new Error("This application link has expired.");
+        err.status = 403;
+        throw err;
+      }
+    }
+
+    return application;
+  } catch (error) {
+    // If it's already our custom error, rethrow it
+    if (error.status) {
+      throw error;
+    }
+    // Otherwise, wrap it in a 500 error
+    console.error("Database error in getApplicationByPublicId:", error);
+    const err = new Error("Failed to retrieve application");
+    err.status = 500;
+    throw err;
+  }
 }
 
 export async function updateApplicationStatus(applicationId, landlordId, data) {
-  const application = await prisma.requestApplication.findUnique({
+  const application = await prisma.RequestApplication.findUnique({
     where: { id: applicationId },
     include: {
       listing: true,
@@ -249,7 +267,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
         decisionNotes: data.decisionNotes || null,
       },
       include: {
-        listing: {
+        Listing: {
           select: {
             id: true,
             title: true,
@@ -259,8 +277,8 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
             rentAmount: true,
           },
         },
-        employmentInfo: true,
-        tenant: {
+        EmploymentInfo: true,
+        users_RequestApplication_tenantIdTousers: {
           select: {
             id: true,
             firstName: true,
@@ -305,7 +323,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
 }
 
 export async function deleteApplication(applicationId, landlordId) {
-  const application = await prisma.requestApplication.findUnique({
+  const application = await prisma.RequestApplication.findUnique({
     where: { id: applicationId },
   });
 
@@ -330,7 +348,7 @@ export async function deleteApplication(applicationId, landlordId) {
     throw err;
   }
 
-  await prisma.requestApplication.delete({
+  await prisma.RequestApplication.delete({
     where: { id: applicationId },
   });
 
@@ -342,13 +360,15 @@ export async function deleteApplication(applicationId, landlordId) {
  */
 export async function bulkDeleteApplications(applicationIds, landlordId) {
   if (!Array.isArray(applicationIds) || applicationIds.length === 0) {
-    const err = new Error("Application IDs array is required and must not be empty");
+    const err = new Error(
+      "Application IDs array is required and must not be empty"
+    );
     err.status = 400;
     throw err;
   }
 
   // Verify all applications belong to the landlord and can be deleted
-  const applications = await prisma.requestApplication.findMany({
+  const applications = await prisma.RequestApplication.findMany({
     where: {
       id: { in: applicationIds },
     },
@@ -364,10 +384,14 @@ export async function bulkDeleteApplications(applicationIds, landlordId) {
   const errors = [];
   for (const app of applications) {
     if (app.landlordId !== landlordId) {
-      errors.push(`Application ${app.id}: You do not have permission to delete this application`);
+      errors.push(
+        `Application ${app.id}: You do not have permission to delete this application`
+      );
     }
     if (app.status === "APPROVED" && app.leaseId) {
-      errors.push(`Application ${app.id}: Cannot delete approved application with an active lease`);
+      errors.push(
+        `Application ${app.id}: Cannot delete approved application with an active lease`
+      );
     }
   }
 
@@ -378,7 +402,7 @@ export async function bulkDeleteApplications(applicationIds, landlordId) {
   }
 
   // Delete all applications
-  const result = await prisma.requestApplication.deleteMany({
+  const result = await prisma.RequestApplication.deleteMany({
     where: {
       id: { in: applicationIds },
       landlordId, // Extra safety check

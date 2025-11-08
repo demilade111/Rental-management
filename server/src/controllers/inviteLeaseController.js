@@ -15,7 +15,7 @@ export const generateLeaseInviteController = async (req, res) => {
         const baseUrl = process.env.CLIENT_URL || "http://localhost:3000";
         const url = `${baseUrl}/leases-invite/sign/${token}`;
 
-        const invite = await prisma.leaseInvite.create({
+        const invite = await prisma.LeaseInvite.create({
             data: {
                 leaseId,
                 tenantId: null,
@@ -38,15 +38,15 @@ export const getLeaseInviteController = async (req, res) => {
     try {
         const { token } = req.params;
 
-        const invite = await prisma.leaseInvite.findUnique({ where: { token } });
+        const invite = await prisma.LeaseInvite.findUnique({ where: { token } });
         if (!invite) return res.status(404).json({ message: "Invalid token" });
         if (invite.expiresAt < new Date()) return res.status(400).json({ message: "Invite expired" });
 
         let lease;
         if (invite.leaseType === "CUSTOM") {
-            lease = await prisma.customLease.findUnique({ where: { id: invite.leaseId } });
+            lease = await prisma.CustomLease.findUnique({ where: { id: invite.leaseId } });
         } else {
-            lease = await prisma.lease.findUnique({ where: { id: invite.leaseId } });
+            lease = await prisma.Lease.findUnique({ where: { id: invite.leaseId } });
         }
 
         // Return invite and lease data even if already signed (so frontend can check status)
@@ -62,11 +62,11 @@ export const getLeaseInviteController = async (req, res) => {
 //     try {
 //         const { token } = req.params;
 
-//         const invite = await prisma.leaseInvite.findUnique({ where: { token } });
+//         const invite = await prisma.LeaseInvite.findUnique({ where: { token } });
 //         if (!invite) return res.status(404).json({ message: "Invalid token" });
 //         if (invite.expiresAt < new Date()) return res.status(400).json({ message: "Invite expired" });
 
-//         await prisma.leaseInvite.update({
+//         await prisma.LeaseInvite.update({
 //             where: { token },
 //             data: { 
 //                 tenantId: userId,
@@ -89,7 +89,7 @@ export const signLeaseController = async (req, res) => {
         if (!userId)
             return res.status(401).json({ message: "Login required to sign lease" });
 
-        const invite = await prisma.leaseInvite.findUnique({
+        const invite = await prisma.LeaseInvite.findUnique({
             where: { token },
         });
 
@@ -110,7 +110,7 @@ export const signLeaseController = async (req, res) => {
         if (!lease) return res.status(404).json({ message: "Lease not found" });
 
         // Update invite (mark signed + attach tenant)
-        await prisma.leaseInvite.update({
+        await prisma.LeaseInvite.update({
             where: { token },
             data: { tenantId: userId, signed: true },
         });
@@ -125,7 +125,7 @@ export const signLeaseController = async (req, res) => {
         });
 
         // Update the associated listing status to RENTED
-        await prisma.listing.update({
+        await prisma.Listing.update({
             where: { id: lease.listingId },
             data: { status: "RENTED" },
         });
