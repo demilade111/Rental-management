@@ -14,6 +14,16 @@ import MaintenanceSearchBar from "./MaintanenceSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import MaintenanceDetailsModal from "./MaintenanceDetailsModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function Maintenance() {
   const [search, setSearch] = useState("");
@@ -45,6 +55,8 @@ function Maintenance() {
 
   const [updatingActions, setUpdatingActions] = useState({}); // { [requestId]: action }
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [requestToDelete, setRequestToDelete] = useState(null);
 
   const token = useAuthStore((state) => state.token);
   const { user } = useAuthStore();
@@ -172,7 +184,12 @@ function Maintenance() {
 
       await maintenanceApi.updateStatus(requestId, newStatus);
 
-      await loadMaintenanceRequests();
+      // Update local state instead of refetching
+      setMaintenanceRequests((prev) =>
+        prev.map((req) =>
+          req.id === requestId ? { ...req, status: newStatus } : req
+        )
+      );
 
       toast.success(`Request ${newStatus.replace(/_/g, " ").toLowerCase()} successfully!`);
     } catch (error) {
@@ -181,34 +198,39 @@ function Maintenance() {
     } finally {
       setUpdatingActions((prev) => {
         const updated = { ...prev };
-      delete updated[requestId];
+        delete updated[requestId];
         return updated;
       });
     }
-  }, [loadMaintenanceRequests]);
+  }, []);
 
-  const handleDeleteRequest = useCallback(async (requestId) => {
-    if (!confirm("Are you sure you want to delete this maintenance request?")) return;
+  const handleDeleteRequest = useCallback(async () => {
+    if (!requestToDelete) return;
 
     try {
-      setUpdatingActions((prev) => ({ ...prev, [requestId]: "Trash" }));
+      setUpdatingActions((prev) => ({ ...prev, [requestToDelete]: "Trash" }));
 
-      await maintenanceApi.deleteRequest(requestId);
+      await maintenanceApi.deleteRequest(requestToDelete);
 
-      await loadMaintenanceRequests();
+      // Remove from local state instead of refetching
+      setMaintenanceRequests((prev) =>
+        prev.filter((req) => req.id !== requestToDelete)
+      );
 
       toast.success("Request deleted successfully!");
+      setDeleteDialogOpen(false);
+      setRequestToDelete(null);
     } catch (error) {
       console.error("Error deleting request:", error);
       toast.error(`Error deleting request: ${error.message}`);
     } finally {
       setUpdatingActions((prev) => {
         const updated = { ...prev };
-      delete updated[requestId];
+        delete updated[requestToDelete];
         return updated;
       });
     }
-  }, [loadMaintenanceRequests]);
+  }, [requestToDelete]);
 
   const getRequestsByStatus = useCallback(
     (status) => maintenanceRequests.filter((request) => request.status === status),
@@ -281,7 +303,8 @@ function Maintenance() {
     } else if (action === "Finish") {
       handleStatusUpdate(requestId, action, MAINTENANCE_STATUS.COMPLETED);
     } else if (action === "Trash") {
-      handleDeleteRequest(requestId);
+      setRequestToDelete(requestId);
+      setDeleteDialogOpen(true);
     } else if (action === "Reply" || action === "View") {
       // Find the request and open details modal
       const request = maintenanceRequests.find((r) => r.id === requestId);
@@ -289,7 +312,7 @@ function Maintenance() {
         setSelectedRequest(request);
       }
     }
-  }, [handleStatusUpdate, handleDeleteRequest, maintenanceRequests]);
+  }, [handleStatusUpdate, maintenanceRequests]);
 
   const handleOpenModal = useCallback(() => {
     if (user.role === "TENANT" && properties.length > 0) {
@@ -388,6 +411,33 @@ function Maintenance() {
           onClose={handleCloseDetails}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Maintenance Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this maintenance request? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-2xl" onClick={() => {
+              setDeleteDialogOpen(false);
+              setRequestToDelete(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="rounded-2xl bg-red-600 hover:bg-red-700" 
+              onClick={handleDeleteRequest}
+              disabled={updatingActions[requestToDelete] === "Trash"}
+            >
+              {updatingActions[requestToDelete] === "Trash" ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
