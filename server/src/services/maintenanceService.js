@@ -399,7 +399,8 @@ async function deleteMaintenanceRequest(requestId, userId, userRole) {
 
   if (
     existingRequest.status !== "OPEN" &&
-    existingRequest.status !== "CANCELLED"
+    existingRequest.status !== "CANCELLED" &&
+    existingRequest.status !== "COMPLETED"
   ) {
     const err = new Error(
       "Cannot delete maintenance request in current status"

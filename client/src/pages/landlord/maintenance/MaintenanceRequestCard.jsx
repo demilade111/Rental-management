@@ -99,17 +99,13 @@ const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActio
                 onClick={() => onActionClick(action, request.id)}
                 disabled={isUpdating}
               >
-                {isUpdating ? "Updating..." : (
-                  <>
-                    {action === "Cancel" && <X className="size-4 mr-1" />}
-                    {action === "Accept" && <Check className="size-4 mr-1 bg-black text-white rounded-full" />}
-                    {action === "Reply" && <Reply className="size-4 mr-1" />}
-                    {action === "Finish" && <Check className="size-4 mr-1 bg-black text-white rounded-full" />}
-                    {action === "Trash" && <Trash2 className="size-4 mr-1" />}
-                    {action === "View" && <Eye className="size-4 mr-1" />}
-                    {action}
-                  </>
-                )}
+                {action === "Cancel" && <X className="size-4 mr-1" />}
+                {action === "Accept" && <Check className="size-4 mr-1 bg-black text-white rounded-full" />}
+                {action === "Reply" && <Reply className="size-4 mr-1" />}
+                {action === "Finish" && <Check className="size-4 mr-1 bg-black text-white rounded-full" />}
+                {action === "Trash" && <Trash2 className="size-4 mr-1" />}
+                {action === "View" && <Eye className="size-4 mr-1" />}
+                {action}
               </Button>
             );
           })}

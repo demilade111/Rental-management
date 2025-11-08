@@ -1,11 +1,27 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
 
-const LoadingState = ({ message = 'Loading...' }) => {
+const LoadingState = ({ message = 'Loading...', compact = false }) => {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mb-3" />
-            <p className="text-sm text-gray-500">{message}</p>
+        <div className={`flex flex-col items-center justify-center text-center ${compact ? 'py-4' : 'min-h-[50vh]'}`}>
+            <style>{`
+                @keyframes bigBounce {
+                    0%, 80%, 100% {
+                        transform: translateY(0) scale(1);
+                    }
+                    40% {
+                        transform: translateY(-8px) scale(1.1);
+                    }
+                }
+                .bounce-dot {
+                    animation: bigBounce 1s ease-in-out infinite;
+                }
+            `}</style>
+            <div className="flex gap-1 mb-2 h-5 items-end">
+                <div className="w-0.5 h-0.5 bg-primary rounded-full bounce-dot" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-0.5 h-0.5 bg-primary rounded-full bounce-dot" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-0.5 h-0.5 bg-primary rounded-full bounce-dot" style={{ animationDelay: '300ms' }}></div>
+            </div>
+            {message && <p className="text-xs text-gray-400">{message}</p>}
         </div>
     );
 };
