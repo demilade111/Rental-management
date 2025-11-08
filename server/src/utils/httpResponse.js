@@ -84,6 +84,17 @@ const analyzeError = (error) => {
     };
   }
 
+  // Handle Prisma errors
+  if (error.code?.startsWith("P")) {
+    return {
+      statusCode: 500,
+      message: "Database operation failed",
+      details: process.env.NODE_ENV === "development" 
+        ? sanitizeErrorMessage(error.message) 
+        : "Please try again later",
+    };
+  }
+
   const errorType = error.constructor?.name?.toLowerCase();
 
   switch (errorType) {

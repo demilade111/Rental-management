@@ -1,7 +1,7 @@
 import { prisma } from "../prisma/client.js";
 
 export const createLease = async (landlordId, data) => {
-  const listing = await prisma.listing.findUnique({
+  const listing = await prisma.Listing.findUnique({
     where: { id: data.listingId },
     include: { landlord: true },
   });
@@ -18,7 +18,7 @@ export const createLease = async (landlordId, data) => {
     throw err;
   }
 
-  const tenant = await prisma.user.findUnique({
+  const tenant = await prisma.users.findUnique({
     where: { id: data.tenantId },
   });
 
@@ -28,7 +28,7 @@ export const createLease = async (landlordId, data) => {
     throw err;
   }
 
-  const lease = await prisma.lease.create({
+  const lease = await prisma.Lease.create({
     data: {
       listingId: data.listingId,
       tenantId: data.tenantId,
@@ -45,13 +45,13 @@ export const createLease = async (landlordId, data) => {
       notes: data.notes,
     },
     include: {
-      tenant: {
+      users_Lease_tenantIdTousers: {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
-      landlord: {
+      users_Lease_landlordIdTousers: {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
-      listing: {
+      Listing: {
         select: {
           id: true,
           title: true,
@@ -92,13 +92,13 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
 
     console.log("📘 Prisma Query WHERE:", where);
 
-    const leases = await prisma.lease.findMany({
+    const leases = await prisma.Lease.findMany({
       where,
       include: {
-        tenant: {
+        users_Lease_tenantIdTousers: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
-        listing: {
+        Listing: {
           select: {
             id: true,
             title: true,
@@ -121,74 +121,86 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
 };
 
 export const getLeaseById = async (leaseId, userId, userRole) => {
-  const lease = await prisma.lease.findUnique({
-    where: { id: leaseId },
-    include: {
-      tenant: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
+  try {
+    const lease = await prisma.Lease.findUnique({
+      where: { id: leaseId },
+      include: {
+        users_Lease_tenantIdTousers: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        users_Lease_landlordIdTousers: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        Listing: {
+          select: {
+            id: true,
+            title: true,
+            streetAddress: true,
+            city: true,
+            state: true,
+            country: true,
+            zipCode: true,
+          },
+        },
+        maintenanceRequests: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
         },
       },
-      landlord: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-        },
-      },
-      listing: {
-        select: {
-          id: true,
-          title: true,
-          streetAddress: true,
-          city: true,
-          state: true,
-          country: true,
-          zipCode: true,
-        },
-      },
-      maintenanceRequests: {
-        select: {
-          id: true,
-          title: true,
-          status: true,
-          priority: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+    });
 
-  if (!lease) {
+    if (!lease) {
+      const err = new Error("Lease not found");
+      err.status = 404;
+      throw err;
+    }
+
+    if (userRole === "LANDLORD" && lease.landlordId !== userId) {
+      const err = new Error("Unauthorized: You do not have access to this lease");
+      err.status = 403;
+      throw err;
+    }
+
+    if (userRole === "TENANT" && lease.tenantId !== userId) {
+      const err = new Error("Unauthorized: You do not have access to this lease");
+      err.status = 403;
+      throw err;
+    }
+
+    return lease;
+  } catch (error) {
+    // If it's already our custom error, rethrow it
+    if (error.status) {
+      throw error;
+    }
+    // For invalid UUIDs or other Prisma errors, return 404
+    console.error("Database error in getLeaseById:", error);
     const err = new Error("Lease not found");
     err.status = 404;
     throw err;
   }
-
-  if (userRole === "LANDLORD" && lease.landlordId !== userId) {
-    const err = new Error("Unauthorized: You do not have access to this lease");
-    err.status = 403;
-    throw err;
-  }
-
-  if (userRole === "TENANT" && lease.tenantId !== userId) {
-    const err = new Error("Unauthorized: You do not have access to this lease");
-    err.status = 403;
-    throw err;
-  }
-
-  return lease;
 };
 
 export const updateLeaseById = async (leaseId, userId, data) => {
-  const lease = await prisma.lease.findUnique({
+  const lease = await prisma.Lease.findUnique({
     where: { id: leaseId },
   });
 
@@ -204,7 +216,7 @@ export const updateLeaseById = async (leaseId, userId, data) => {
     throw err;
   }
 
-  const updatedLease = await prisma.lease.update({
+  const updatedLease = await prisma.Lease.update({
     where: { id: leaseId },
     data: {
       endDate: data.endDate ? new Date(data.endDate) : undefined,
@@ -218,13 +230,13 @@ export const updateLeaseById = async (leaseId, userId, data) => {
       notes: data.notes,
     },
     include: {
-      tenant: {
+      users_Lease_tenantIdTousers: {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
-      landlord: {
+      users_Lease_landlordIdTousers: {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
-      listing: {
+      Listing: {
         select: {
           id: true,
           title: true,
@@ -241,7 +253,7 @@ export const updateLeaseById = async (leaseId, userId, data) => {
 };
 
 export const deleteLeaseById = async (leaseId, userId) => {
-  const lease = await prisma.lease.findUnique({
+  const lease = await prisma.Lease.findUnique({
     where: { id: leaseId },
   });
 
@@ -265,7 +277,7 @@ export const deleteLeaseById = async (leaseId, userId) => {
     throw err;
   }
 
-  await prisma.lease.delete({
+  await prisma.Lease.delete({
     where: { id: leaseId },
   });
 

@@ -16,8 +16,7 @@ export const createCustomLeaseController = async (req, res) => {
     try {
         const landlordId = req.user.id;
         const body = createCustomLeaseSchema.parse(req.body);
-        // console.log(JSON.stringify(body))
-
+     
         const lease = await createCustomLease(landlordId, body);
         return CreatedResponse(res, "Custom lease created", lease);
     } catch (err) {
@@ -65,7 +64,7 @@ export const deleteCustomLeaseController = async (req, res) => {
 export const getCustomLeaseByListingIdController =async (req, res) => {
   const { listingId } = req.params;
 
-  const lease = await prisma.customLease.findFirst({
+  const lease = await prisma.CustomLease.findFirst({
     where: { listingId },
   });
 
