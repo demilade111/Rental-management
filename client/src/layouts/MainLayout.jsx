@@ -17,12 +17,8 @@ import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
-<<<<<<< HEAD
-import Accounting from "@/pages/landlord/accounting/Accounting";
-=======
 import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
 import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
->>>>>>> 4ed9fae3b5808dbb855d9a5faa0b872d7bff5f57
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -43,17 +39,11 @@ const MainLayout = () => {
           path: "/landlord/applications",
         },
         { label: "Leases", id: "leases", path: "/landlord/leases" },
-<<<<<<< HEAD
-        { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
-        { label: "Accounting", id: "accounting", path: "/landlord/accounting" },
-        // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
-=======
         {
           label: "Maintenance",
           id: "maintenance",
           path: "/landlord/maintenance",
         },
->>>>>>> 4ed9fae3b5808dbb855d9a5faa0b872d7bff5f57
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
