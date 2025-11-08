@@ -88,12 +88,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded-2xl shadow" autoComplete="off">
-          <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200" autoComplete="off">
+          <h1 className="text-2xl font-bold text-center mb-6 text-black">Login</h1>
           <div className="mb-4">
-            <label className="block mb-1">Email</label>
+            <label className="block mb-1 text-black font-medium">Email</label>
             <Input
               type="email"
               name="email"
@@ -102,12 +102,12 @@ export default function LoginPage() {
               required
               disabled={isPending}
               autoComplete="off"
-              className="w-full p-2 border rounded disabled:opacity-50"
+              className="w-full p-2 border border-gray-300 rounded disabled:opacity-50"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block mb-1">Password</label>
+            <label className="block mb-1 text-black font-medium">Password</label>
             <Input
               type="password"
               name="password"
@@ -116,13 +116,13 @@ export default function LoginPage() {
               required
               disabled={isPending}
               autoComplete="new-password"
-              className="w-full p-2 border rounded disabled:opacity-50"
+              className="w-full p-2 border border-gray-300 rounded disabled:opacity-50"
             />
             <div className="mt-1 text-right">
               <button
                 type="button"
                 onClick={() => navigate("/forgot-password")}
-                className="text-sm text-blue-500 hover:underline"
+                className="text-sm text-gray-600 hover:text-black hover:underline"
               >
                 Forgot password?
               </button>
@@ -132,7 +132,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gray-700 text-lg text-white p-2 rounded-2xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed py-6"
+            className="w-full bg-black text-lg text-white p-2 rounded-2xl hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed py-6"
           >
             {isPending ? "Logging in..." : "Login"}
           </Button>
@@ -142,7 +142,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => navigate("/signup")}
-              className="text-blue-500 hover:underline ml-3"
+              className="text-black font-semibold hover:underline ml-3"
             >
               Sign up
             </button>
@@ -151,27 +151,27 @@ export default function LoginPage() {
       </div>
       {/* Demo Login section (outside the login card) */}
       <div className="w-full max-w-md mt-20">
-        <h2 className="text-lg font-semibold text-gray-100 mb-2">Demo Login</h2>
+        <h2 className="text-lg font-semibold text-black mb-2">Demo Login</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
+          <div className="p-3 rounded-md border border-gray-300 bg-white shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-800">Landlord</span>
+              <span className="text-sm font-medium text-black">Landlord</span>
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
                 onClick={fillDemo}
-                className="h-8 w-8"
+                className="h-8 w-8 border-gray-300"
                 title="Fill landlord credentials"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-4 w-4 text-black" />
               </Button>
             </div>
           </div>
 
-          <div className="p-3 rounded-md border border-gray-200 bg-gray-50">
+          <div className="p-3 rounded-md border border-gray-300 bg-white shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-800">Tenant</span>
+              <span className="text-sm font-medium text-black">Tenant</span>
               <Button
                 type="button"
                 variant="outline"
@@ -180,10 +180,10 @@ export default function LoginPage() {
                   setFormData({ email: tenantEmail, password: tenantPassword });
                   toast.success("Demo tenant credentials filled");
                 }}
-                className="h-8 w-8"
+                className="h-8 w-8 border-gray-300"
                 title="Fill tenant credentials"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-4 w-4 text-black" />
               </Button>
             </div>
           </div>

@@ -13,6 +13,7 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { maintenanceApi } from "@/lib/maintenanceApi";
 import { SendIcon } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import LoadingState from "@/components/shared/LoadingState";
 
 // Move outside to prevent recreation on every render
 const ImageWithShimmer = React.memo(function ImageWithShimmer({ src, alt }) {
@@ -232,7 +233,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                             <p className="text-[14px]  text-semibold mb-2">Messages</p>
                             <div className="max-h-56 w-full">
                                 {loadingMessages ? (
-                                    <p className="text-xs text-muted-foreground p-2">Loading messages...</p>
+                                    <LoadingState message="" compact={true} />
                                 ) : messages.length === 0 ? (
                                     <p className="text-xs text-muted-foreground p-2">No messages yet.</p>
                                 ) : (
