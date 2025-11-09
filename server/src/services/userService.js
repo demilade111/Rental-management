@@ -1,7 +1,7 @@
 import { prisma } from "../prisma/client.js";
 
 export const getUserById = async (userId) => {
-  return prisma.users.findUnique({
+  return prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,

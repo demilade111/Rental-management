@@ -6,7 +6,7 @@ const dedupe = (arr) => Array.from(new Set(arr));
 const toLower = (arr) => arr.map((s) => s.toLowerCase());
 
 async function createListings(landlordId, data) {
-  const landlord = await prisma.users.findUnique({
+  const landlord = await prisma.user.findUnique({
     where: { id: landlordId },
     select: { id: true, role: true },
   });

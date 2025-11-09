@@ -18,7 +18,7 @@ export const createLease = async (landlordId, data) => {
     throw err;
   }
 
-  const tenant = await prisma.users.findUnique({
+  const tenant = await prisma.user.findUnique({
     where: { id: data.tenantId },
   });
 

@@ -62,35 +62,35 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Client-side validation
     if (!formData.email || !formData.email.trim()) {
       toast.error("Email is required");
       return;
     }
-    
+
     if (!formData.password || !formData.password.trim()) {
       toast.error("Password is required");
       return;
     }
-    
+
     // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    
+
     loginMutation.mutate(formData);
   };
 
   const { isPending } = loginMutation;
 
-  // Demo credentials
-  const demoEmail = "admin@gmail.com";
-  const demoPassword = "adminadmin";
-  const tenantEmail = "tenant1@gmail.com";
-  const tenantPassword = "tenant1";
+  // Demo credentials (these must match users in your Supabase database)
+  const demoEmail = "landlord@test.com";
+  const demoPassword = "password123";
+  const tenantEmail = "workingtest@example.com";
+  const tenantPassword = "password123";
 
   const copyToClipboard = async (text, label) => {
     try {
@@ -109,8 +109,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200" autoComplete="off">
-          <h1 className="text-2xl font-bold text-center mb-6 text-black">Login</h1>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200"
+          autoComplete="off"
+        >
+          <h1 className="text-2xl font-bold text-center mb-6 text-black">
+            Login
+          </h1>
           <div className="mb-4">
             <label className="block mb-1 text-black font-medium">Email</label>
             <Input
@@ -126,7 +132,9 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-6">
-            <label className="block mb-1 text-black font-medium">Password</label>
+            <label className="block mb-1 text-black font-medium">
+              Password
+            </label>
             <Input
               type="password"
               name="password"
