@@ -399,8 +399,6 @@ async function main() {
       status: "COMPLETED",
     },
   });
-
-  
 }
 
 main()
