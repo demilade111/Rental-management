@@ -172,10 +172,12 @@ async function deleteAllRead(userId) {
  * Create maintenance request notification
  */
 async function createMaintenanceRequestNotification(request, recipientUserId) {
-  const listingName = request.listing?.streetAddress || request.listing?.title || "Property";
-  const userName = request.user?.firstName && request.user?.lastName
-    ? `${request.user.firstName} ${request.user.lastName}`
-    : "Tenant";
+  const listingName =
+    request.listing?.streetAddress || request.listing?.title || "Property";
+  const userName =
+    request.user?.firstName && request.user?.lastName
+      ? `${request.user.firstName} ${request.user.lastName}`
+      : "Tenant";
 
   const title = request.title;
   const body = `New maintenance request from ${userName} at ${listingName}`;
@@ -199,11 +201,18 @@ async function createMaintenanceRequestNotification(request, recipientUserId) {
 /**
  * Create maintenance message notification
  */
-async function createMaintenanceMessageNotification(request, recipientUserId, unreadCount) {
-  const listingName = request.listing?.streetAddress || request.listing?.title || "Property";
+async function createMaintenanceMessageNotification(
+  request,
+  recipientUserId,
+  unreadCount
+) {
+  const listingName =
+    request.listing?.streetAddress || request.listing?.title || "Property";
 
   const title = request.title;
-  const body = `You have ${unreadCount} new message${unreadCount > 1 ? "s" : ""} on this maintenance request`;
+  const body = `You have ${unreadCount} new message${
+    unreadCount > 1 ? "s" : ""
+  } on this maintenance request`;
 
   return createNotification({
     userId: recipientUserId,
@@ -219,6 +228,127 @@ async function createMaintenanceMessageNotification(request, recipientUserId, un
   });
 }
 
+async function createInsuranceExpiringNotification(insurance, recipientUserId) {
+  const tenantName =
+    insurance.tenant?.firstName && insurance.tenant?.lastName
+      ? `${insurance.tenant.firstName} ${insurance.tenant.lastName}`
+      : insurance.tenant?.email || "Tenant";
+
+  const propertyName =
+    insurance.lease?.listing?.streetAddress ||
+    insurance.lease?.propertyAddress ||
+    insurance.customLease?.leaseName ||
+    "Property";
+
+  const daysUntilExpiry = Math.floor(
+    (new Date(insurance.expiryDate) - new Date()) / (1000 * 60 * 60 * 24)
+  );
+
+  const title = "Renter's Insurance Expiring Soon";
+  const body = `${tenantName}'s renter's insurance at ${propertyName} expires in ${daysUntilExpiry} days`;
+
+  return createNotification({
+    userId: recipientUserId,
+    type: "INSURANCE_EXPIRING",
+    title,
+    body,
+    relatedId: insurance.id,
+    metadata: {
+      insuranceId: insurance.id,
+      tenantName,
+      propertyName,
+      expiryDate: insurance.expiryDate,
+      daysUntilExpiry,
+      providerName: insurance.providerName,
+      policyNumber: insurance.policyNumber,
+    },
+  });
+}
+
+async function createInsuranceExpiredNotification(insurance, recipientUserId) {
+  const tenantName =
+    insurance.tenant?.firstName && insurance.tenant?.lastName
+      ? `${insurance.tenant.firstName} ${insurance.tenant.lastName}`
+      : insurance.tenant?.email || "Tenant";
+
+  const propertyName =
+    insurance.lease?.listing?.streetAddress ||
+    insurance.lease?.propertyAddress ||
+    insurance.customLease?.leaseName ||
+    "Property";
+
+  const title = "Renter's Insurance Expired";
+  const body = `${tenantName}'s renter's insurance at ${propertyName} has expired`;
+
+  return createNotification({
+    userId: recipientUserId,
+    type: "INSURANCE_EXPIRED",
+    title,
+    body,
+    relatedId: insurance.id,
+    metadata: {
+      insuranceId: insurance.id,
+      tenantName,
+      propertyName,
+      expiryDate: insurance.expiryDate,
+      providerName: insurance.providerName,
+      policyNumber: insurance.policyNumber,
+    },
+  });
+}
+
+async function createInsuranceVerifiedNotification(insurance, tenantId) {
+  const propertyName =
+    insurance.lease?.listing?.streetAddress ||
+    insurance.lease?.propertyAddress ||
+    insurance.customLease?.leaseName ||
+    "Property";
+
+  const title = "Renter's Insurance Verified";
+  const body = `Your renter's insurance for ${propertyName} has been verified`;
+
+  return createNotification({
+    userId: tenantId,
+    type: "INSURANCE_VERIFIED",
+    title,
+    body,
+    relatedId: insurance.id,
+    metadata: {
+      insuranceId: insurance.id,
+      propertyName,
+      verifiedAt: insurance.verifiedAt,
+      providerName: insurance.providerName,
+      policyNumber: insurance.policyNumber,
+    },
+  });
+}
+
+async function createInsuranceRejectedNotification(insurance, tenantId) {
+  const propertyName =
+    insurance.lease?.listing?.streetAddress ||
+    insurance.lease?.propertyAddress ||
+    insurance.customLease?.leaseName ||
+    "Property";
+
+  const title = "Renter's Insurance Rejected";
+  const body = `Your renter's insurance for ${propertyName} has been rejected`;
+
+  return createNotification({
+    userId: tenantId,
+    type: "INSURANCE_REJECTED",
+    title,
+    body,
+    relatedId: insurance.id,
+    metadata: {
+      insuranceId: insurance.id,
+      propertyName,
+      rejectionReason: insurance.rejectionReason,
+      providerName: insurance.providerName,
+      policyNumber: insurance.policyNumber,
+    },
+  });
+}
+
 export {
   createNotification,
   getUserNotifications,
@@ -229,5 +359,8 @@ export {
   deleteAllRead,
   createMaintenanceRequestNotification,
   createMaintenanceMessageNotification,
+  createInsuranceExpiringNotification,
+  createInsuranceExpiredNotification,
+  createInsuranceVerifiedNotification,
+  createInsuranceRejectedNotification,
 };
-

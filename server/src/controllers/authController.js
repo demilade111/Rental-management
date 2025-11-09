@@ -9,7 +9,7 @@ import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResp
 
 export const register = async (req, res) => {
   try {
-    const user = await registerUser(req.body);
+    const user = await registerUser(req.body || {});
     return CreatedResponse(res, "User registered successfully", { user });
   } catch (error) {
     return HandleError(res, error);
@@ -18,7 +18,7 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { user, token } = await loginUser(req.body);
+    const { user, token } = await loginUser(req.body || {});
     return SuccessResponse(res, 200, "Login successful", { user, token });
   } catch (error) {
     return HandleError(res, error);

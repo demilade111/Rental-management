@@ -7,7 +7,9 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-// ========== PROPERTY & LEASE ENUMS ==========
+
+// Import models
+
 enum PropertyType {
   APARTMENT
   CONDO
@@ -178,6 +180,7 @@ model CustomLease {
   updatedAt           DateTime             @updatedAt
   maintenanceRequests MaintenanceRequest[]
   payments            Payment[]
+  tenantInsurances    TenantInsurance[]
 
   // Relations
   listing  Listing? @relation(fields: [listingId], references: [id])
@@ -256,6 +259,7 @@ model Lease {
   maintenanceRequests MaintenanceRequest[]
   applications        RequestApplication[]
   payments            Payment[]
+  tenantInsurances    TenantInsurance[]
 
   @@index([tenantId])
   @@index([landlordId])
@@ -415,10 +419,23 @@ model Notification {
 enum NotificationType {
   MAINTENANCE_REQUEST
   MAINTENANCE_MESSAGE
+  INSURANCE_EXPIRING
+  INSURANCE_EXPIRED
+  INSURANCE_VERIFIED
+  INSURANCE_REJECTED
   // Future types can be added here:
   // APPLICATION_STATUS
   // LEASE_EXPIRING
   // PAYMENT_DUE
+}
+
+// ========== INSURANCE ==========
+enum InsuranceStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRING_SOON
+  EXPIRED
 }
 
 // Payment model for tracking rent and deposit payments
@@ -539,6 +556,51 @@ model User {
   tenantApplications   RequestApplication[] @relation("TenantApplications")
   MaintenanceMessage   MaintenanceMessage[]
   notifications        Notification[]       @relation("UserNotifications")
+  tenantInsurances     TenantInsurance[]    @relation("TenantInsurances")
+  verifiedInsurances   TenantInsurance[]    @relation("VerifiedInsurances")
 
   @@map("users")
 }
+
+model TenantInsurance {
+  id              String          @id @default(cuid())
+  tenantId        String
+  leaseId         String?
+  customLeaseId   String?
+  
+  providerName    String
+  policyNumber    String
+  coverageType    String
+  coverageAmount  Float?
+  monthlyCost     Float?
+  
+  startDate       DateTime
+  expiryDate      DateTime
+  
+  documentUrl     String
+  documentKey     String
+  
+  status          InsuranceStatus @default(PENDING)
+  
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  rejectionReason String?
+  
+  notes           String?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  tenant          User            @relation("TenantInsurances", fields: [tenantId], references: [id], onDelete: Cascade)
+  lease           Lease?          @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+  customLease     CustomLease?    @relation(fields: [customLeaseId], references: [id], onDelete: SetNull)
+  verifier        User?           @relation("VerifiedInsurances", fields: [verifiedBy], references: [id])
+  
+  @@index([tenantId])
+  @@index([leaseId])
+  @@index([customLeaseId])
+  @@index([status])
+  @@index([expiryDate])
+  @@index([verifiedBy])
+}
+
