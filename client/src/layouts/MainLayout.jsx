@@ -19,6 +19,7 @@ import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
 import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
 import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
+import Accounting from "@/pages/landlord/accounting/accounting";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -43,6 +44,11 @@ const MainLayout = () => {
           label: "Maintenance",
           id: "maintenance",
           path: "/landlord/maintenance",
+        },
+        {
+          label: "Accounting",
+          id: "accounting",
+          path: "/landlord/accounting",
         },
       ]
     : [
@@ -88,7 +94,6 @@ const MainLayout = () => {
             {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
             <Route path="/landlord/leases" element={<LeasesPage />} />
             <Route path="/landlord/accounting" element={<Accounting />} />
-
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<Maintenance />} />
             <Route path="/tenant/accounting" element={<TenantAccounting />} />
