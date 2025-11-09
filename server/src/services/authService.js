@@ -18,15 +18,17 @@ const buildSafeUser = (user) => ({
   updatedAt: user.updatedAt,
 });
 
-export const registerUser = async ({
-  email,
-  password,
-  firstName,
-  lastName,
-  phone,
-  role,
-}) => {
+export const registerUser = async (body = {}) => {
   try {
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      phone,
+      role,
+    } = body;
+    
     // Validate inputs
     if (!email || !password) {
       const err = new Error("Email and password are required");
@@ -54,7 +56,7 @@ export const registerUser = async ({
       Number(process.env.SALT_ROUNDS) || 12
     );
 
-    const user = await prisma.users.create({
+    const user = await prisma.user.create({
       data: {
         id: randomUUID(),
         email: email.toLowerCase().trim(),
@@ -87,8 +89,10 @@ export const registerUser = async ({
   }
 };
 
-export const loginUser = async ({ email, password }) => {
+export const loginUser = async (body = {}) => {
   try {
+    const { email, password } = body;
+    
     // Validate inputs
     if (!email || !password) {
       const err = new Error("Email and password are required");
@@ -103,7 +107,7 @@ export const loginUser = async ({ email, password }) => {
       throw err;
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
 
@@ -154,7 +158,7 @@ export const requestPasswordReset = async (email) => {
       throw err;
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
 
@@ -169,7 +173,7 @@ export const requestPasswordReset = async (email) => {
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenExpiry = new Date(Date.now() + 1000 * 60 * 30); // 30 minutes
 
-    await prisma.users.update({
+    await prisma.user.update({
       where: { email: email.toLowerCase().trim() },
       data: { resetToken, resetTokenExpiry },
     });
@@ -212,7 +216,7 @@ export const resetPassword = async (token, newPassword) => {
       throw err;
     }
 
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         resetToken: token,
         resetTokenExpiry: { gte: new Date() },
@@ -230,7 +234,7 @@ export const resetPassword = async (token, newPassword) => {
       Number(process.env.SALT_ROUNDS) || 12
     );
 
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
@@ -284,7 +288,7 @@ export const refreshToken = async (token) => {
     }
 
     // Get user from database
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
     });
 
