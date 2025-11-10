@@ -33,7 +33,7 @@ async function createListings(landlordId, data) {
       .filter(Boolean)
   );
 
-  const listing = await prisma.Listing.create({
+  const listing = await prisma.listing.create({
     data: {
       landlordId,
       title: data.title.trim(),
@@ -69,8 +69,8 @@ async function createListings(landlordId, data) {
       },
     },
     include: {
-      ListingAmenity: true,
-      ListingImage: true,
+      amenities: true,
+      images: true,
     }
   });
 
@@ -78,7 +78,7 @@ async function createListings(landlordId, data) {
 }
 
 // async function getAllListings(landlordId) {
-//   const listings = await prisma.Listing.findMany({
+//   const listings = await prisma.listing.findMany({
 //     where: { landlordId },
 //     include: {
 //       ListingAmenity: true,
@@ -95,17 +95,17 @@ async function createListings(landlordId, data) {
 async function getAllListings(userId, userRole) {
   // TENANT: return the listing(s) from active lease (standard or custom)
   if (userRole === "TENANT") {
-    const activeLease = await prisma.Lease.findFirst({
+    const activeLease = await prisma.lease.findFirst({
       where: {
         tenantId: userId,
         leaseStatus: "ACTIVE",
       },
       include: {
-        Listing: {
+        listing: {
           include: {
-            ListingAmenity: true,
-            ListingImage: true,
-            users: {
+            amenities: true,
+            images: true,
+            landlord: {
               select: { id: true, firstName: true, lastName: true, email: true },
             },
           },
@@ -113,17 +113,17 @@ async function getAllListings(userId, userRole) {
       },
     });
 
-    const activeCustomLease = await prisma.CustomLease.findFirst({
+    const activeCustomLease = await prisma.customLease.findFirst({
       where: {
         tenantId: userId,
         leaseStatus: "ACTIVE",
       },
       include: {
-        Listing: {
+        listing: {
           include: {
-            ListingAmenity: true,
-            ListingImage: true,
-            users: {
+            amenities: true,
+            images: true,
+            landlord: {
               select: { id: true, firstName: true, lastName: true, email: true },
             },
           },
@@ -140,12 +140,12 @@ async function getAllListings(userId, userRole) {
 
   // ADMIN: return all listings owned
   if (userRole === "ADMIN") {
-    return prisma.Listing.findMany({
+    return prisma.listing.findMany({
       where: { landlordId: userId },
       include: {
-        ListingAmenity: true,
-        ListingImage: true,
-        users: {
+        amenities: true,
+        images: true,
+        landlord: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
       },
@@ -158,11 +158,11 @@ async function getAllListings(userId, userRole) {
 
 
 async function getListingById(listingId) {
-  const listing = await prisma.Listing.findUnique({
+  const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     include: {
-      ListingAmenity: true,
-      ListingImage: true,
+      amenities: true,
+      images: true,
       users: {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
@@ -179,7 +179,7 @@ async function getListingById(listingId) {
 }
 
 async function deleteListingById(listingId, landlordId) {
-  const listing = await prisma.Listing.findUnique({
+  const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     select: { id: true, landlordId: true },
   });
@@ -196,12 +196,12 @@ async function deleteListingById(listingId, landlordId) {
     throw err;
   }
 
-  await prisma.Listing.delete({ where: { id: listingId } });
+  await prisma.listing.delete({ where: { id: listingId } });
   return { message: "Listing deleted successfully" };
 }
 
 async function updateListingById(id, userId, updates) {
-  const listing = await prisma.Listing.findUnique({ where: { id } });
+  const listing = await prisma.listing.findUnique({ where: { id } });
 
   if (!listing) throw new NotFoundError("Listing not found");
 
@@ -209,7 +209,7 @@ async function updateListingById(id, userId, updates) {
     throw new ForbiddenError("You are not authorized to update this listing");
   }
 
-  const updatedListing = await prisma.Listing.update({
+  const updatedListing = await prisma.listing.update({
     where: { id },
     data: updates,
   });
@@ -219,7 +219,7 @@ async function updateListingById(id, userId, updates) {
 
 async function checkListingHasLeases(listingId) {
 
-  const listing = await prisma.Listing.findUnique({
+  const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     select: {
       id: true,

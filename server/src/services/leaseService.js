@@ -1,7 +1,7 @@
 import { prisma } from "../prisma/client.js";
 
 export const createLease = async (landlordId, data) => {
-  const listing = await prisma.Listing.findUnique({
+  const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
     include: { landlord: true },
   });
@@ -28,7 +28,7 @@ export const createLease = async (landlordId, data) => {
     throw err;
   }
 
-  const lease = await prisma.Lease.create({
+  const lease = await prisma.lease.create({
     data: {
       listingId: data.listingId,
       tenantId: data.tenantId,
@@ -92,7 +92,7 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
 
     console.log("📘 Prisma Query WHERE:", where);
 
-    const leases = await prisma.Lease.findMany({
+    const leases = await prisma.lease.findMany({
       where,
       include: {
         users_Lease_tenantIdTousers: {
@@ -122,7 +122,7 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
 
 export const getLeaseById = async (leaseId, userId, userRole) => {
   try {
-    const lease = await prisma.Lease.findUnique({
+    const lease = await prisma.lease.findUnique({
       where: { id: leaseId },
       include: {
         users_Lease_tenantIdTousers: {
@@ -200,7 +200,7 @@ export const getLeaseById = async (leaseId, userId, userRole) => {
 };
 
 export const updateLeaseById = async (leaseId, userId, data) => {
-  const lease = await prisma.Lease.findUnique({
+  const lease = await prisma.lease.findUnique({
     where: { id: leaseId },
   });
 
@@ -216,7 +216,7 @@ export const updateLeaseById = async (leaseId, userId, data) => {
     throw err;
   }
 
-  const updatedLease = await prisma.Lease.update({
+  const updatedLease = await prisma.lease.update({
     where: { id: leaseId },
     data: {
       endDate: data.endDate ? new Date(data.endDate) : undefined,
@@ -253,7 +253,7 @@ export const updateLeaseById = async (leaseId, userId, data) => {
 };
 
 export const deleteLeaseById = async (leaseId, userId) => {
-  const lease = await prisma.Lease.findUnique({
+  const lease = await prisma.lease.findUnique({
     where: { id: leaseId },
   });
 
@@ -277,7 +277,7 @@ export const deleteLeaseById = async (leaseId, userId) => {
     throw err;
   }
 
-  await prisma.Lease.delete({
+  await prisma.lease.delete({
     where: { id: leaseId },
   });
 

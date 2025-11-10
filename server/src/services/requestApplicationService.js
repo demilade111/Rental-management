@@ -2,7 +2,7 @@ import { prisma } from "../prisma/client.js";
 import { generatePublicId } from "../utils/generatePublicId.js";
 
 export async function createApplication(landlordId, data) {
-  const listing = await prisma.Listing.findUnique({
+  const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
   });
 
@@ -31,7 +31,7 @@ export async function createApplication(landlordId, data) {
         proofDocument: info.proofDocument,
       }))
     : [];
-  const application = await prisma.RequestApplication.create({
+  const application = await prisma.requestApplication.create({
     data: {
       publicId,
       listingId: data.listingId,
@@ -58,7 +58,7 @@ export async function createApplication(landlordId, data) {
           : undefined,
     },
     include: {
-      Listing: {
+      listing: {
         select: {
           id: true,
           title: true,
@@ -68,8 +68,8 @@ export async function createApplication(landlordId, data) {
           rentAmount: true,
         },
       },
-      EmploymentInfo: true,
-      users_RequestApplication_tenantIdTousers: {
+      employmentInfo: true,
+      tenant: {
         select: {
           id: true,
           firstName: true,
@@ -105,15 +105,15 @@ export async function getAllApplicationsByLandlord(
   }
 
   // Get total count first
-  const total = await prisma.RequestApplication.count({
+  const total = await prisma.requestApplication.count({
     where: whereClause,
   });
 
   // Get paginated data
-  const applications = await prisma.RequestApplication.findMany({
+  const applications = await prisma.requestApplication.findMany({
     where: whereClause,
     include: {
-      Listing: {
+      listing: {
         select: {
           id: true,
           title: true,
@@ -124,8 +124,8 @@ export async function getAllApplicationsByLandlord(
           rentAmount: true,
         },
       },
-      EmploymentInfo: true,
-      users_RequestApplication_tenantIdTousers: {
+      employmentInfo: true,
+      tenant: {
         select: {
           id: true,
           firstName: true,
@@ -134,7 +134,7 @@ export async function getAllApplicationsByLandlord(
           phone: true,
         },
       },
-      Lease: {
+      lease: {
         select: {
           id: true,
           startDate: true,
@@ -161,10 +161,10 @@ export async function getApplicationByPublicId(publicId) {
       throw err;
     }
 
-    const application = await prisma.RequestApplication.findUnique({
+    const application = await prisma.requestApplication.findUnique({
       where: { publicId },
       include: {
-        Listing: {
+        listing: {
           select: {
             id: true,
             title: true,
@@ -181,8 +181,8 @@ export async function getApplicationByPublicId(publicId) {
             },
           },
         },
-        EmploymentInfo: true,
-        users_RequestApplication_landlordIdTousers: {
+        employmentInfo: true,
+        landlord: {
           select: {
             id: true,
             firstName: true,
@@ -228,7 +228,7 @@ export async function getApplicationByPublicId(publicId) {
 }
 
 export async function updateApplicationStatus(applicationId, landlordId, data) {
-  const application = await prisma.RequestApplication.findUnique({
+  const application = await prisma.requestApplication.findUnique({
     where: { id: applicationId },
     include: {
       listing: true,
@@ -267,7 +267,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
         decisionNotes: data.decisionNotes || null,
       },
       include: {
-        Listing: {
+        listing: {
           select: {
             id: true,
             title: true,
@@ -277,8 +277,8 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
             rentAmount: true,
           },
         },
-        EmploymentInfo: true,
-        users_RequestApplication_tenantIdTousers: {
+        employmentInfo: true,
+        tenant: {
           select: {
             id: true,
             firstName: true,
@@ -323,7 +323,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
 }
 
 export async function deleteApplication(applicationId, landlordId) {
-  const application = await prisma.RequestApplication.findUnique({
+  const application = await prisma.requestApplication.findUnique({
     where: { id: applicationId },
   });
 
@@ -348,7 +348,7 @@ export async function deleteApplication(applicationId, landlordId) {
     throw err;
   }
 
-  await prisma.RequestApplication.delete({
+  await prisma.requestApplication.delete({
     where: { id: applicationId },
   });
 
@@ -368,7 +368,7 @@ export async function bulkDeleteApplications(applicationIds, landlordId) {
   }
 
   // Verify all applications belong to the landlord and can be deleted
-  const applications = await prisma.RequestApplication.findMany({
+  const applications = await prisma.requestApplication.findMany({
     where: {
       id: { in: applicationIds },
     },
@@ -402,7 +402,7 @@ export async function bulkDeleteApplications(applicationIds, landlordId) {
   }
 
   // Delete all applications
-  const result = await prisma.RequestApplication.deleteMany({
+  const result = await prisma.requestApplication.deleteMany({
     where: {
       id: { in: applicationIds },
       landlordId, // Extra safety check

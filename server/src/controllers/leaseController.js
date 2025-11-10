@@ -92,7 +92,7 @@ export const getTenantLeasesController = async (req, res) => {
     const tenantId = req.user.id;
 
     // 1. Find the invite for this tenant
-    const invite = await prisma.LeaseInvite.findFirst({
+    const invite = await prisma.leaseInvite.findFirst({
       where: { tenantId },
     });
 
@@ -102,7 +102,7 @@ export const getTenantLeasesController = async (req, res) => {
 
     // 2. Based on CUSTOM vs STANDARD
     if (invite.leaseType === "CUSTOM") {
-      const customLeases = await prisma.CustomLease.findMany({
+      const customLeases = await prisma.customLease.findMany({
         where: { tenantId },
         include: {
           listing: true,
@@ -115,7 +115,7 @@ export const getTenantLeasesController = async (req, res) => {
     }
 
     // 3. STANDARD leases fallback
-    const leases = await prisma.Lease.findMany({
+    const leases = await prisma.lease.findMany({
       where: { tenantId },
       include: {
         listing: true,

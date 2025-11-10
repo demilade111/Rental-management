@@ -7,7 +7,7 @@ import {
 const dedupe = (arr) => Array.from(new Set(arr));
 
 async function getTenantActiveListing(tenantId) {
-  const lease = await prisma.Lease.findFirst({
+  const lease = await prisma.lease.findFirst({
     where: {
       tenantId,
       leaseStatus: "ACTIVE"
@@ -27,7 +27,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
 
   // TENANT → get listingId from active lease (standard or custom)
   if (userRole === "TENANT") {
-    const lease = await prisma.Lease.findFirst({
+    const lease = await prisma.lease.findFirst({
       where: { tenantId: userId, leaseStatus: "ACTIVE" },
     });
 
@@ -35,7 +35,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
       leaseId = lease.id;
       listingId = lease.listingId;
     } else {
-      const customLease = await prisma.CustomLease.findFirst({
+      const customLease = await prisma.customLease.findFirst({
         where: { tenantId: userId, leaseStatus: "ACTIVE" },
       });
 
@@ -58,14 +58,14 @@ async function createMaintenanceRequest(userId, userRole, data) {
       throw err;
     }
 
-    const listing = await prisma.Listing.findUnique({ where: { id: listingId } });
+    const listing = await prisma.listing.findUnique({ where: { id: listingId } });
     if (!listing || listing.landlordId !== userId) {
       const err = new Error("You do not own this property");
       err.status = 403;
       throw err;
     }
 
-    const activeLease = await prisma.Lease.findFirst({
+    const activeLease = await prisma.lease.findFirst({
       where: { listingId, leaseStatus: "ACTIVE" },
     });
 
@@ -82,7 +82,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
   const images = dedupe((data.images || []).map((u) => u.trim()).filter(Boolean));
 
   // Create maintenance request
-  const maintenanceRequest = await prisma.MaintenanceRequest.create({
+  const maintenanceRequest = await prisma.maintenanceRequest.create({
     data: {
       users: { connect: { id: userId } },
       Listing: { connect: { id: listingId } },
@@ -98,7 +98,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
     include: {
       users: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
       Listing: { select: { id: true, title: true, streetAddress: true, city: true, state: true } },
-      MaintenanceImage: true,
+      images: true,
       ...(leaseId && { Lease: { include: { users: true } } }),
       ...(customLeaseId && { customLease: true }),
     },
@@ -112,7 +112,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
     } else if (userRole === "ADMIN") {
       // Notify tenant(s) about new maintenance request from landlord
       // Get all active tenants for this listing
-      const activeLeases = await prisma.Lease.findMany({
+      const activeLeases = await prisma.lease.findMany({
         where: {
           listingId,
           leaseStatus: "ACTIVE",
@@ -121,7 +121,7 @@ async function createMaintenanceRequest(userId, userRole, data) {
       });
       
       // Also check custom leases
-      const activeCustomLeases = await prisma.CustomLease.findMany({
+      const activeCustomLeases = await prisma.customLease.findMany({
         where: {
           listingId,
           leaseStatus: "ACTIVE",
@@ -155,7 +155,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
 
   if (userRole === "TENANT") {
     // whereClause.userId = userId;
-    const activeLease = await prisma.Lease.findFirst({
+    const activeLease = await prisma.lease.findFirst({
       where: {
         tenantId: userId,
         leaseStatus: "ACTIVE",
@@ -163,7 +163,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
       select: { listingId: true },
     });
 
-    const activeCustomLease = await prisma.CustomLease.findFirst({
+    const activeCustomLease = await prisma.customLease.findFirst({
       where: {
         tenantId: userId,
         leaseStatus: "ACTIVE",
@@ -191,7 +191,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
   if (category) whereClause.category = category;
   if (listingId) whereClause.listingId = listingId;
 
-  const maintenanceRequests = await prisma.MaintenanceRequest.findMany({
+  const maintenanceRequests = await prisma.maintenanceRequest.findMany({
     where: whereClause,
     include: {
       users: {
@@ -204,8 +204,8 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
           role: true,
         },
       },
-      MaintenanceImage: true,
-      Listing: {
+      images: true,
+      listing: {
         select: {
           id: true,
           title: true,
@@ -214,7 +214,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
           state: true,
         },
       },
-      Lease: {
+      lease: {
         select: {
           id: true,
           tenantId: true,
@@ -228,7 +228,7 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
 }
 
 async function getMaintenanceRequestById(requestId, userId, userRole) {
-  const maintenanceRequest = await prisma.MaintenanceRequest.findUnique({
+  const maintenanceRequest = await prisma.maintenanceRequest.findUnique({
     where: { id: requestId },
     include: {
       users: {
@@ -251,13 +251,13 @@ async function getMaintenanceRequestById(requestId, userId, userRole) {
           landlordId: true,
         },
       },
-      Lease: {
+      lease: {
         select: {
           id: true,
           tenantId: true,
         },
       },
-      MaintenanceImage: true,
+      images: true,
     },
   });
 
@@ -281,10 +281,10 @@ async function getMaintenanceRequestById(requestId, userId, userRole) {
 }
 
 async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
-  const existingRequest = await prisma.MaintenanceRequest.findUnique({
+  const existingRequest = await prisma.maintenanceRequest.findUnique({
     where: { id: requestId },
     include: {
-      Listing: true,
+      listing: true,
       lease: true,
       customLease: true,
     },
@@ -305,11 +305,11 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
   let isTenantOfListingActiveLease = false;
   if (userRole === "TENANT" && !isTenantOfLease && !isTenantOfCustomLease) {
     const [activeLease, activeCustomLease] = await Promise.all([
-      prisma.Lease.findFirst({
+      prisma.lease.findFirst({
         where: { listingId: existingRequest.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
         select: { id: true },
       }),
-      prisma.CustomLease.findFirst({
+      prisma.customLease.findFirst({
         where: { listingId: existingRequest.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
         select: { id: true },
       }),
@@ -339,7 +339,7 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
   if (updates.priority) allowedUpdates.priority = updates.priority;
   if (updates.description) allowedUpdates.description = updates.description;
 
-  const updatedRequest = await prisma.MaintenanceRequest.update({
+  const updatedRequest = await prisma.maintenanceRequest.update({
     where: { id: requestId },
     data: allowedUpdates,
     include: {
@@ -360,13 +360,13 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
           city: true,
         },
       },
-      Lease: {
+      lease: {
         select: {
           id: true,
           tenantId: true,
         },
       },
-      MaintenanceImage: true,
+      images: true,
     },
   });
 
@@ -374,10 +374,10 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
 }
 
 async function deleteMaintenanceRequest(requestId, userId, userRole) {
-  const existingRequest = await prisma.MaintenanceRequest.findUnique({
+  const existingRequest = await prisma.maintenanceRequest.findUnique({
     where: { id: requestId },
     include: {
-      Listing: true,
+      listing: true,
       lease: true,
     },
   });
@@ -409,7 +409,7 @@ async function deleteMaintenanceRequest(requestId, userId, userRole) {
     throw err;
   }
 
-  await prisma.MaintenanceRequest.delete({
+  await prisma.maintenanceRequest.delete({
     where: { id: requestId },
   });
 
@@ -417,9 +417,9 @@ async function deleteMaintenanceRequest(requestId, userId, userRole) {
 }
 
 async function getMaintenanceMessages(requestId, userId, userRole) {
-  const req = await prisma.MaintenanceRequest.findUnique({
+  const req = await prisma.maintenanceRequest.findUnique({
     where: { id: requestId },
-    include: { Listing: true, lease: true, customLease: true },
+    include: { listing: true, lease: true, customLease: true },
   });
   if (!req) {
     const err = new Error("Maintenance request not found");
@@ -435,11 +435,11 @@ async function getMaintenanceMessages(requestId, userId, userRole) {
   let isTenantOfListingActiveLease = false;
   if (userRole === "TENANT" && !isTenantOfLease && !isTenantOfCustomLease) {
     const [activeLease, activeCustomLease] = await Promise.all([
-      prisma.Lease.findFirst({
+      prisma.lease.findFirst({
         where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
         select: { id: true },
       }),
-      prisma.CustomLease.findFirst({
+      prisma.customLease.findFirst({
         where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
         select: { id: true },
       }),
@@ -466,9 +466,9 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
     err.status = 400;
     throw err;
   }
-  const req = await prisma.MaintenanceRequest.findUnique({
+  const req = await prisma.maintenanceRequest.findUnique({
     where: { id: requestId },
-    include: { Listing: true, lease: true, customLease: true },
+    include: { listing: true, lease: true, customLease: true },
   });
   if (!req) {
     const err = new Error("Maintenance request not found");
@@ -484,11 +484,11 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
   let isTenantOfListingActiveLease = false;
   if (userRole === "TENANT" && !isTenantOfLease && !isTenantOfCustomLease) {
     const [activeLease, activeCustomLease] = await Promise.all([
-      prisma.Lease.findFirst({
+      prisma.lease.findFirst({
         where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
         select: { id: true },
       }),
-      prisma.CustomLease.findFirst({
+      prisma.customLease.findFirst({
         where: { listingId: req.listingId, tenantId: userId, leaseStatus: "ACTIVE" },
         select: { id: true },
       }),
@@ -530,11 +530,11 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
         recipients.push(req.customLease.tenantId);
       }
       // Also check for active tenants on the listing
-      const activeLeases = await prisma.Lease.findMany({
+      const activeLeases = await prisma.lease.findMany({
         where: { listingId: req.listingId, leaseStatus: "ACTIVE" },
         select: { tenantId: true },
       });
-      const activeCustomLeases = await prisma.CustomLease.findMany({
+      const activeCustomLeases = await prisma.customLease.findMany({
         where: { listingId: req.listingId, leaseStatus: "ACTIVE" },
         select: { tenantId: true },
       });
@@ -556,10 +556,10 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
       const unreadCount = allMessages.filter(m => m.senderId !== recipientId).length;
       if (unreadCount > 0) {
         // Fetch full request data for notification
-        const requestWithData = await prisma.MaintenanceRequest.findUnique({
+        const requestWithData = await prisma.maintenanceRequest.findUnique({
           where: { id: requestId },
           include: {
-            Listing: true,
+            listing: true,
             user: true,
           },
         });

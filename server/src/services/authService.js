@@ -21,12 +21,12 @@ const buildSafeUser = (user) => ({
 export const registerUser = async (body = {}) => {
   try {
     const {
-      email,
-      password,
-      firstName,
-      lastName,
-      phone,
-      role,
+  email,
+  password,
+  firstName,
+  lastName,
+  phone,
+  role,
     } = body;
     
     // Validate inputs

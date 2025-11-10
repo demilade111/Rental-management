@@ -6,7 +6,7 @@ import { prisma } from "../prisma/client.js";
 async function createNotification(data) {
   const { userId, type, title, body, relatedId, metadata } = data;
 
-  const notification = await prisma.Notification.create({
+  const notification = await prisma.notification.create({
     data: {
       userId,
       type,
@@ -42,7 +42,7 @@ async function getUserNotifications(userId, options = {}) {
   }
 
   const [notifications, total] = await Promise.all([
-    prisma.Notification.findMany({
+    prisma.notification.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: limit,
@@ -57,7 +57,7 @@ async function getUserNotifications(userId, options = {}) {
         },
       },
     }),
-    prisma.Notification.count({ where }),
+    prisma.notification.count({ where }),
   ]);
 
   return {
@@ -72,7 +72,7 @@ async function getUserNotifications(userId, options = {}) {
  * Get unread notification count for a user
  */
 async function getUnreadCount(userId) {
-  return prisma.Notification.count({
+  return prisma.notification.count({
     where: {
       userId,
       isRead: false,
@@ -84,7 +84,7 @@ async function getUnreadCount(userId) {
  * Mark notification as read
  */
 async function markAsRead(notificationId, userId) {
-  const notification = await prisma.Notification.findUnique({
+  const notification = await prisma.notification.findUnique({
     where: { id: notificationId },
   });
 
@@ -104,7 +104,7 @@ async function markAsRead(notificationId, userId) {
     return notification;
   }
 
-  return prisma.Notification.update({
+  return prisma.notification.update({
     where: { id: notificationId },
     data: {
       isRead: true,
@@ -117,7 +117,7 @@ async function markAsRead(notificationId, userId) {
  * Mark all notifications as read for a user
  */
 async function markAllAsRead(userId) {
-  const result = await prisma.Notification.updateMany({
+  const result = await prisma.notification.updateMany({
     where: {
       userId,
       isRead: false,
@@ -135,7 +135,7 @@ async function markAllAsRead(userId) {
  * Delete notification
  */
 async function deleteNotification(notificationId, userId) {
-  const notification = await prisma.Notification.findUnique({
+  const notification = await prisma.notification.findUnique({
     where: { id: notificationId },
   });
 
@@ -151,7 +151,7 @@ async function deleteNotification(notificationId, userId) {
     throw err;
   }
 
-  return prisma.Notification.delete({
+  return prisma.notification.delete({
     where: { id: notificationId },
   });
 }
@@ -160,7 +160,7 @@ async function deleteNotification(notificationId, userId) {
  * Delete all read notifications for a user
  */
 async function deleteAllRead(userId) {
-  return prisma.Notification.deleteMany({
+  return prisma.notification.deleteMany({
     where: {
       userId,
       isRead: true,

@@ -64,7 +64,7 @@ export const deleteCustomLeaseController = async (req, res) => {
 export const getCustomLeaseByListingIdController =async (req, res) => {
   const { listingId } = req.params;
 
-  const lease = await prisma.CustomLease.findFirst({
+  const lease = await prisma.customLease.findFirst({
     where: { listingId },
   });
 
