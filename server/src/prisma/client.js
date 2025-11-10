@@ -1,7 +1,20 @@
 import { PrismaClient } from "@prisma/client";
 
+// Use DIRECT_URL for runtime connections to avoid pgbouncer issues
+// Supabase pooler with pgbouncer doesn't work well with Prisma
+// Add SSL parameters for Supabase connection
+const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const connectionString = databaseUrl?.includes('?') 
+  ? `${databaseUrl}&connection_limit=1`
+  : `${databaseUrl}?connection_limit=1`;
+
 // Create and export Prisma client instance immediately
 const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: connectionString,
+    },
+  },
   log:
     process.env.NODE_ENV === "development"
       ? ["query", "error", "warn"]
