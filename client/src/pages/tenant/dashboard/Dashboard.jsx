@@ -1,186 +1,144 @@
 import { useAuthStore } from "../../../store/authStore";
-import {Button} from "../../../components/ui/button";
-import { Upload, Bell } from "lucide-react";
+import { Button } from "../../../components/ui/button";
+import { Upload, Bell, Check } from "lucide-react";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
 
   return (
-    <div className="p-6 md:p-8 bg-background min-h-screen flex flex-col items-center">
-      <div className="w-full max-w-[1400px] flex flex-col items-start gap-10">
-        {/* ===== TITLE ===== */}
-        <h1 className="text-2xl font-bold text-left w-full">
+    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+      <div className="flex-1 overflow-y-auto">
+        {/* Title */}
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">
           October Rent Summary
         </h1>
 
-        {/* ===== TOP SUMMARY CARDS ===== */}
-        <div className="flex flex-wrap gap-[37px] w-full">
-          {[
-            { title: "Unpaid", amount: "$300" },
-            { title: "Paid", amount: "$4500" },
-            { title: "In Transit", amount: "$1200" },
-            { title: "Past Due", amount: "$1200" },
-            { title: "Deposit", amount: "$1500" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="w-[250px] h-[120px] rounded-[15px] bg-white shadow-sm border border-gray-200 p-4 flex flex-col justify-between"
-            >
-              <div className="text-gray-500 text-sm font-medium">
-                {item.title}
-              </div>
-              <div className="text-4xl font-bold">{item.amount}</div>
+        {/* Outstanding Balance Card */}
+        <div className="bg-white rounded-2xl border border-gray-300 p-6 md:p-8 mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className="text-lg md:text-xl font-semibold mb-2">Outstanding balance</h2>
+              <p className="text-4xl md:text-5xl font-bold">$3000</p>
             </div>
-          ))}
-        </div>
-
-        {/* ===== UPLOAD PAYMENT PROOF BUTTON ===== */}
-        <div className="flex justify-start w-full">
-          <Button
-            variant="outline"
-            className="bg-black text-white px-6 py-2 rounded-md"
-          >
-            <Upload size={16} /> Upload Payment Proof
-          </Button>
-        </div>
-
-        {/* ===== MIDDLE SECTION ===== */}
-        <div className="flex flex-wrap justify-start gap-[37px] w-full">
-          <div className="w-full lg:w-[463px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
-            <h2 className="text-3xl font-semibold mb-4">Your Rent</h2>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-2xl"></div>
-                <div>
-                  <p className="font-semibold">Property Name</p>
-                  <p className="font-bold">$2500</p>
-                  <p className="text-gray-500 text-sm">Address</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+                <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
+                  <Check size={14} className="text-white" />
                 </div>
-                <div className="text-right">
-                  <p className="text-gray-400 text-sm">Oct 8</p>
-                </div>
+                <span className="text-sm font-medium">In transit</span>
               </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-2xl"></div>
-                <div>
-                  <p className="font-semibold">Property Name</p>
-                  <p className="font-bold">$1500</p>
-                  <p className="text-gray-500 text-sm">Address</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-gray-400 text-sm">Sep 12</p>
-                </div>
-              </div>
+              <Button className="bg-black text-white hover:bg-gray-800 px-6 py-2">
+                <Upload size={16} className="mr-2" />
+                Upload Payment Proof
+              </Button>
             </div>
           </div>
-          {/* ===== NOTICE SECTION ===== */}
-          <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-3xl font-semibold">Notice</h2>
-              <Bell size={24} stroke="#000000" fill="#000000" />
+        </div>
+
+        {/* Two Column Section - Notice & Maintenance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8">
+          {/* Notice Card */}
+          <div className="bg-white rounded-2xl border border-gray-300 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl md:text-3xl font-semibold">Notice</h2>
+              <Bell size={24} className="text-black fill-black" />
             </div>
-            <div className="flex flex-col gap-3 text-sm">
+            <div className="flex flex-col gap-6">
               <div>
-                <p>
-                  Your next rent payment of <b>$1,200</b> is due on October 15.
+                <p className="text-sm md:text-base mb-3">
+                  Your next rent payment of <span className="font-bold">$1,200</span> is due on October 15.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 bg-gray-200 text-black"
-                >
+                <Button variant="outline" size="sm" className="bg-gray-200 text-black hover:bg-gray-300 border-0">
                   Rent
                 </Button>
               </div>
               <div>
-                <p>
-                  Your maintenance request for “Leaking faucet” has been
-                  updated.
+                <p className="text-sm md:text-base mb-3">
+                  Your maintenance request for "Leaking faucet" has been updated.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 bg-gray-200 text-black"
-                >
+                <Button variant="outline" size="sm" className="bg-gray-200 text-black hover:bg-gray-300 border-0">
                   Maintenance
                 </Button>
               </div>
               <div>
-                <p>Your lease for Apartment A will expire in 45 days.</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 bg-gray-200 text-black"
-                >
+                <p className="text-sm md:text-base mb-3">
+                  Your lease for Apartment A will expire in 45 days.
+                </p>
+                <Button variant="outline" size="sm" className="bg-gray-200 text-black hover:bg-gray-300 border-0">
                   Lease
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* MAINTENANCE SECTION */}
-          <div className="w-full lg:w-[430px] h-auto lg:h-[400px] border rounded-[15px] p-6 flex flex-col bg-white">
-            <h2 className="text-3xl font-semibold mb-4">Maintenance</h2>
-            <div className="flex flex-col gap-4 text-sm">
+          {/* Maintenance Card */}
+          <div className="bg-white rounded-2xl border border-gray-300 p-6">
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">Maintenance</h2>
+            <div className="flex flex-col gap-6">
               <div>
-                <div className="flex justify-between">
-                  <p className="font-semibold">1023 Jervis St</p>
-                  <span className="text-xs text-gray-400">2h · New</span>
+                <div className="flex justify-between items-start mb-2">
+                  <p className="font-semibold text-base">1023 Jervis st</p>
+                  <span className="text-xs text-gray-400 whitespace-nowrap">2h New</span>
                 </div>
-                <p className="font-semibold mt-1">
+                <p className="font-semibold text-sm md:text-base mb-2">
                   Kitchen sink faucet problem
                 </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  The kitchen sink faucet has been dripping continuously for the
-                  past week. I've tried tightening it...
+                <p className="text-gray-500 text-xs md:text-sm">
+                  The kitchen sink faucet has been dripping continuously for the past week. I've tried tightening it, but...
                 </p>
               </div>
 
               <div>
-                <div className="flex justify-between">
-                  <p className="font-semibold">1980 Hasting St</p>
-                  <span className="text-xs text-gray-400">1d · Ongoing</span>
+                <div className="flex justify-between items-start mb-2">
+                  <p className="font-semibold text-base">1980 Hasting st</p>
+                  <span className="text-xs text-gray-400 whitespace-nowrap">1d Ongoing</span>
                 </div>
-                <p className="font-semibold mt-1">Heater Repair</p>
-                <p className="text-gray-500 text-xs mt-1">
-                  The heater is not producing any warm air, and the apartment
-                  has been very cold at night...
+                <p className="font-semibold text-sm md:text-base mb-2">Heater Repair</p>
+                <p className="text-gray-500 text-xs md:text-sm">
+                  The heater is not producing any warm air, and the apartment has been very cold at night. I...
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ===== INSURANCE SECTION ===== */}
-        <div className="w-full border rounded-[15px] p-6 flex flex-col bg-white">
-          <h2 className="text-lg font-semibold mb-4">Insurance</h2>
+        {/* Insurance Section */}
+        <div className="bg-white rounded-2xl border border-gray-300 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h2 className="text-xl md:text-2xl font-semibold mb-3 sm:mb-0">Insurance</h2>
+            <Button variant="outline" className="bg-gray-200 text-black hover:bg-gray-300 border-0 w-fit">
+              <Upload size={16} className="mr-2" />
+              Upload Insurance Proof
+            </Button>
+          </div>
 
-          <div className="flex flex-col lg:flex-row flex-wrap gap-[60px]">
-            <div>
-              <p className="text-sm text-gray-600">Insurance Status: Active</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
+            <div className="space-y-2">
               <p className="text-sm text-gray-600">
-                Insurance Type: Tenant Liability Insurance
+                <span className="font-medium">Insurance Status:</span> Active
               </p>
               <p className="text-sm text-gray-600">
-                Expiration Date: Nov 15, 2025
+                <span className="font-medium">Insurance Type:</span> Tenant Liability Insurance
               </p>
-              <Button variant="outline" className="mt-3 bg-black text-white">
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Expiration Date:</span> Nov 15, 2025
+              </p>
+              <Button className="mt-4 bg-black text-white hover:bg-gray-800">
                 View Policy
               </Button>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <p className="text-sm text-gray-600">
-                Insurance Status: Expiring in 30 days
+                <span className="font-medium">Insurance Status:</span> Expiring in 30 days
               </p>
               <p className="text-sm text-gray-600">
-                Insurance Type: Personal Property Insurance
+                <span className="font-medium">Insurance Type:</span> Personal Property Insurance
               </p>
               <p className="text-sm text-gray-600">
-                Expiration Date: Oct 7, 2025
+                <span className="font-medium">Expiration Date:</span> Oct 7, 2025
               </p>
-              <Button variant="outline" className="mt-3 bg-black text-white">
+              <Button className="mt-4 bg-black text-white hover:bg-gray-800">
                 View Policy
               </Button>
             </div>

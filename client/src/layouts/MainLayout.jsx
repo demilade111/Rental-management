@@ -11,6 +11,8 @@ import MyLeasesTemplates from "../pages/landlord/leases/MyLeasesTemplates";
 import Maintenance from "../pages/landlord/maintenance/Maintenance";
 import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
+import Accounting from "@/pages/landlord/accounting/Accounting";
+import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -26,11 +28,13 @@ const MainLayout = () => {
         { label: "Applications", id: "applications", path: "/landlord/applications" },
         { label: "Leases", id: "leases", path: "/landlord/leases" },
         { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
+        { label: "Accounting", id: "accounting", path: "/landlord/accounting" },
         // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
         { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" },
+        { label: "Accounting", id: "payments", path: "/tenant/payments" },
       ];
 
   const activeNav =
@@ -53,18 +57,20 @@ const MainLayout = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header user={user} isLandlord={isLandlord} />
 
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
           <Routes>
             <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
             <Route path="/landlord/portfolio" element={<PropertyPortfolio />} />
             <Route path="/landlord/portfolio/:id" element={<PropertyDetails />} />
             <Route path="/landlord/maintenance" element={<Maintenance />} />
             <Route path="/landlord/applications" element={<Applications />} />
+            <Route path="/landlord/accounting" element={<Accounting />} />
             {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
             <Route path="/landlord/leases" element={<LeasesPage />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<Maintenance />} />
+            <Route path="/tenant/payments" element={<TenantAccounting />} />
 
             <Route path="*" element={<Navigate to="/landlord/dashboard" replace />} />
           </Routes>

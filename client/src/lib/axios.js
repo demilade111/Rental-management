@@ -41,14 +41,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Skip token refresh logic for login/register endpoints - let them handle their own errors
+    // Skip token refresh logic for public endpoints - let them handle their own errors
     const requestUrl = originalRequest.url || originalRequest.baseURL + originalRequest.url || '';
-    const isAuthEndpoint = requestUrl.includes('/auth/login') || 
-                          requestUrl.includes('/auth/register') ||
-                          requestUrl.includes('/auth/request-reset') ||
-                          requestUrl.includes('/auth/reset-password');
+    const isPublicEndpoint = requestUrl.includes('/auth/login') || 
+                             requestUrl.includes('/auth/register') ||
+                             requestUrl.includes('/auth/request-reset') ||
+                             requestUrl.includes('/auth/reset-password') ||
+                             requestUrl.includes('/leases-invite/invite/') ||
+                             requestUrl.includes('/leases-invite/sign/');
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublicEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

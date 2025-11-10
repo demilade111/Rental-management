@@ -68,10 +68,10 @@ export default function LoginPage() {
   const { isPending } = loginMutation;
 
   // Demo credentials
-  const demoEmail = "admin@gmail.com";
-  const demoPassword = "adminadmin";
-  const tenantEmail = "tenant1@gmail.com";
-  const tenantPassword = "tenant1";
+  const demoEmail = "landlord@test.com";
+  const demoPassword = "password123";
+  const tenantEmail = "tenant@test.com";
+  const tenantPassword = "password123";
 
   const copyToClipboard = async (text, label) => {
     try {

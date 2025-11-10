@@ -30,7 +30,7 @@ model CustomLease {
   payments            Payment[]
 
   // Relations
-  listing  Listing? @relation(fields: [listingId], references: [id])
+  listing  Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
   tenant   User?    @relation("TenantCustomLeases", fields: [tenantId], references: [id])
   landlord User     @relation("LandlordCustomLeases", fields: [landlordId], references: [id])
 

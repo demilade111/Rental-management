@@ -5,6 +5,7 @@ import {
   getLeaseByIdController,
   updateLeaseController,
   deleteLeaseController,
+  bulkDeleteLeasesController,
   getTenantLeasesController,
 } from "../controllers/leaseController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
@@ -104,6 +105,43 @@ router.post(
  *         description: Leases retrieved successfully
  */
 router.get("/", authenticate, getAllLeasesController);
+
+/**
+ * @swagger
+ * /api/v1/leases/bulk-delete:
+ *   post:
+ *     summary: Bulk delete leases
+ *     tags: [Leases]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ids
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of lease IDs to delete
+ *     responses:
+ *       200:
+ *         description: Leases deleted successfully
+ *       400:
+ *         description: Invalid request or no leases deleted
+ *       403:
+ *         description: Unauthorized
+ */
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize(["LANDLORD", "ADMIN"]),
+  bulkDeleteLeasesController
+);
 
 /**
  * @swagger

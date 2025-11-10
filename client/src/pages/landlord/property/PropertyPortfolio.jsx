@@ -124,20 +124,16 @@ const PropertyPortfolio = () => {
         {!isLoading && !isError && filteredProperties.length > 0 && (
           <>
             {/* Header row for select all */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-10 flex items-center justify-center">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
-                    ref={(el) => {
-                      if (el) el.indeterminate = someSelected;
-                    }}
-                    className="!border-black"
-                  />
-                </div>
-                <span className="text-sm text-gray-700">Select all</span>
-              </div>
+            <div className="flex items-center gap-3 mb-2">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                ref={(el) => {
+                  if (el) el.indeterminate = someSelected;
+                }}
+                className="!border-black"
+              />
+              <span className="text-sm text-gray-700">Select all</span>
             </div>
 
             <PropertyList

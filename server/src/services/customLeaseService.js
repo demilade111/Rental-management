@@ -23,6 +23,16 @@ export const createCustomLease = async (landlordId, data) => {
             description: data.description,
             propertyType: data.propertyType,
             fileUrl: data.fileUrl,
+            // Accounting fields
+            rentAmount: data.rentAmount || null,
+            paymentFrequency: data.paymentFrequency || null,
+            startDate: data.startDate || null,
+            endDate: data.endDate || null,
+            paymentDay: data.paymentDay || null,
+            securityDeposit: data.securityDeposit || null,
+            depositAmount: data.depositAmount || null,
+            paymentMethod: data.paymentMethod || null,
+            accountingNotes: data.accountingNotes || null,
         },
     });
 };

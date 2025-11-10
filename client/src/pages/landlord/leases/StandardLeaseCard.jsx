@@ -1,0 +1,362 @@
+import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Trash2, Home, DollarSign, Calendar, AlertTriangle, XCircle, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatDistanceToNow, isPast } from "date-fns";
+import { toast } from "sonner";
+import api from "@/lib/axios";
+import API_ENDPOINTS from "@/lib/apiEndpoints";
+import TerminateLeaseDialog from "./TerminateLeaseDialog";
+import { useAuthStore } from "@/store/authStore";
+
+const getStatusColor = (status) => {
+    switch (status) {
+        case "ACTIVE":
+            return "bg-green-100 text-green-700 border border-green-300";
+        case "DRAFT":
+            return "bg-gray-200 text-gray-700 border border-gray-300";
+        case "EXPIRED":
+            return "bg-red-100 text-red-700 border border-red-300";
+        case "TERMINATED":
+            return "bg-orange-100 text-orange-700 border border-orange-300";
+        default:
+            return "bg-gray-100 text-gray-700 border border-gray-300";
+    }
+};
+
+const StandardLeaseCard = ({
+    lease,
+    onViewDetails,
+    onDelete,
+    isSelected = false,
+    onSelectionChange,
+    onRefresh,
+}) => {
+    const { user } = useAuthStore();
+    const [terminateDialogOpen, setTerminateDialogOpen] = useState(false);
+    const [isTerminating, setIsTerminating] = useState(false);
+    const [overduePayments, setOverduePayments] = useState(0);
+    const [loadingPayments, setLoadingPayments] = useState(false);
+
+    // Fetch payment status for this lease
+    useEffect(() => {
+        const fetchPaymentStatus = async () => {
+            if (!lease.id || lease.leaseStatus !== "ACTIVE") return;
+            
+            setLoadingPayments(true);
+            try {
+                const response = await api.get(`${API_ENDPOINTS.PAYMENTS.BASE}?leaseId=${lease.id}`);
+                const payments = response.data?.data || response.data || [];
+                
+                // Count overdue payments
+                const now = new Date();
+                const overdue = payments.filter(p => 
+                    p.status === "PENDING" && 
+                    p.dueDate && 
+                    new Date(p.dueDate) < now
+                ).length;
+                
+                setOverduePayments(overdue);
+            } catch (error) {
+                console.error("Failed to fetch payment status:", error);
+            } finally {
+                setLoadingPayments(false);
+            }
+        };
+
+        fetchPaymentStatus();
+    }, [lease.id, lease.leaseStatus]);
+
+    const tenantName = lease.tenant
+        ? `${lease.tenant.firstName || ""} ${lease.tenant.lastName || ""}`.trim()
+        : lease.tenantFullName || "No tenant assigned";
+    
+    const landlordName = lease.landlord
+        ? `${lease.landlord.firstName || ""} ${lease.landlord.lastName || ""}`.trim()
+        : lease.landlordFullName || "N/A";
+
+    const propertyInfo = lease.listing
+        ? lease.listing.title || lease.listing.streetAddress || "N/A"
+        : lease.propertyAddress || "N/A";
+
+    const propertyAddress = lease.listing?.streetAddress
+        ? `${lease.listing.streetAddress}${lease.listing.city ? `, ${lease.listing.city}` : ""}${lease.listing.state ? `, ${lease.listing.state}` : ""}`
+        : lease.propertyAddress || "";
+
+    const getStatusDisplayName = (status) => {
+        switch (status) {
+            case "ACTIVE":
+                return "Active";
+            case "DRAFT":
+                return "Draft";
+            case "EXPIRED":
+                return "Expired";
+            case "TERMINATED":
+                return "Terminated";
+            default:
+                return status || "N/A";
+        }
+    };
+
+    const formatDate = (date) => {
+        if (!date) return "N/A";
+        return new Date(date).toLocaleDateString();
+    };
+
+    // Calculate lease expiration
+    const endDate = lease.endDate ? new Date(lease.endDate) : null;
+    const isExpired = endDate && isPast(endDate);
+    const expirationText = endDate ? formatDistanceToNow(endDate, { addSuffix: true }) : null;
+    
+    // Check for status mismatch (ACTIVE but expired)
+    const hasStatusMismatch = lease.leaseStatus === "ACTIVE" && isExpired;
+
+    // Handle marking lease as expired
+    const handleMarkAsExpired = async (e) => {
+        e.stopPropagation();
+        try {
+            await api.put(API_ENDPOINTS.LEASES.BY_ID(lease.id), {
+                leaseStatus: "EXPIRED"
+            });
+            toast.success("Lease marked as expired");
+            if (onRefresh) onRefresh();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to update lease status");
+        }
+    };
+
+    // Handle lease termination
+    const handleTerminate = async ({ reason, notes }) => {
+        setIsTerminating(true);
+        try {
+            console.log("Terminating lease:", {
+                leaseId: lease.id,
+                leaseLandlordId: lease.landlordId,
+                currentUserId: user?.id,
+                match: lease.landlordId === user?.id
+            });
+            
+            await api.put(API_ENDPOINTS.LEASES.BY_ID(lease.id), {
+                leaseStatus: "TERMINATED",
+                terminationDate: new Date().toISOString(),
+                terminationReason: reason,
+                terminationNotes: notes,
+                terminatedBy: user?.id,
+            });
+            toast.success("Lease terminated successfully");
+            setTerminateDialogOpen(false);
+            if (onRefresh) onRefresh();
+        } catch (error) {
+            console.error("Termination error:", error);
+            toast.error(error.response?.data?.message || "Failed to terminate lease");
+        } finally {
+            setIsTerminating(false);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-3 mb-3">
+            {/* Checkbox - outside card */}
+            {onSelectionChange && (
+                <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(checked) => {
+                        onSelectionChange(lease.id, Boolean(checked));
+                    }}
+                    className="!border-black"
+                    onClick={(e) => e.stopPropagation()}
+                />
+            )}
+
+            <Card className={`flex-1 p-0 border ${hasStatusMismatch || overduePayments > 0 ? 'border-orange-400 bg-orange-50/30' : 'border-gray-300'} hover:shadow-md transition-shadow overflow-hidden`}>
+                {/* Warning Banner for Overdue Payments */}
+                {overduePayments > 0 && (
+                    <div className="bg-red-100 border-b border-red-300 px-4 py-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                            <span className="text-sm text-red-800 font-medium">
+                                {overduePayments} overdue payment{overduePayments > 1 ? 's' : ''} - Consider terminating lease
+                            </span>
+                        </div>
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setTerminateDialogOpen(true);
+                            }}
+                            size="sm"
+                            className="bg-red-600 hover:bg-red-700 text-white text-xs h-7 px-3"
+                        >
+                            Terminate Lease
+                        </Button>
+                    </div>
+                )}
+                
+                {/* Warning Banner for Status Mismatch */}
+                {hasStatusMismatch && !overduePayments && (
+                    <div className="bg-orange-100 border-b border-orange-300 px-4 py-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-orange-600" />
+                            <span className="text-sm text-orange-800 font-medium">
+                                This lease has expired but is still marked as ACTIVE
+                            </span>
+                        </div>
+                        <Button
+                            onClick={handleMarkAsExpired}
+                            size="sm"
+                            className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-7 px-3"
+                        >
+                            Mark as Expired
+                        </Button>
+                    </div>
+                )}
+                <div className="flex flex-col md:flex-row">
+                    {/* Property Image Placeholder */}
+                    <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                        <Home className="w-12 h-12 text-gray-400" />
+                    </div>
+
+                {/* Lease Details */}
+                <div className="flex-1 flex flex-col md:flex-row items-center p-4 gap-6">
+                    {/* Property Info - larger width */}
+                    <div className="w-full md:w-64 flex-shrink-0 min-w-0">
+                        <h3 className="font-semibold text-base mb-1 truncate">{propertyInfo}</h3>
+                        {propertyAddress && (
+                            <p className="text-xs text-gray-600 truncate">{propertyAddress}</p>
+                        )}
+                        <p className="text-xs text-gray-600 mt-1 truncate">
+                            <span className="font-semibold">Tenant:</span> {tenantName}
+                        </p>
+                    </div>
+
+                    {/* Financial Info - larger width */}
+                    <div className="flex items-center gap-2 w-full md:w-48 flex-shrink-0">
+                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${overduePayments > 0 ? 'border-red-500 bg-red-50' : 'border-black'}`}>
+                            <DollarSign className={`w-4 h-4 ${overduePayments > 0 ? 'text-red-600' : ''}`} />
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm whitespace-nowrap">
+                                    <span className="font-bold">Rent:</span> ${lease.rentAmount?.toLocaleString() || "N/A"}
+                                </p>
+                                {overduePayments > 0 && (
+                                    <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 h-4">
+                                        {overduePayments} overdue
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="text-sm whitespace-nowrap">
+                                <span className="font-bold">Frequency:</span> {lease.paymentFrequency?.toLowerCase() || "N/A"}
+                            </p>
+                            {lease.securityDeposit && (
+                                <p className="text-sm whitespace-nowrap">
+                                    <span className="font-bold">Deposit:</span> ${lease.securityDeposit?.toLocaleString()}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Lease Dates - larger width */}
+                    <div className="flex items-center gap-2 w-full md:w-48 flex-shrink-0">
+                        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                            <Calendar className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-xs text-gray-600 font-semibold">Lease Dates</p>
+                            <p className="text-sm whitespace-nowrap">
+                                <span className="font-bold">Start:</span> {formatDate(lease.startDate)}
+                            </p>
+                            <p className="text-sm whitespace-nowrap">
+                                <span className="font-bold">End:</span> {formatDate(lease.endDate)}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Lease Expiration Status - larger width */}
+                    <div className="flex items-center w-full md:w-40 flex-shrink-0">
+                        <div className="space-y-1">
+                            {isExpired ? (
+                                <>
+                                    <p className="text-sm font-semibold text-red-600">Lease expired</p>
+                                    <p className="text-xs text-gray-600">{expirationText}</p>
+                                </>
+                            ) : expirationText ? (
+                                <>
+                                    <p className="text-sm font-semibold text-gray-900">Lease expires</p>
+                                    <p className="text-xs text-gray-600">{expirationText}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-600">No end date</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Lease Status - compact */}
+                    <div className="flex items-center justify-center w-full md:w-20 flex-shrink-0">
+                        <Badge className={`${getStatusColor(lease.leaseStatus)} whitespace-nowrap text-xs px-2 py-1 text-gray-900 border-0`}>
+                            {getStatusDisplayName(lease.leaseStatus)}
+                        </Badge>
+                    </div>
+
+                    {/* Actions - compact */}
+                    <div className="flex gap-1.5 w-full md:w-auto flex-shrink-0 items-center justify-center">
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onViewDetails?.(lease);
+                            }}
+                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-gray-900 hover:bg-gray-800 text-white"
+                            title="View Details"
+                            variant="ghost"
+                            size="icon"
+                        >
+                            <Eye className="w-4 h-4 text-white" />
+                        </Button>
+
+                        {/* Show Terminate button only for ACTIVE leases */}
+                        {lease.leaseStatus === "ACTIVE" && (
+                            <Button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTerminateDialogOpen(true);
+                                }}
+                                className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
+                                title="Terminate Lease"
+                                variant="ghost"
+                                size="icon"
+                            >
+                                <XCircle className="w-4 h-4 text-white" />
+                            </Button>
+                        )}
+
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete?.(lease);
+                            }}
+                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-red-500 hover:bg-red-600 text-white"
+                            title="Delete"
+                            variant="ghost"
+                            size="icon"
+                        >
+                            <Trash2 className="w-4 h-4 text-white" />
+                        </Button>
+                    </div>
+                </div>
+                </div>
+            </Card>
+
+            {/* Terminate Lease Dialog */}
+            <TerminateLeaseDialog
+                open={terminateDialogOpen}
+                onClose={() => setTerminateDialogOpen(false)}
+                lease={lease}
+                onConfirm={handleTerminate}
+                isLoading={isTerminating}
+            />
+        </div>
+    );
+};
+
+export default StandardLeaseCard;

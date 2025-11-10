@@ -8,6 +8,16 @@ export const createCustomLeaseSchema = z.object({
     fileUrl: z.string().url(),
     tenantId: z.string().optional(),
     listingId: z.string().optional(),
+    // Accounting fields (optional)
+    rentAmount: z.number().positive().optional().nullable(),
+    paymentFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']).optional().nullable(),
+    startDate: z.coerce.date().optional().nullable(),
+    endDate: z.coerce.date().optional().nullable(),
+    paymentDay: z.number().int().min(1).max(31).optional().nullable(),
+    securityDeposit: z.number().nonnegative().optional().nullable(),
+    depositAmount: z.number().nonnegative().optional().nullable(),
+    paymentMethod: z.string().optional().nullable(),
+    accountingNotes: z.string().optional().nullable(),
 });
 
 export const updateCustomLeaseSchema = z.object({
@@ -19,4 +29,14 @@ export const updateCustomLeaseSchema = z.object({
     tenantId: z.string().nullable().optional(),
     listingId: z.string().optional(),
     leaseStatus: z.string().optional(),
+    // Accounting fields (optional)
+    rentAmount: z.number().positive().optional().nullable(),
+    paymentFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']).optional().nullable(),
+    startDate: z.coerce.date().optional().nullable(),
+    endDate: z.coerce.date().optional().nullable(),
+    paymentDay: z.number().int().min(1).max(31).optional().nullable(),
+    securityDeposit: z.number().nonnegative().optional().nullable(),
+    depositAmount: z.number().nonnegative().optional().nullable(),
+    paymentMethod: z.string().optional().nullable(),
+    accountingNotes: z.string().optional().nullable(),
 });

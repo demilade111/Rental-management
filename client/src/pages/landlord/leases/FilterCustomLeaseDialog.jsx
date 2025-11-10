@@ -57,7 +57,7 @@ const FilterCustomLeaseDialog = ({ isOpen, onClose, onApply, initialFilters }) =
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-sm space-y-4 p-8">
-                <DialogHeader className="pt-4">
+                <DialogHeader>
                     <DialogTitle className="text-[18px]">Filter Custom Leases</DialogTitle>
                 </DialogHeader>
 

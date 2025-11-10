@@ -13,6 +13,8 @@ const {
   CommercialType,
   RentCycle,
   ApplicationStatus,
+  PaymentType,
+  PaymentStatus,
 } = pkg;
 
 const prisma = new PrismaClient();
@@ -43,4 +45,6 @@ export {
   CommercialType,
   RentCycle,
   ApplicationStatus,
+  PaymentType,
+  PaymentStatus,
 };

@@ -84,11 +84,14 @@ export const getLeaseInviteController = async (req, res) => {
 export const signLeaseController = async (req, res) => {
     try {
         const { token } = req.params;
-        const userId = req.user?.id; // must be authenticated
+        const { userId, signature } = req.body; // Accept userId from request body
+        
+        // Validate userId is provided
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
 
-        if (!userId)
-            return res.status(401).json({ message: "Login required to sign lease" });
-
+        // Verify the invite token
         const invite = await prisma.leaseInvite.findUnique({
             where: { token },
         });
@@ -98,6 +101,15 @@ export const signLeaseController = async (req, res) => {
             return res.status(400).json({ message: "Invite expired" });
         if (invite.signed)
             return res.status(400).json({ message: "This lease has already been signed" });
+
+        // Verify the user exists
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
         // Fetch the correct lease type
         let leaseModel =
@@ -125,15 +137,17 @@ export const signLeaseController = async (req, res) => {
         });
 
         // Update the associated listing status to RENTED
-        await prisma.listing.update({
-            where: { id: lease.listingId },
-            data: { status: "RENTED" },
-        });
+        if (lease.listingId) {
+            await prisma.listing.update({
+                where: { id: lease.listingId },
+                data: { status: "RENTED" },
+            });
+        }
 
-        res.json({ message: "Lease signed successfully" });
+        res.json({ message: "Lease signed successfully", lease });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Error signing lease" });
+        console.error("Error signing lease:", err);
+        res.status(500).json({ message: "Error signing lease", error: err.message });
     }
 };
 

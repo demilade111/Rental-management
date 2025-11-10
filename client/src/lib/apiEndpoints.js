@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
   LEASES: {
     BASE: `${API_VERSION}/leases`,
     BY_ID: (id) => `${API_VERSION}/leases/${id}`,
+    BULK_DELETE: `${API_VERSION}/leases/bulk-delete`,
   },
 
   // custom lease endpoints
@@ -66,6 +67,15 @@ export const API_ENDPOINTS = {
     BASE: `${API_VERSION}/users`,
     BY_ID: (id) => `${API_VERSION}/users/${id}`,
     PROFILE: `${API_VERSION}/users/profile`,
+  },
+
+  // Payment endpoints
+  PAYMENTS: {
+    BASE: `${API_VERSION}/payments`,
+    BY_ID: (id) => `${API_VERSION}/payments/${id}`,
+    SUMMARY: `${API_VERSION}/payments/summary`,
+    MARK_PAID: (id) => `${API_VERSION}/payments/${id}/mark-paid`,
+    SEND_REMINDER: (id) => `${API_VERSION}/payments/${id}/send-reminder`,
   },
 };
 

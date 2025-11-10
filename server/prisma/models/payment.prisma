@@ -17,6 +17,7 @@ model Payment {
   paymentMethod String?       // e.g., "Cash", "Check", "Bank Transfer", "e-Transfer"
   reference     String?       // Transaction reference, check number, etc.
   notes         String?
+  proofUrl      String?       // Payment receipt/proof upload URL
   
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

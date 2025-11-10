@@ -11,7 +11,7 @@ const ApplicationDetailsDialog = ({ open, onClose, application }) => {
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent
                 onInteractOutside={(e) => e.preventDefault()}
-                className="max-h-[90vh] overflow-y-auto sm:max-w-4xl lg:max-w-5xl p-6 sm:p-10 pt-6 sm:pt-12"
+                className="max-h-[90vh] overflow-y-auto sm:max-w-4xl lg:max-w-5xl p-8"
             >
                 <DialogHeader>
                     <DialogTitle className="text-2xl mb-4">Application Details</DialogTitle>

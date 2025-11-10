@@ -82,7 +82,7 @@ const CustomLeaseCard = ({
                 </div>
 
                 {/* Column 2: Listing Info */}
-                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-10">
+                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-4">
                     <div className="truncate">{listingInfo}</div>
                     {listingAddress && (
                         <div className="text-sm font-normal text-gray-600 truncate">
@@ -92,21 +92,21 @@ const CustomLeaseCard = ({
                 </div>
 
                 {/* Column 3: Tenant */}
-                <div className="flex justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
                     <div className="text-center">
                         <div className="text-[16px] font-semibold text-gray-900">{tenantName}</div>
                     </div>
                 </div>
 
                 {/* Column 4: Status */}
-                <div className="flex justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
                     <Badge className={`${getStatusColor(lease.leaseStatus)} whitespace-nowrap text-xs px-2 py-1 text-gray-900 border-0`}>
                         {getStatusDisplayName(lease.leaseStatus)}
                     </Badge>
                 </div>
 
                 {/* Column 5: Actions */}
-                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4">
                     <div className="flex gap-3 justify-center">
                         <Button
                             onClick={(e) => {

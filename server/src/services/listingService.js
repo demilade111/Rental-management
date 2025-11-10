@@ -209,9 +209,56 @@ async function updateListingById(id, userId, updates) {
     throw new ForbiddenError("You are not authorized to update this listing");
   }
 
+  // Extract amenities and images from updates
+  const { amenities, images, ...basicUpdates } = updates;
+
+  // Clean description if provided
+  if (basicUpdates.description) {
+    basicUpdates.description = sanitizeHtml(basicUpdates.description, {
+      allowedTags: [],
+      allowedAttributes: {},
+    });
+  }
+
+  // Prepare update data
+  const updateData = { ...basicUpdates };
+
+  // Handle amenities update
+  if (amenities !== undefined) {
+    const cleanAmenities = dedupe(
+      toLower((amenities || []).map((name) => (typeof name === 'string' ? name.trim() : name)).filter(Boolean))
+    );
+
+    updateData.amenities = {
+      deleteMany: {}, // Delete all existing amenities
+      create: cleanAmenities.map((name) => ({ name })), // Create new ones
+    };
+  }
+
+  // Handle images update
+  if (images !== undefined) {
+    const cleanImages = dedupe(
+      (images || [])
+        .map((url) => (typeof url === 'string' ? url.trim() : null))
+        .filter(Boolean)
+    );
+
+    updateData.images = {
+      deleteMany: {}, // Delete all existing images
+      create: cleanImages.map((url, index) => ({
+        url,
+        isPrimary: index === 0,
+      })),
+    };
+  }
+
   const updatedListing = await prisma.listing.update({
     where: { id },
-    data: updates,
+    data: updateData,
+    include: {
+      amenities: true,
+      images: true,
+    },
   });
 
   return updatedListing;

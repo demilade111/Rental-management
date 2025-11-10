@@ -142,7 +142,7 @@ export default function MaintenanceSearchBar({
         </div>
         {/* Filter Modal (simple, no loading) */}
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl">
+            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
                 <DialogHeader>
                     <DialogTitle>Filters</DialogTitle>
                 </DialogHeader>

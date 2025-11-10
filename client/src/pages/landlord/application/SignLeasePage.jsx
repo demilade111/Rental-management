@@ -63,14 +63,19 @@ export default function SignLeasePage() {
             return toast.error("Please provide your signature.");
         }
 
+        if (!user?.id) {
+            return toast.error("You must be logged in to sign the lease.");
+        }
+
         setIsSubmitting(true);
 
         try {
             // Get data URL of the signature
             const signatureDataURL = sigPadRef.current.toDataURL("image/png");
 
-            // Send to backend
+            // Send to backend with userId
             await api.post(`${API_ENDPOINTS.LEASES_INVITE.BASE}/sign/${token}`, {
+                userId: user.id,
                 signature: signatureDataURL,
             });
 

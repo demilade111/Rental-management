@@ -231,11 +231,11 @@ const CustomLeases = ({ onTotalChange }) => {
                             className="data-[state=checked]:bg-white data-[state=checked]:border-white"
                         />
                     </div>
-                    <div className="text-center">Lease Name</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Listing Info</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Tenant</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Status</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Actions</div>
+                    <div className="">Lease Name</div>
+                    <div className="border-l border-gray-300 pl-4">Listing Info</div>
+                    <div className="border-l border-gray-300 pl-4">Tenant</div>
+                    <div className="border-l border-gray-300 pl-4">Status</div>
+                    <div className="border-l border-gray-300 pl-4">Actions</div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0">

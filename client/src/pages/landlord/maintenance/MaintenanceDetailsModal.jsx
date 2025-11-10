@@ -159,7 +159,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
 
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
-            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl">
+            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
                 <DialogHeader className="px-2 pt-3">
                     <DialogTitle className="text-base md:text-lg">Maintenance Details</DialogTitle>
                 </DialogHeader>

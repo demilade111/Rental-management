@@ -113,7 +113,7 @@ const MaintenanceForm = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="bg-white dark:bg-gray-900 rounded-xl">
+      <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
         <DialogHeader className="px-2 pt-3">
           <DialogTitle>New Maintenance Request</DialogTitle>
         </DialogHeader>

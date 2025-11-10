@@ -86,6 +86,41 @@ export const deleteLeaseController = async (req, res) => {
   }
 };
 
+export const bulkDeleteLeasesController = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    const userId = req.user.id;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return ErrorResponse(res, 400, "Lease IDs array is required and must not be empty");
+    }
+
+    // Delete each lease with authorization check
+    let deletedCount = 0;
+    const errors = [];
+
+    for (const leaseId of ids) {
+      try {
+        await deleteLeaseById(leaseId, userId);
+        deletedCount++;
+      } catch (error) {
+        errors.push({ leaseId, error: error.message });
+      }
+    }
+
+    if (deletedCount === 0) {
+      return ErrorResponse(res, 400, "No leases were deleted", { errors });
+    }
+
+    return SuccessResponse(res, 200, `${deletedCount} lease(s) deleted successfully`, {
+      deletedCount,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    return HandleError(res, error);
+  }
+};
+
 export const getTenantLeasesController = async (req, res) => {
   try {
     console.log('herer')
