@@ -83,6 +83,20 @@ router.post('/:id/send-reminder', paymentController.sendReminder);
 router.post('/:id/upload-receipt', paymentController.uploadReceipt);
 
 /**
+ * @route   POST /api/v1/payments/:id/approve-receipt
+ * @desc    Approve payment receipt
+ * @access  Private (Landlord)
+ */
+router.post('/:id/approve-receipt', paymentController.approveReceipt);
+
+/**
+ * @route   POST /api/v1/payments/:id/reject-receipt
+ * @desc    Reject payment receipt
+ * @access  Private (Landlord)
+ */
+router.post('/:id/reject-receipt', paymentController.rejectReceipt);
+
+/**
  * @route   DELETE /api/v1/payments/:id
  * @desc    Delete payment
  * @access  Private (Landlord)

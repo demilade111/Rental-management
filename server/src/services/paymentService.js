@@ -75,6 +75,24 @@ export const getPaymentsForLandlord = async (landlordId, filters = {}) => {
           },
         },
       },
+      invoice: {
+        include: {
+          maintenanceRequest: {
+            include: {
+              listing: {
+                select: {
+                  id: true,
+                  title: true,
+                  streetAddress: true,
+                  city: true,
+                  state: true,
+                  country: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: [
       { dueDate: 'desc' },
@@ -206,6 +224,16 @@ export const getPaymentById = async (paymentId, landlordId) => {
           listing: true,
         },
       },
+      // TODO: Uncomment after migration
+      // invoice: {
+      //   include: {
+      //     maintenanceRequest: {
+      //       include: {
+      //         listing: true,
+      //       },
+      //     },
+      //   },
+      // },
     },
   });
 
@@ -509,6 +537,31 @@ export const getPaymentsForTenant = async (tenantId, filters = {}) => {
           },
         },
       },
+      invoice: {
+        select: {
+          id: true,
+          amount: true,
+          description: true,
+          status: true,
+          sharedWithTenant: true, // Important for filtering
+          createdAt: true, // Added for invoice details modal
+          updatedAt: true, // Added for completeness
+          maintenanceRequest: {
+            include: {
+              listing: {
+                select: {
+                  id: true,
+                  title: true,
+                  streetAddress: true,
+                  city: true,
+                  state: true,
+                  country: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: [
       { dueDate: 'desc' },
@@ -516,7 +569,32 @@ export const getPaymentsForTenant = async (tenantId, filters = {}) => {
     ],
   });
 
-  return payments;
+  // Debug logging - show all payments before filtering
+  console.log(`\n📊 TENANT PAYMENT FETCH - Tenant ID: ${tenantId}`);
+  console.log(`Total payments fetched: ${payments.length}`);
+  payments.forEach((payment, idx) => {
+    console.log(`  [${idx}] Type: ${payment.type}, Amount: ${payment.amount}, Invoice: ${payment.invoice ? 'Yes' : 'No'}, Shared: ${payment.invoice?.sharedWithTenant}`);
+  });
+
+  // Filter out payments for invoices that are NOT shared with tenant
+  const filteredPayments = payments.filter(payment => {
+    // If payment has an invoice, only show if it's shared with tenant
+    if (payment.invoice) {
+      const shouldShow = payment.invoice.sharedWithTenant === true;
+      if (!shouldShow) {
+        console.log(`  🔒 HIDING: ${payment.type} payment (invoice not shared)`);
+      }
+      return shouldShow;
+    }
+    // If no invoice (regular rent/deposit), always show
+    return true;
+  });
+
+  // Debug logging
+  const hiddenCount = payments.length - filteredPayments.length;
+  console.log(`\n✅ RESULT: Showing ${filteredPayments.length} payments (${hiddenCount} hidden)\n`);
+
+  return filteredPayments;
 };
 
 /**
@@ -586,6 +664,7 @@ export const calculateTenantPaymentSummary = async (tenantId) => {
 
 /**
  * Upload payment receipt/proof
+ * Status changes to PENDING (awaiting landlord approval)
  */
 export const uploadPaymentProof = async (paymentId, proofUrl, tenantId) => {
   // Verify the payment belongs to the tenant
@@ -601,13 +680,12 @@ export const uploadPaymentProof = async (paymentId, proofUrl, tenantId) => {
     throw new Error('Unauthorized: Payment does not belong to this tenant');
   }
 
-  // Update payment with proof URL
+  // Update payment with proof URL - status stays PENDING until landlord approves
   const updatedPayment = await prisma.payment.update({
     where: { id: paymentId },
     data: {
       proofUrl,
-      status: 'PAID',
-      paidDate: new Date(),
+      // Keep status as PENDING - landlord needs to approve
     },
     include: {
       tenant: true,
@@ -623,6 +701,115 @@ export const uploadPaymentProof = async (paymentId, proofUrl, tenantId) => {
       },
     },
   });
+
+  return updatedPayment;
+};
+
+/**
+ * Approve payment receipt (Landlord only)
+ */
+export const approvePaymentReceipt = async (paymentId, landlordId) => {
+  // Check if payment exists and belongs to landlord
+  const payment = await prisma.payment.findFirst({
+    where: {
+      id: paymentId,
+      landlordId,
+    },
+  });
+
+  if (!payment) {
+    throw new Error('Payment not found');
+  }
+
+  if (!payment.proofUrl) {
+    throw new Error('No receipt uploaded for this payment');
+  }
+
+  // Update payment to PAID status
+  const updatedPayment = await prisma.payment.update({
+    where: { id: paymentId },
+    data: {
+      status: 'PAID',
+      paidDate: new Date(),
+    },
+    include: {
+      tenant: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      lease: {
+        include: {
+          listing: true,
+        },
+      },
+      customLease: {
+        include: {
+          listing: true,
+        },
+      },
+    },
+  });
+
+  // TODO: Send notification to tenant about approval
+
+  return updatedPayment;
+};
+
+/**
+ * Reject payment receipt (Landlord only)
+ */
+export const rejectPaymentReceipt = async (paymentId, landlordId, reason = null) => {
+  // Check if payment exists and belongs to landlord
+  const payment = await prisma.payment.findFirst({
+    where: {
+      id: paymentId,
+      landlordId,
+    },
+  });
+
+  if (!payment) {
+    throw new Error('Payment not found');
+  }
+
+  if (!payment.proofUrl) {
+    throw new Error('No receipt uploaded for this payment');
+  }
+
+  // Update payment - remove proof URL and add rejection reason in notes
+  const updatedPayment = await prisma.payment.update({
+    where: { id: paymentId },
+    data: {
+      proofUrl: null, // Remove rejected receipt
+      notes: reason ? `Receipt rejected: ${reason}` : 'Receipt rejected by landlord',
+      // Keep status as PENDING
+    },
+    include: {
+      tenant: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      lease: {
+        include: {
+          listing: true,
+        },
+      },
+      customLease: {
+        include: {
+          listing: true,
+        },
+      },
+    },
+  });
+
+  // TODO: Send notification to tenant about rejection
 
   return updatedPayment;
 };

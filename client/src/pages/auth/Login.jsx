@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import API_ENDPOINTS from "@/lib/apiEndpoints.js";
 import api from "@/lib/axios.js";
@@ -12,6 +12,7 @@ import { toast } from "sonner"; // <-- import toast
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -31,6 +32,10 @@ export default function LoginPage() {
       return response.data;
     },
     onSuccess: (data) => {
+      // Clear all cached queries to prevent showing stale data from previous user
+      queryClient.clear();
+      console.log('🧹 Cleared all React Query cache on login');
+      
       toast.success("Login successful!");
       setTimeout(() => {
         login(data.data.user, data.data.token);
@@ -150,7 +155,7 @@ export default function LoginPage() {
         </form>
       </div>
       {/* Demo Login section (outside the login card) */}
-      {/* <div className="w-full max-w-md mt-20">
+      <div className="w-full max-w-md mt-20">
         <h2 className="text-lg font-semibold text-black mb-2">Demo Login</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="p-3 rounded-md border border-gray-300 bg-white shadow-sm">
@@ -188,7 +193,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }

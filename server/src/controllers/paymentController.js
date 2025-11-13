@@ -259,3 +259,56 @@ export const uploadReceipt = async (req, res) => {
   }
 };
 
+/**
+ * Approve payment receipt
+ * @route POST /api/v1/payments/:id/approve-receipt
+ */
+export const approveReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const landlordId = req.user.id;
+
+    const updatedPayment = await paymentService.approvePaymentReceipt(id, landlordId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment receipt approved successfully',
+      data: updatedPayment,
+    });
+  } catch (error) {
+    console.error('Error approving payment receipt:', error);
+    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || 'Failed to approve payment receipt',
+    });
+  }
+};
+
+/**
+ * Reject payment receipt
+ * @route POST /api/v1/payments/:id/reject-receipt
+ */
+export const rejectReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const landlordId = req.user.id;
+    const { reason } = req.body;
+
+    const updatedPayment = await paymentService.rejectPaymentReceipt(id, landlordId, reason);
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment receipt rejected successfully',
+      data: updatedPayment,
+    });
+  } catch (error) {
+    console.error('Error rejecting payment receipt:', error);
+    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || 'Failed to reject payment receipt',
+    });
+  }
+};
+

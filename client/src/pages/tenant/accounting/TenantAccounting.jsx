@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/axios';
 import API_ENDPOINTS from '@/lib/apiEndpoints';
 import LoadingState from '@/components/shared/LoadingState';
 import TenantPaymentTable from './TenantPaymentTable';
-import TenantPaymentSummary from './TenantPaymentSummary';
 import Pagination from '@/components/shared/Pagination';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,23 +23,46 @@ const TenantAccounting = () => {
     const [endDate, setEndDate] = useState(null);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+    const [initialLoad, setInitialLoad] = useState(true);
 
     // Fetch all tenant payments once
-    const { data: paymentsData = [], isLoading: loadingPayments } = useQuery({
+    const { data: paymentsData = [], isLoading: loadingPayments, isFetched } = useQuery({
         queryKey: ['tenant-payments'],
         queryFn: async () => {
             const response = await api.get(API_ENDPOINTS.PAYMENTS.BASE);
             const data = response.data;
             
             // Handle different response structures
-            if (Array.isArray(data)) return data;
-            if (data.data && Array.isArray(data.data)) return data.data;
-            if (data.payments && Array.isArray(data.payments)) return data.payments;
+            let payments = [];
+            if (Array.isArray(data)) payments = data;
+            else if (data.data && Array.isArray(data.data)) payments = data.data;
+            else if (data.payments && Array.isArray(data.payments)) payments = data.payments;
             
-            return [];
+            // Debug: Log received payments
+            console.log(`\n📊 TENANT FRONTEND - Received ${payments.length} payments`);
+            const maintenancePayments = payments.filter(p => p.type === 'MAINTENANCE');
+            console.log(`  Maintenance payments: ${maintenancePayments.length}`);
+            maintenancePayments.forEach((p, idx) => {
+                console.log(`    [${idx}] Amount: $${p.amount}, HasInvoice: ${p.invoice ? 'Yes' : 'No'}, Shared: ${p.invoice?.sharedWithTenant}`);
+                if (p.invoice) {
+                    console.log(`        Invoice createdAt: ${p.invoice.createdAt} (type: ${typeof p.invoice.createdAt})`);
+                }
+            });
+            
+            return payments;
         },
         enabled: !!user,
+        staleTime: 0, // Always fetch fresh data
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
+
+    // Track initial load - clear when payment query has fetched
+    useEffect(() => {
+        if (isFetched) {
+            setInitialLoad(false);
+        }
+    }, [isFetched]);
 
     // Client-side filtering - instant search
     const filteredPayments = useMemo(() => {
@@ -120,29 +142,6 @@ const TenantAccounting = () => {
         return filteredPayments.slice((displayPage - 1) * limit, displayPage * limit);
     }, [filteredPayments, displayPage, limit]);
 
-    // Fetch payment summary
-    const { data: summary = {}, isLoading: loadingSummary } = useQuery({
-        queryKey: ['tenant-payment-summary'],
-        queryFn: async () => {
-            const response = await api.get(API_ENDPOINTS.PAYMENTS.SUMMARY);
-            const data = response.data;
-            
-            // Handle different response structures
-            if (data.data) return data.data;
-            return data || {};
-        },
-        enabled: !!user,
-    });
-
-    // Only show full page loading on initial load (when summary is loading)
-    if (loadingSummary) {
-        return (
-            <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-                <LoadingState message="Loading payment information..." />
-            </div>
-        );
-    }
-
     return (
         <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
             {/* Header */}
@@ -151,15 +150,11 @@ const TenantAccounting = () => {
                 <p className="text-gray-600 mt-1">View your rent payments, deposits, and transaction history</p>
             </div>
 
-            {/* Summary Cards */}
-            <div className="flex-shrink-0 mb-6">
-                <TenantPaymentSummary summary={summary} />
-            </div>
-
-            {/* Search and Filters */}
-            <div className="flex-shrink-0 mb-4 flex flex-col md:flex-row gap-3 md:justify-between">
-                {/* Left: Search */}
-                <div className="relative flex-1 md:max-w-md">
+            {/* Search and Filters - Only show after initial load */}
+            {!initialLoad && (
+                <div className="flex-shrink-0 mb-4 flex flex-col md:flex-row gap-3 md:justify-between">
+                    {/* Left: Search */}
+                    <div className="relative flex-1 md:max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                         type="text"
@@ -209,7 +204,7 @@ const TenantAccounting = () => {
                                 {startDate ? format(startDate, "MMM d") : "Start Date"}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent align="end" className="p-0">
+                        <PopoverContent align="end" className="w-auto">
                             <Calendar
                                 mode="single"
                                 selected={startDate}
@@ -235,7 +230,7 @@ const TenantAccounting = () => {
                                 {endDate ? format(endDate, "MMM d") : "End Date"}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent align="end" className="p-0">
+                        <PopoverContent align="end" className="w-auto">
                             <Calendar
                                 mode="single"
                                 selected={endDate}
@@ -262,16 +257,20 @@ const TenantAccounting = () => {
                     )}
                 </div>
             </div>
+            )}
 
             {/* Table Container with Pagination */}
-            <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col min-h-0">
                 {/* Payment Table */}
                 <div className="flex-1 min-h-0 overflow-hidden">
-                    <TenantPaymentTable payments={paginatedPayments} isLoading={loadingPayments} />
+                    <TenantPaymentTable 
+                        payments={paginatedPayments} 
+                        isLoading={loadingPayments || initialLoad} 
+                    />
                 </div>
 
                 {/* Pagination - Below table */}
-                {displayTotal > 0 && (
+                {!loadingPayments && !initialLoad && displayTotal > 0 && (
                     <div className="flex-shrink-0 mt-4">
                         <Pagination
                             page={displayPage}

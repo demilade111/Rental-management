@@ -82,17 +82,44 @@ const ListingThumbnail = ({ images, alt }) => {
     }
 
     return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full overflow-hidden">
+            {/* Shimmer Loading State */}
             {loading && (
-                <div className="absolute inset-0 animate-pulse bg-gray-200" />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200">
+                    <div className="absolute inset-0 shimmer-effect"></div>
+                </div>
             )}
+            {/* Image with Smooth Fade-in */}
             <img
                 src={resolvedSrc}
                 alt={alt}
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover transition-all duration-500 ease-out ${
+                    loading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+                }`}
                 onLoad={() => setLoading(false)}
                 onError={() => { setErrored(true); setLoading(false); }}
             />
+            <style jsx>{`
+                @keyframes shimmer {
+                    0% {
+                        transform: translateX(-100%);
+                    }
+                    100% {
+                        transform: translateX(100%);
+                    }
+                }
+                .shimmer-effect {
+                    background: linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0) 0%,
+                        rgba(255, 255, 255, 0.6) 40%,
+                        rgba(255, 255, 255, 0.8) 50%,
+                        rgba(255, 255, 255, 0.6) 60%,
+                        rgba(255, 255, 255, 0) 100%
+                    );
+                    animation: shimmer 2s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     );
 };
@@ -106,13 +133,13 @@ const PropertyCard = ({ property }) => {
 
     return (
         <Card onClick={handleClick} className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
-            <div className="flex flex-col md:flex-row md:h-40">
-                <div className="w-full md:w-64 h-48 md:h-full bg-gray-100 flex-shrink-0 overflow-hidden">
+            <div className="flex flex-col md:flex-row">
+                <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0 overflow-hidden">
                     <ListingThumbnail images={property?.images} alt={property.title || property.name || 'Listing image'} />
                 </div>
 
                 {/* Property Details */}
-                <div className="flex-1 flex flex-col md:flex-row items-start md:items-center p-4 gap-4 md:gap-6 md:h-full">
+                <div className="flex-1 flex flex-col md:flex-row items-start md:items-center p-4 gap-4 md:gap-6">
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base mb-1">{property.title}</h3>
                         <p className="text-xs text-gray-600">{property.streetAddress}</p>
@@ -131,7 +158,7 @@ const PropertyCard = ({ property }) => {
                             <p className="text-sm whitespace-nowrap">
                                 <span className="font-bold">Deposit:</span> $ {property.securityDeposit}
                             </p>
-                            {property.petDeposit && (
+                            {property.petDeposit > 0 && (
                                 <p className="text-sm whitespace-nowrap">
                                     <span className="font-bold">Pet Deposit:</span> $ {property.petDeposit}
                                 </p>
@@ -172,11 +199,19 @@ const PropertyCard = ({ property }) => {
                     {/* Status Indicators */}
                     <div className="flex flex-row md:flex-col gap-3 md:gap-2 w-full md:w-auto md:flex-1 md:justify-center">
                         <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                            <div className="w-2 h-2 rounded-full bg-black flex-shrink-0"></div>
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                property.status === 'ACTIVE' 
+                                    ? 'bg-black' 
+                                    : 'border border-black'
+                            }`}></div>
                             <span>listed</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                            <div className="w-2 h-2 rounded-full border border-black flex-shrink-0"></div>
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                property.status === 'RENTED' 
+                                    ? 'bg-black' 
+                                    : 'border border-black'
+                            }`}></div>
                             <span>occupied</span>
                         </div>
                     </div>

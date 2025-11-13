@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Trash2, Home, DollarSign, Calendar, AlertTriangle, XCircle, AlertCircle } from "lucide-react";
+import { Eye, Trash2, Home, DollarSign, Calendar, AlertTriangle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
-import TerminateLeaseDialog from "./TerminateLeaseDialog";
-import { useAuthStore } from "@/store/authStore";
+import PropertyImage from "@/components/shared/PropertyImage";
 
 const getStatusColor = (status) => {
     switch (status) {
@@ -34,9 +33,6 @@ const StandardLeaseCard = ({
     onSelectionChange,
     onRefresh,
 }) => {
-    const { user } = useAuthStore();
-    const [terminateDialogOpen, setTerminateDialogOpen] = useState(false);
-    const [isTerminating, setIsTerminating] = useState(false);
     const [overduePayments, setOverduePayments] = useState(0);
     const [loadingPayments, setLoadingPayments] = useState(false);
 
@@ -48,7 +44,12 @@ const StandardLeaseCard = ({
             setLoadingPayments(true);
             try {
                 const response = await api.get(`${API_ENDPOINTS.PAYMENTS.BASE}?leaseId=${lease.id}`);
-                const payments = response.data?.data || response.data || [];
+                let payments = response.data?.data || response.data || [];
+                
+                // Ensure payments is an array
+                if (!Array.isArray(payments)) {
+                    payments = [];
+                }
                 
                 // Count overdue payments
                 const now = new Date();
@@ -61,6 +62,7 @@ const StandardLeaseCard = ({
                 setOverduePayments(overdue);
             } catch (error) {
                 console.error("Failed to fetch payment status:", error);
+                setOverduePayments(0);
             } finally {
                 setLoadingPayments(false);
             }
@@ -127,35 +129,6 @@ const StandardLeaseCard = ({
         }
     };
 
-    // Handle lease termination
-    const handleTerminate = async ({ reason, notes }) => {
-        setIsTerminating(true);
-        try {
-            console.log("Terminating lease:", {
-                leaseId: lease.id,
-                leaseLandlordId: lease.landlordId,
-                currentUserId: user?.id,
-                match: lease.landlordId === user?.id
-            });
-            
-            await api.put(API_ENDPOINTS.LEASES.BY_ID(lease.id), {
-                leaseStatus: "TERMINATED",
-                terminationDate: new Date().toISOString(),
-                terminationReason: reason,
-                terminationNotes: notes,
-                terminatedBy: user?.id,
-            });
-            toast.success("Lease terminated successfully");
-            setTerminateDialogOpen(false);
-            if (onRefresh) onRefresh();
-        } catch (error) {
-            console.error("Termination error:", error);
-            toast.error(error.response?.data?.message || "Failed to terminate lease");
-        } finally {
-            setIsTerminating(false);
-        }
-    };
-
     return (
         <div className="flex items-center gap-3 mb-3">
             {/* Checkbox - outside card */}
@@ -173,23 +146,13 @@ const StandardLeaseCard = ({
             <Card className={`flex-1 p-0 border ${hasStatusMismatch || overduePayments > 0 ? 'border-orange-400 bg-orange-50/30' : 'border-gray-300'} hover:shadow-md transition-shadow overflow-hidden`}>
                 {/* Warning Banner for Overdue Payments */}
                 {overduePayments > 0 && (
-                    <div className="bg-red-100 border-b border-red-300 px-4 py-2 flex items-center justify-between">
+                    <div className="bg-red-100 border-b border-red-300 px-4 py-2">
                         <div className="flex items-center gap-2">
                             <AlertCircle className="w-4 h-4 text-red-600" />
                             <span className="text-sm text-red-800 font-medium">
-                                {overduePayments} overdue payment{overduePayments > 1 ? 's' : ''} - Consider terminating lease
+                                {overduePayments} overdue payment{overduePayments > 1 ? 's' : ''}
                             </span>
                         </div>
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setTerminateDialogOpen(true);
-                            }}
-                            size="sm"
-                            className="bg-red-600 hover:bg-red-700 text-white text-xs h-7 px-3"
-                        >
-                            Terminate Lease
-                        </Button>
                     </div>
                 )}
                 
@@ -212,9 +175,12 @@ const StandardLeaseCard = ({
                     </div>
                 )}
                 <div className="flex flex-col md:flex-row">
-                    {/* Property Image Placeholder */}
-                    <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                        <Home className="w-12 h-12 text-gray-400" />
+                    {/* Property Image */}
+                    <div className="w-full md:w-48 h-28 flex-shrink-0 overflow-hidden">
+                        <PropertyImage 
+                            image={lease.listing?.images?.find(img => img.isPrimary) || lease.listing?.images?.[0]}
+                            alt={propertyInfo}
+                        />
                     </div>
 
                 {/* Lease Details */}
@@ -314,22 +280,6 @@ const StandardLeaseCard = ({
                             <Eye className="w-4 h-4 text-white" />
                         </Button>
 
-                        {/* Show Terminate button only for ACTIVE leases */}
-                        {lease.leaseStatus === "ACTIVE" && (
-                            <Button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setTerminateDialogOpen(true);
-                                }}
-                                className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
-                                title="Terminate Lease"
-                                variant="ghost"
-                                size="icon"
-                            >
-                                <XCircle className="w-4 h-4 text-white" />
-                            </Button>
-                        )}
-
                         <Button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -346,15 +296,6 @@ const StandardLeaseCard = ({
                 </div>
                 </div>
             </Card>
-
-            {/* Terminate Lease Dialog */}
-            <TerminateLeaseDialog
-                open={terminateDialogOpen}
-                onClose={() => setTerminateDialogOpen(false)}
-                lease={lease}
-                onConfirm={handleTerminate}
-                isLoading={isTerminating}
-            />
         </div>
     );
 };

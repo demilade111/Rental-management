@@ -16,6 +16,7 @@ import leaseInviteRoutes from "./routes/leaseInviteRoutes.js";
 import notificationRoutes from "./routes/notificationRoute.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import paymentFileRoutes from "./routes/paymentFileRoutes.js";
+import invoiceRoutes from "./routes/invoiceRoutes.js";
 
 const require = createRequire(import.meta.url);
 const swaggerUi = require("swagger-ui-express");
@@ -38,6 +39,7 @@ app.use("/api/v1/applications", requestApplicationRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/upload", paymentFileRoutes);
+app.use("/api/v1/invoices", invoiceRoutes);
 
 // Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));

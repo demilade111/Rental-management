@@ -14,6 +14,34 @@ export default function StandardLeaseStep2({
 }) {
     const [errors, setErrors] = useState({});
 
+    // Function to fill demo data for this step
+    const fillDemoData = () => {
+        const today = new Date();
+        const startDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+        const endDate = new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year lease
+        
+        setStandardLeaseData({
+            ...standardLeaseData,
+            // Start date
+            startDay: startDate.getDate().toString(),
+            startMonth: (startDate.getMonth() + 1).toString(),
+            startYear: startDate.getFullYear().toString(),
+            // Tenancy type
+            tenancyType: "fixed-term",
+            // Fixed end date
+            fixedEndDay: endDate.getDate().toString(),
+            fixedEndMonth: (endDate.getMonth() + 1).toString(),
+            fixedEndYear: endDate.getFullYear().toString(),
+            fixedEndCondition: "continues",
+            // Rent - preserve existing rentAmount from listing, don't override
+            // rentAmount is NOT updated here - keeps the value pre-filled from listing
+            rentFrequency: "month",
+            rentDueDay: "1",
+        });
+        
+        setErrors({});
+    };
+
     const validateField = (field, value) => {
         let error = "";
         
@@ -156,6 +184,19 @@ export default function StandardLeaseStep2({
                     Term & Rent Details (Page 2 of 4)
                 </DialogTitle>
             </DialogHeader>
+
+            {/* Fill Demo Data Button */}
+            <div className="flex justify-center mb-3">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={fillDemoData}
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                >
+                    🎲 Fill Demo Data
+                </Button>
+            </div>
 
             <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                 {/* Tenancy Start Date */}

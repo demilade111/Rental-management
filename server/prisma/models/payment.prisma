@@ -27,6 +27,7 @@ model Payment {
   customLease   CustomLease?  @relation(fields: [customLeaseId], references: [id], onDelete: Cascade)
   landlord      User          @relation("LandlordPayments", fields: [landlordId], references: [id])
   tenant        User?         @relation("TenantPayments", fields: [tenantId], references: [id])
+  invoice       Invoice?      // One-to-one relation with Invoice
 
   @@index([leaseId])
   @@index([customLeaseId])

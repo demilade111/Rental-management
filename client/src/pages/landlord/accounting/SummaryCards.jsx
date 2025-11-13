@@ -51,7 +51,7 @@ const SummaryCards = ({ summary }) => {
         breakdown={summary.overdue.breakdown}
       />
       <SummaryCard
-        title="Paid Amounts (Month)"
+        title="Paid This Month"
         total={summary.paid.total}
         breakdown={summary.paid.breakdown}
       />

@@ -29,8 +29,9 @@ export async function generateUploadUrl(
     ContentType: fileType,
   });
 
+  // Increase expiration to 1 hour (3600 seconds) instead of 5 minutes
   const uploadURL = await getSignedUrl(s3, command, {
-    expiresIn: Number(process.env.AWS_SIGNED_URL_EXPIRATION),
+    expiresIn: Number(process.env.AWS_SIGNED_URL_EXPIRATION) || 3600,
   });
 
   const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${Key}`;
@@ -44,8 +45,9 @@ export async function generateDownloadUrl(key) {
     Key: key,
   });
 
+  // Increase expiration to 1 hour (3600 seconds) instead of 5 minutes
   const downloadURL = await getSignedUrl(s3, command, {
-    expiresIn: Number(process.env.AWS_SIGNED_URL_EXPIRATION),
+    expiresIn: Number(process.env.AWS_SIGNED_URL_EXPIRATION) || 3600,
   });
 
   return downloadURL;

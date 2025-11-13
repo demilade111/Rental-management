@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, FileText, Pencil, Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,6 +24,7 @@ const getStatusColor = (status) => {
 const CustomLeaseCard = ({
     lease,
     onViewFile,
+    onViewDetails,
     onEdit,
     onDelete,
     isSelected = false,
@@ -107,31 +108,18 @@ const CustomLeaseCard = ({
 
                 {/* Column 5: Actions */}
                 <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4">
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex gap-2 justify-center">
                         <Button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onViewFile?.(lease);
+                                onViewDetails?.(lease);
                             }}
-                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-900 hover:bg-gray-800 text-white"
-                            title="View File"
+                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-black hover:bg-gray-800 text-white"
+                            title="View Details"
                             variant="ghost"
                             size="icon"
                         >
-                            <FileText className="w-5 h-5 text-white" />
-                        </Button>
-
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit?.(lease);
-                            }}
-                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-900 hover:bg-gray-800 text-white"
-                            title="Edit"
-                            variant="ghost"
-                            size="icon"
-                        >
-                            <Pencil className="w-5 h-5 text-white" />
+                            <Eye className="w-5 h-5 text-white" />
                         </Button>
 
                         <Button

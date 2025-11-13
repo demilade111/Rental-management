@@ -66,6 +66,14 @@ async function fetchAllMaintenanceRequests(req, res) {
       filters
     );
 
+    // Debug: Log invoice data
+    if (filters.listingId) {
+      console.log(`📍 Returning ${maintenanceRequests.length} maintenance requests for listing ${filters.listingId}`);
+      maintenanceRequests.forEach(req => {
+        console.log(`  - ${req.title}: ${req.invoices?.length || 0} invoices, totalCost: ${req.totalCost}`);
+      });
+    }
+
     return SuccessResponse(
       res,
       200,

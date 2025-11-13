@@ -7,6 +7,8 @@ import {
   deleteLeaseController,
   bulkDeleteLeasesController,
   getTenantLeasesController,
+  getLeaseByListingIdController,
+  regenerateContractPdfController,
 } from "../controllers/leaseController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -15,6 +17,7 @@ const router = Router();
 
 
 router.get('/tenant', authenticate, authorize(["TENANT"]), getTenantLeasesController);
+router.get('/by-listing/:listingId', authenticate, getLeaseByListingIdController);
 /**
  * @swagger
  * /api/v1/leases:
@@ -167,6 +170,36 @@ router.post(
  *         description: Lease not found
  */
 router.get("/:id", authenticate, getLeaseByIdController);
+
+/**
+ * @swagger
+ * /api/v1/leases/{id}/regenerate-pdf:
+ *   post:
+ *     summary: Regenerate contract PDF for a lease
+ *     tags: [Leases]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The lease ID
+ *     responses:
+ *       200:
+ *         description: Contract PDF regenerated successfully
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: Lease not found
+ */
+router.post(
+  "/:id/regenerate-pdf",
+  authenticate,
+  authorize(["LANDLORD", "ADMIN"]),
+  regenerateContractPdfController
+);
 
 /**
  * @swagger

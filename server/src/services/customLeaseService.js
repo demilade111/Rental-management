@@ -38,6 +38,8 @@ export const createCustomLease = async (landlordId, data) => {
 };
 
 export const getAllCustomLeases = async (userId, role) => {
+    console.log('getAllCustomLeases called - userId:', userId, 'role:', role);
+    
     const include = {
         listing: {
             select: {
@@ -47,6 +49,7 @@ export const getAllCustomLeases = async (userId, role) => {
                 city: true,
                 state: true,
                 country: true,
+                images: true,
             },
         },
         tenant: {
@@ -63,35 +66,90 @@ export const getAllCustomLeases = async (userId, role) => {
                 firstName: true,
                 lastName: true,
                 email: true,
+                phone: true,
             },
         },
     };
 
     if (role === "LANDLORD" || role === "ADMIN") {
-        return prisma.customLease.findMany({
+        const leases = await prisma.customLease.findMany({
             where: { landlordId: userId },
             include,
             orderBy: { createdAt: "desc" },
         });
+        console.log('Custom leases for landlord:', leases.length);
+        return leases;
     }
 
     if (role === "TENANT") {
-        return prisma.customLease.findMany({
+        const leases = await prisma.customLease.findMany({
             where: { tenantId: userId },
             include,
             orderBy: { createdAt: "desc" },
         });
+        console.log('Custom leases for tenant:', leases.length);
+        if (leases.length > 0) {
+            console.log('Tenant custom lease statuses:', leases.map(l => ({ id: l.id, status: l.leaseStatus, tenantId: l.tenantId })));
+        }
+        return leases;
     }
 
-    return prisma.customLease.findMany({
+    const leases = await prisma.customLease.findMany({
         include,
         orderBy: { createdAt: "desc" },
     });
+    console.log('All custom leases:', leases.length);
+    return leases;
 };
 
 export const getCustomLeaseById = (id) => {
     return prisma.customLease.findUnique({
         where: { id },
+        include: {
+            tenant: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                },
+            },
+            landlord: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                },
+            },
+            listing: {
+                select: {
+                    id: true,
+                    title: true,
+                    streetAddress: true,
+                    city: true,
+                    state: true,
+                    country: true,
+                    zipCode: true,
+                    bedrooms: true,
+                    bathrooms: true,
+                    totalSquareFeet: true,
+                    images: {
+                        select: {
+                            id: true,
+                            url: true,
+                            isPrimary: true,
+                        },
+                        orderBy: [
+                            { isPrimary: 'desc' },
+                            { createdAt: 'asc' },
+                        ],
+                    },
+                },
+            },
+        },
     });
 };
 

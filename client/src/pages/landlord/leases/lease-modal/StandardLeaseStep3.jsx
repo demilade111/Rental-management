@@ -20,6 +20,36 @@ export default function StandardLeaseStep3({
         "Carpets"
     ];
 
+    // Function to fill demo data for this step
+    const fillDemoData = () => {
+        const rentAmount = standardLeaseData.rentAmount || "2500";
+        const securityDeposit = (parseFloat(rentAmount) * 0.5).toFixed(2);
+        
+        const today = new Date();
+        const depositDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days from now
+        
+        // Randomly select 3-5 services
+        const randomServices = services.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 3) + 3);
+        
+        setStandardLeaseData({
+            ...standardLeaseData,
+            // Security deposit
+            securityDeposit: securityDeposit,
+            securityDepositDay: depositDate.getDate().toString(),
+            securityDepositMonth: (depositDate.getMonth() + 1).toString(),
+            securityDepositYear: depositDate.getFullYear().toString(),
+            // Pet deposit (50% chance)
+            petDepositNA: Math.random() > 0.5,
+            petDeposit: Math.random() > 0.5 ? "250" : "",
+            petDepositDay: depositDate.getDate().toString(),
+            petDepositMonth: (depositDate.getMonth() + 1).toString(),
+            petDepositYear: depositDate.getFullYear().toString(),
+            // Services
+            includedServices: randomServices,
+            parkingSpaces: Math.random() > 0.5 ? (Math.floor(Math.random() * 2) + 1).toString() : "",
+        });
+    };
+
     return (
         <>
             <DialogHeader>
@@ -27,6 +57,19 @@ export default function StandardLeaseStep3({
                     Deposits & Services (Page 3 of 4)
                 </DialogTitle>
             </DialogHeader>
+
+            {/* Fill Demo Data Button */}
+            <div className="flex justify-center mb-3">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={fillDemoData}
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                >
+                    🎲 Fill Demo Data
+                </Button>
+            </div>
 
             <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                 {/* Security Deposit */}

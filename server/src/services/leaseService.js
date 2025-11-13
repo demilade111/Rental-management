@@ -1,6 +1,11 @@
 import { prisma } from "../prisma/client.js";
+import { generateLeaseContractPDF } from "./pdfGenerationService.js";
 
 export const createLease = async (landlordId, data) => {
+  console.log('=== createLease called with data ===');
+  console.log('unitNumber:', data.unitNumber, '| Type:', typeof data.unitNumber, '| Length:', data.unitNumber?.length);
+  console.log('Full data:', JSON.stringify(data, null, 2));
+  
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
     include: { landlord: true },
@@ -49,11 +54,17 @@ export const createLease = async (landlordId, data) => {
       
       // Standard lease form fields
       landlordFullName: data.landlordFullName,
+      landlordPhone: data.landlordPhone,
+      landlordEmail: data.landlordEmail,
+      landlordAddress: data.landlordAddress,
       additionalLandlords: data.additionalLandlords,
       tenantFullName: data.tenantFullName,
       tenantEmail: data.tenantEmail,
       tenantPhone: data.tenantPhone,
+      tenantOtherPhone: data.tenantOtherPhone,
+      tenantOtherEmail: data.tenantOtherEmail,
       additionalTenants: data.additionalTenants,
+      unitNumber: data.unitNumber,
       propertyAddress: data.propertyAddress,
       propertyCity: data.propertyCity,
       propertyState: data.propertyState,
@@ -90,7 +101,109 @@ export const createLease = async (landlordId, data) => {
     },
   });
 
-  return lease;
+  // Generate contract PDF and upload to S3
+  try {
+    console.log('Generating contract PDF for lease:', lease.id);
+    
+    // Build tenant info - prioritize form data, fallback to tenant relation
+    let tenantFullName = data.tenantFullName;
+    let tenantEmail = data.tenantEmail;
+    let tenantPhone = data.tenantPhone;
+    
+    if (lease.tenant && !tenantFullName) {
+      tenantFullName = `${lease.tenant.firstName || ''} ${lease.tenant.lastName || ''}`.trim();
+    }
+    if (lease.tenant && !tenantEmail) {
+      tenantEmail = lease.tenant.email;
+    }
+    if (lease.tenant && !tenantPhone) {
+      tenantPhone = lease.tenant.phone;
+    }
+
+    // Build landlord info
+    let landlordFullName = data.landlordFullName;
+    let landlordEmail = data.landlordEmail;
+    let landlordPhone = data.landlordPhone;
+    
+    if (listing.landlord && !landlordFullName) {
+      landlordFullName = `${listing.landlord.firstName || ''} ${listing.landlord.lastName || ''}`.trim();
+    }
+    if (!landlordEmail) {
+      landlordEmail = listing.landlord.email;
+    }
+    if (listing.landlord && !landlordPhone) {
+      landlordPhone = listing.landlord.phone;
+    }
+    
+    console.log('About to generate PDF with unitNumber:', lease.unitNumber);
+    console.log('Type:', typeof lease.unitNumber, 'Value:', JSON.stringify(lease.unitNumber));
+    console.log('Lease object unitNumber:', lease.unitNumber);
+    
+    const contractPdfUrl = await generateLeaseContractPDF({
+      unitNumber: lease.unitNumber,
+      propertyAddress: lease.propertyAddress || listing.streetAddress,
+      propertyCity: lease.propertyCity || listing.city,
+      propertyState: lease.propertyState || listing.state,
+      propertyZipCode: lease.propertyZipCode || listing.zipCode,
+      landlordFullName,
+      landlordAddress: lease.landlordAddress,
+      landlordPhone,
+      landlordEmail,
+      tenantFullName,
+      tenantPhone,
+      tenantEmail,
+      tenantOtherPhone: lease.tenantOtherPhone,
+      tenantOtherEmail: lease.tenantOtherEmail,
+      startDate: lease.startDate,
+      endDate: lease.endDate,
+      rentAmount: lease.rentAmount,
+      paymentFrequency: lease.paymentFrequency,
+      paymentDay: lease.paymentDay,
+      securityDeposit: lease.securityDeposit,
+      securityDepositDueDate: lease.securityDepositDueDate,
+      petDeposit: lease.petDeposit,
+      petDepositDueDate: lease.petDepositDueDate,
+      parkingSpaces: lease.parkingSpaces,
+      includedServices: lease.includedServices,
+      // Lease term type fields
+      leaseTermType: lease.leaseTermType,
+      periodicBasis: lease.periodicBasis,
+      periodicOther: lease.periodicOther,
+      fixedEndCondition: lease.fixedEndCondition,
+      vacateReason: lease.vacateReason,
+    });
+
+    // Update lease with the PDF URL
+    const updatedLease = await prisma.lease.update({
+      where: { id: lease.id },
+      data: { contractPdfUrl },
+      include: {
+        tenant: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        landlord: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        listing: {
+          select: {
+            id: true,
+            title: true,
+            streetAddress: true,
+            city: true,
+            state: true,
+            country: true,
+          },
+        },
+      },
+    });
+
+    console.log('Contract PDF generated successfully:', contractPdfUrl);
+    return updatedLease;
+  } catch (pdfError) {
+    console.error('Failed to generate contract PDF:', pdfError);
+    // Return lease without PDF if generation fails
+    return lease;
+  }
 };
 
 export const getAllLeases = async (userId, userRole, filters = {}) => {
@@ -132,6 +245,17 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
             city: true,
             state: true,
             country: true,
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isPrimary: true,
+              },
+              orderBy: [
+                { isPrimary: 'desc' },
+                { createdAt: 'asc' },
+              ],
+            },
           },
         },
       },
@@ -172,6 +296,17 @@ export const getAllLeases = async (userId, userRole, filters = {}) => {
               city: true,
               state: true,
               country: true,
+              images: {
+                select: {
+                  id: true,
+                  url: true,
+                  isPrimary: true,
+                },
+                orderBy: [
+                  { isPrimary: 'desc' },
+                  { createdAt: 'asc' },
+                ],
+              },
             },
           },
         },
@@ -221,6 +356,20 @@ export const getLeaseById = async (leaseId, userId, userRole) => {
           state: true,
           country: true,
           zipCode: true,
+          bedrooms: true,
+          bathrooms: true,
+          totalSquareFeet: true,
+          images: {
+            select: {
+              id: true,
+              url: true,
+              isPrimary: true,
+            },
+            orderBy: [
+              { isPrimary: 'desc' },
+              { createdAt: 'asc' },
+            ],
+          },
         },
       },
       maintenanceRequests: {
@@ -356,4 +505,49 @@ export const deleteLeaseById = async (leaseId, userId) => {
   });
 
   return { message: "Lease deleted successfully" };
+};
+
+export const getLeaseByListingId = async (listingId, landlordId) => {
+  const lease = await prisma.lease.findFirst({
+    where: {
+      listingId,
+      landlordId,
+    },
+    include: {
+      tenant: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+        },
+      },
+      landlord: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+        },
+      },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          streetAddress: true,
+          city: true,
+          state: true,
+          country: true,
+          zipCode: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return lease;
 };

@@ -12,6 +12,7 @@ model Lease {
   leaseStatus      LeaseStatus @default(DRAFT)
   leaseDocument    String?
   signedContract   String?
+  contractPdfUrl   String?     // Generated contract PDF saved in S3
   notes            String?
 
   propertyCategory PropertyCategory?
@@ -55,7 +56,11 @@ model Lease {
   tenantFullName    String?
   tenantEmail       String?
   tenantPhone       String?
+  tenantOtherPhone  String?
+  tenantOtherEmail  String?
   additionalTenants Json?
+
+  unitNumber        String?  // Unit/Apt number for rental property
 
   allowsOccupants   Boolean @default(false)
   occupants         Json?

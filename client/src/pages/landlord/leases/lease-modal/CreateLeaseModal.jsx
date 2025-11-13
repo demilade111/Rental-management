@@ -57,6 +57,8 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
         // Parties
         landlordLastName: "",
         landlordFirstName: "",
+        landlordPhone: "",
+        landlordEmail: "",
         landlord2LastName: "",
         landlord2FirstName: "",
         tenantLastName: "",
@@ -154,6 +156,8 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
             setStandardLeaseData({
                 landlordLastName: "",
                 landlordFirstName: "",
+                landlordPhone: "",
+                landlordEmail: "",
                 landlord2LastName: "",
                 landlord2FirstName: "",
                 tenantLastName: "",
@@ -216,12 +220,55 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
     };
 
     // Fetch active listings
+    // Fetch all leases to check which listings are occupied
+    const { data: allLeases = [] } = useQuery({
+        queryKey: ["leases"],
+        queryFn: async () => {
+            const res = await api.get(API_ENDPOINTS.LEASES.BASE);
+            const data = res.data;
+            return Array.isArray(data) ? data : data.data || [];
+        },
+    });
+
+    const { data: allCustomLeases = [] } = useQuery({
+        queryKey: ["customleases"],
+        queryFn: async () => {
+            const res = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+            return res.data.data || res.data || [];
+        },
+    });
+
     const { data: listings = [], isLoading: listingsLoading } = useQuery({
         queryKey: ["listings", user?.id],
         queryFn: async () => {
             const res = await api.get(API_ENDPOINTS.LISTINGS.BASE);
-            return res.data.listing.filter(l => l.status === "ACTIVE");
+            const allListings = res.data.listing.filter(l => l.status === "ACTIVE");
+            
+            // Filter out listings that already have an ACTIVE or DRAFT lease
+            // Only allow one draft per listing
+            return allListings.filter(listing => {
+                // Check if this listing has an ACTIVE standard lease
+                const hasActiveStandardLease = allLeases.some(
+                    lease => lease.listingId === listing.id && lease.leaseStatus === "ACTIVE"
+                );
+                // Check if this listing has a DRAFT standard lease
+                const hasDraftStandardLease = allLeases.some(
+                    lease => lease.listingId === listing.id && lease.leaseStatus === "DRAFT"
+                );
+                // Check if this listing has an ACTIVE custom lease
+                const hasActiveCustomLease = allCustomLeases.some(
+                    lease => lease.listingId === listing.id && lease.leaseStatus === "ACTIVE"
+                );
+                // Check if this listing has a DRAFT custom lease
+                const hasDraftCustomLease = allCustomLeases.some(
+                    lease => lease.listingId === listing.id && lease.leaseStatus === "DRAFT"
+                );
+                // Only include if no active OR draft leases
+                return !hasActiveStandardLease && !hasDraftStandardLease && 
+                       !hasActiveCustomLease && !hasDraftCustomLease;
+            });
         },
+        enabled: allLeases !== undefined && allCustomLeases !== undefined,
     });
 
     // Filter listings based on search query
@@ -336,20 +383,25 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                 tenantId: null, // Will be set when tenant signs
                 
                 // Parties
-                landlordFullName: `${standardLeaseData.landlordFirstName} ${standardLeaseData.landlordLastName}`,
+                landlordFullName: `${standardLeaseData.landlordFirstName} ${standardLeaseData.landlordLastName}`.trim(),
+                landlordPhone: standardLeaseData.landlordPhone,
+                landlordEmail: standardLeaseData.landlordEmail,
                 additionalLandlords: standardLeaseData.landlord2LastName ? [{
                     firstName: standardLeaseData.landlord2FirstName,
                     lastName: standardLeaseData.landlord2LastName
                 }] : [],
-                tenantFullName: `${standardLeaseData.tenantFirstName} ${standardLeaseData.tenantLastName}`,
+                tenantFullName: `${standardLeaseData.tenantFirstName} ${standardLeaseData.tenantLastName}`.trim(),
                 tenantEmail: standardLeaseData.tenantEmail,
                 tenantPhone: standardLeaseData.tenantPhone,
+                tenantOtherPhone: standardLeaseData.tenantOtherPhone,
+                tenantOtherEmail: standardLeaseData.tenantOtherEmail,
                 additionalTenants: standardLeaseData.tenant2LastName ? [{
                     firstName: standardLeaseData.tenant2FirstName,
                     lastName: standardLeaseData.tenant2LastName
                 }] : [],
                 
                 // Address
+                unitNumber: standardLeaseData.unitNumber,
                 propertyAddress: standardLeaseData.streetAddress,
                 propertyCity: standardLeaseData.city,
                 propertyState: standardLeaseData.province,
@@ -361,7 +413,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                     ? new Date(`${standardLeaseData.fixedEndYear}-${standardLeaseData.fixedEndMonth.padStart(2, '0')}-${standardLeaseData.fixedEndDay.padStart(2, '0')}`)
                     : new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Default 1 year for month-to-month
                 leaseTermType: standardLeaseData.tenancyType === "month-to-month" ? "MONTH_TO_MONTH" : 
-                               standardLeaseData.tenancyType === "other-periodic" ? "PERIODIC" : "FIXED_TERM",
+                               standardLeaseData.tenancyType === "other-periodic" ? "YEAR_TO_YEAR" : "LONG_TERM",
                 periodicBasis: standardLeaseData.periodicBasis,
                 periodicOther: standardLeaseData.periodicOther,
                 fixedEndCondition: standardLeaseData.fixedEndCondition,
@@ -389,6 +441,10 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                 
                 leaseStatus: "DRAFT",
             };
+
+            console.log('🚀 Sending lease data to backend:');
+            console.log('unitNumber:', leaseData.unitNumber, '| Type:', typeof leaseData.unitNumber);
+            console.log('Full leaseData:', leaseData);
 
             const response = await api.post(API_ENDPOINTS.LEASES.BASE, leaseData);
             

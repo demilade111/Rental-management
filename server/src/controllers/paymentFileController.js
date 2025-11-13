@@ -28,13 +28,13 @@ export async function getPaymentReceiptUploadUrl(req, res) {
     const key = `payment-receipts/${timestamp}-${sanitizedFileName}`;
 
     const command = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET,
       Key: key,
       ContentType: fileType,
     });
 
     const uploadURL = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-    const fileUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
     res.status(200).json({
       success: true,
@@ -72,7 +72,7 @@ export async function getPaymentReceiptDownloadUrl(req, res) {
     const key = url.pathname.substring(1); // Remove leading slash
 
     const command = new GetObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET,
       Key: key,
     });
 

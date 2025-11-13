@@ -20,15 +20,53 @@ export default function SignLeasePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAlreadySigned, setIsAlreadySigned] = useState(false);
     const [isLoadingInvite, setIsLoadingInvite] = useState(true);
+    const [leaseInfo, setLeaseInfo] = useState(null);
+    const [signedPdfUrl, setSignedPdfUrl] = useState(null);
 
-    // Check if lease is already signed
+    // Fetch lease info and check if already signed
     useEffect(() => {
-        const checkLeaseStatus = async () => {
+        const fetchLeaseInfo = async () => {
             try {
                 const res = await api.get(`${API_ENDPOINTS.LEASES_INVITE.BASE}/invite/${token}`);
-                if (res.data.invite?.signed) {
+                const invite = res.data.invite;
+                
+                if (invite?.signed) {
                     setIsAlreadySigned(true);
+                    setIsLoadingInvite(false);
+                    return;
                 }
+                
+                setLeaseInfo(invite);
+                
+                // Get the PDF URL based on lease type
+                let pdfUrl = null;
+                if (invite.leaseType === "CUSTOM" && invite.lease?.fileUrl) {
+                    pdfUrl = invite.lease.fileUrl;
+                } else if (invite.leaseType === "STANDARD" && invite.lease?.contractPdfUrl) {
+                    pdfUrl = invite.lease.contractPdfUrl;
+                }
+                
+                // If we have a PDF URL, get signed URL if it's S3
+                if (pdfUrl) {
+                    try {
+                        const url = new URL(pdfUrl);
+                        const isS3 = url.hostname.includes('s3.') || url.hostname.includes('amazonaws.com');
+                        
+                        if (isS3) {
+                            const key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+                            const signedRes = await api.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-download-url`, { 
+                                params: { key } 
+                            });
+                            setSignedPdfUrl(signedRes.data?.data?.downloadURL || signedRes.data?.downloadURL);
+                        } else {
+                            setSignedPdfUrl(pdfUrl);
+                        }
+                    } catch (urlError) {
+                        // Not a valid URL, use directly
+                        setSignedPdfUrl(pdfUrl);
+                    }
+                }
+                
             } catch (err) {
                 // If error is about already signed, show that message
                 if (err.response?.data?.message?.includes("already been signed")) {
@@ -42,7 +80,7 @@ export default function SignLeasePage() {
         };
 
         if (token) {
-            checkLeaseStatus();
+            fetchLeaseInfo();
         }
     }, [token]);
 
@@ -126,17 +164,43 @@ export default function SignLeasePage() {
 
     return (
         <div className="min-h-screen w-full flex flex-col items-center py-8 px-4">
+            {/* Lease Info Header */}
+            {leaseInfo && (
+                <div className="w-full max-w-3xl mb-4 bg-white rounded-lg border shadow-sm p-4">
+                    <h2 className="text-xl font-bold mb-2">
+                        {leaseInfo.leaseType === "CUSTOM" ? "Custom Lease Agreement" : "Standard Lease Agreement (BC RTB-1)"}
+                    </h2>
+                    {leaseInfo.lease && (
+                        <div className="text-sm text-gray-600 space-y-1">
+                            <p><span className="font-semibold">Rent:</span> ${leaseInfo.lease.rentAmount?.toLocaleString() || "N/A"}/month</p>
+                            {leaseInfo.lease.startDate && (
+                                <p><span className="font-semibold">Start Date:</span> {new Date(leaseInfo.lease.startDate).toLocaleDateString()}</p>
+                            )}
+                            {leaseInfo.lease.endDate && (
+                                <p><span className="font-semibold">End Date:</span> {new Date(leaseInfo.lease.endDate).toLocaleDateString()}</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* PDF Viewer */}
             <div className="w-full max-w-3xl h-[600px] bg-gray-200 rounded border shadow mb-6 overflow-hidden">
-                <iframe
-                    src="/lease-agreement-sample.pdf"
-                    className="w-full h-full"
-                    title="Lease Agreement"
-                    onLoad={() => setPdfLoaded(true)}
-                />
+                {signedPdfUrl ? (
+                    <iframe
+                        src={signedPdfUrl}
+                        className="w-full h-full"
+                        title={leaseInfo?.leaseType === "CUSTOM" ? "Custom Lease Agreement" : "Standard Lease Agreement (BC RTB-1)"}
+                        onLoad={() => setPdfLoaded(true)}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <p className="text-gray-500">Loading lease document...</p>
+                    </div>
+                )}
             </div>
 
-            {!pdfLoaded && (
+            {signedPdfUrl && !pdfLoaded && (
                 <p className="text-sm text-gray-500 mb-4">Loading lease document...</p>
             )}
 

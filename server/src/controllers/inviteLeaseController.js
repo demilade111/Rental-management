@@ -44,13 +44,34 @@ export const getLeaseInviteController = async (req, res) => {
 
         let lease;
         if (invite.leaseType === "CUSTOM") {
-            lease = await prisma.customLease.findUnique({ where: { id: invite.leaseId } });
+            lease = await prisma.customLease.findUnique({ 
+                where: { id: invite.leaseId },
+                select: {
+                    id: true,
+                    leaseName: true,
+                    fileUrl: true,
+                    leaseStatus: true,
+                    startDate: true,
+                    endDate: true,
+                    rentAmount: true,
+                }
+            });
         } else {
-            lease = await prisma.lease.findUnique({ where: { id: invite.leaseId } });
+            lease = await prisma.lease.findUnique({ 
+                where: { id: invite.leaseId },
+                select: {
+                    id: true,
+                    contractPdfUrl: true,
+                    leaseStatus: true,
+                    startDate: true,
+                    endDate: true,
+                    rentAmount: true,
+                }
+            });
         }
 
-        // Return invite and lease data even if already signed (so frontend can check status)
-        res.json({ invite, lease });
+        // Return invite and lease data (including PDF URLs)
+        res.json({ invite: { ...invite, lease }, lease });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Error fetching lease invite" });
@@ -111,12 +132,44 @@ export const signLeaseController = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Check if tenant already has an active lease (standard or custom)
+        const existingStandardLease = await prisma.lease.findFirst({
+            where: { 
+                tenantId: userId, 
+                leaseStatus: "ACTIVE",
+                endDate: { gte: new Date() } // Lease hasn't ended yet
+            },
+        });
+
+        const existingCustomLease = await prisma.customLease.findFirst({
+            where: { 
+                tenantId: userId, 
+                leaseStatus: "ACTIVE",
+                endDate: { gte: new Date() } // Lease hasn't ended yet
+            },
+        });
+
+        if (existingStandardLease || existingCustomLease) {
+            return res.status(400).json({ 
+                message: "You already have an active lease. You cannot sign another lease until your current lease ends or is terminated.",
+                existingLeaseId: existingStandardLease?.id || existingCustomLease?.id
+            });
+        }
+
         // Fetch the correct lease type
         let leaseModel =
             invite.leaseType === "CUSTOM" ? prisma.customLease : prisma.lease;
 
         const lease = await leaseModel.findUnique({
             where: { id: invite.leaseId },
+            include: {
+                listing: {
+                    include: {
+                        landlord: true
+                    }
+                },
+                landlord: true
+            }
         });
 
         if (!lease) return res.status(404).json({ message: "Lease not found" });
@@ -128,13 +181,67 @@ export const signLeaseController = async (req, res) => {
         });
 
         // Update lease (attach tenant + activate)
-        await leaseModel.update({
+        const updatedLease = await leaseModel.update({
             where: { id: invite.leaseId },
             data: {
                 tenantId: userId,
                 leaseStatus: "ACTIVE",
             },
         });
+
+        // For standard leases, regenerate the PDF with tenant information if not already present
+        if (invite.leaseType !== "CUSTOM" && (!lease.contractPdfUrl || lease.contractPdfUrl === null)) {
+            try {
+                const { generateLeaseContractPDF } = await import('../services/pdfGenerationService.js');
+                
+                const tenantFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                const landlordFullName = `${lease.landlord?.firstName || ''} ${lease.landlord?.lastName || ''}`.trim();
+                
+                const contractPdfUrl = await generateLeaseContractPDF({
+                    unitNumber: lease.unitNumber,
+                    propertyAddress: lease.propertyAddress || lease.listing?.streetAddress,
+                    propertyCity: lease.propertyCity || lease.listing?.city,
+                    propertyState: lease.propertyState || lease.listing?.state,
+                    propertyZipCode: lease.propertyZipCode || lease.listing?.zipCode,
+                    landlordFullName: lease.landlordFullName || landlordFullName,
+                    landlordAddress: lease.landlordAddress,
+                    landlordPhone: lease.landlordPhone || lease.landlord?.phone,
+                    landlordEmail: lease.landlordEmail || lease.landlord?.email,
+                    tenantFullName: lease.tenantFullName || tenantFullName,
+                    tenantPhone: lease.tenantPhone || user.phone,
+                    tenantEmail: lease.tenantEmail || user.email,
+                    tenantOtherPhone: lease.tenantOtherPhone,
+                    tenantOtherEmail: lease.tenantOtherEmail,
+                    startDate: lease.startDate,
+                    endDate: lease.endDate,
+                    rentAmount: lease.rentAmount,
+                    paymentFrequency: lease.paymentFrequency,
+                    paymentDay: lease.paymentDay,
+                    securityDeposit: lease.securityDeposit,
+                    securityDepositDueDate: lease.securityDepositDueDate,
+                    petDeposit: lease.petDeposit,
+                    petDepositDueDate: lease.petDepositDueDate,
+                    parkingSpaces: lease.parkingSpaces,
+                    includedServices: lease.includedServices,
+                    leaseTermType: lease.leaseTermType,
+                    periodicBasis: lease.periodicBasis,
+                    periodicOther: lease.periodicOther,
+                    fixedEndCondition: lease.fixedEndCondition,
+                    vacateReason: lease.vacateReason,
+                });
+
+                // Update lease with the PDF URL
+                await leaseModel.update({
+                    where: { id: invite.leaseId },
+                    data: { contractPdfUrl },
+                });
+
+                console.log('Contract PDF generated after signing:', contractPdfUrl);
+            } catch (pdfError) {
+                console.error('Failed to generate contract PDF after signing:', pdfError);
+                // Continue without PDF - don't fail the signing process
+            }
+        }
 
         // Update the associated listing status to RENTED
         if (lease.listingId) {
@@ -144,7 +251,7 @@ export const signLeaseController = async (req, res) => {
             });
         }
 
-        res.json({ message: "Lease signed successfully", lease });
+        res.json({ message: "Lease signed successfully", lease: updatedLease });
     } catch (err) {
         console.error("Error signing lease:", err);
         res.status(500).json({ message: "Error signing lease", error: err.message });

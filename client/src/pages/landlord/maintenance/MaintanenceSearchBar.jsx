@@ -74,12 +74,12 @@ export default function MaintenanceSearchBar({
         <div className="flex flex-col gap-3 mb-6">
 
             {/* Top Row */}
-            <div className="flex flex-col md:flex-row gap-3 md:justify-between items-center">
+            <div className="flex flex-col md:flex-row gap-3 md:justify-between items-start md:items-center">
 
                 {/* Search + Filter + Chips */}
-                <div className="flex gap-3 flex-1 md:max-w-md items-center flex-wrap">
+                <div className="flex flex-col md:flex-row gap-3 flex-1 w-full">
                     {/* Search */}
-                    <div className="relative flex-1 min-w-[200px]">
+                    <div className="relative w-full md:w-80">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input
                             type="text"
@@ -90,41 +90,44 @@ export default function MaintenanceSearchBar({
                         />
                     </div>
 
-                    {/* Filter */}
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="border-gray-200"
-                        onClick={() => {
-                            // Clear any active chips when opening modal
-                            resetChipsToDefault();
-                            // initialize from current filters
-                            const cf = currentFilters || {};
-                            setPriority(cf.priority || "");
-                            setCategory(cf.category || "");
-                            setOpen(true);
-                        }}
-                    >
-                        <SlidersHorizontal className="w-4 h-4" />
-                    </Button>
+                    {/* Filter + Chips on one line */}
+                    <div className="flex gap-2 items-center flex-nowrap overflow-x-auto">
+                        {/* Filter */}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-gray-200 flex-shrink-0"
+                            onClick={() => {
+                                // Clear any active chips when opening modal
+                                resetChipsToDefault();
+                                // initialize from current filters
+                                const cf = currentFilters || {};
+                                setPriority(cf.priority || "");
+                                setCategory(cf.category || "");
+                                setOpen(true);
+                            }}
+                        >
+                            <SlidersHorizontal className="w-4 h-4" />
+                        </Button>
 
-                    {/* Toggle Chips */}
-                    {["Today", "Requests in 7 days", "Requests in 30 days"].map((label) => {
-                        const active = activeChips.has(label);
-                        return (
-                            <Badge
-                                key={label}
-                                variant={active ? "default" : "secondary"}
-                                className={`px-3 py-2 cursor-pointer ${active ? "bg-gray-900 text-white" : ""}`}
-                                onClick={() => {
-                                    // toggling a chip calls onFilter for chip only
-                                    toggleChip(label);
-                                }}
-                            >
-                                {label}
-                            </Badge>
-                        );
-                    })}
+                        {/* Toggle Chips */}
+                        {["Today", "Requests in 7 days", "Requests in 30 days"].map((label) => {
+                            const active = activeChips.has(label);
+                            return (
+                                <Badge
+                                    key={label}
+                                    variant={active ? "default" : "secondary"}
+                                    className={`px-3 py-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${active ? "bg-gray-900 text-white" : ""}`}
+                                    onClick={() => {
+                                        // toggling a chip calls onFilter for chip only
+                                        toggleChip(label);
+                                    }}
+                                >
+                                    {label}
+                                </Badge>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Right side button */}

@@ -4,6 +4,89 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+/*
+==========================================
+🏠 RENTAL MANAGEMENT SEED DATA GUIDE
+==========================================
+
+📊 OVERVIEW:
+This file creates realistic demo data for the rental management system.
+All passwords are: "password123"
+
+⚡ QUICK REFERENCE - CRITICAL RULES:
+┌────────────────────────────────────────────────────────┐
+│ APPLICATIONS:                                          │
+│  ✓ PENDING = tenantId NULL (no account, shows N/A)   │
+│  ✓ NEW/APPROVED/REJECTED = tenantId assigned         │
+│                                                        │
+│ LEASES:                                                │
+│  ✓ DRAFT = tenantId NULL (shows "No tenant assigned")│
+│  ✓ ACTIVE = tenantId assigned (tenant signed)        │
+│  ✓ One tenant = ONE ACTIVE lease maximum             │
+│  ✓ One listing = ONE lease maximum                   │
+│                                                        │
+│ TENANT WITH ACTIVE LEASE:                              │
+│  ⚠️ CANNOT sign another lease (backend blocks it)     │
+│  ⚠️ Can still apply (for testing edge cases)          │
+└────────────────────────────────────────────────────────┘
+
+👥 USERS:
+- 3 Landlords (ADMIN role)
+- 5 Tenants (TENANT role)
+  • 3 tenants WITH active leases (Jane, Mike, Emma)
+  • 2 tenants WITHOUT leases (Alex, Sophia) - for application testing
+
+🏠 LISTINGS:
+- 20 properties with unique images
+- Mix of apartments, houses, condos
+- Different landlords own different properties
+
+📋 APPLICATIONS (Application Status Flow):
+┌─────────┐     ┌─────────┐     ┌──────────┐     ┌──────────┐
+│ PENDING │ →   │   NEW   │ →   │ APPROVED │ →   │  Lease   │
+└─────────┘     └─────────┘     └──────────┘     │  Signed  │
+    ↓                 ↓               ↓           └──────────┘
+No tenant        Has tenant     Ready to send      ACTIVE
+account          assigned        lease to          Lease
+                                 tenant
+    
+⚠️ KEY RULES:
+- PENDING: tenantId = NULL (unassigned, no account)
+- NEW/APPROVED/REJECTED: tenantId assigned
+- If tenant has ACTIVE lease: CANNOT sign another lease
+
+📜 LEASES (Standard & Custom):
+┌──────────┐     ┌──────────┐     ┌─────────┐
+│  DRAFT   │ →   │  Sent to │ →   │ ACTIVE  │
+│  Created │     │  Tenant  │     │ Signed  │
+└──────────┘     └──────────┘     └─────────┘
+
+⚠️ CRITICAL RULES:
+1. One listing = ONE lease max (standard OR custom, not both)
+2. One tenant = ONE ACTIVE lease max at a time (enforced in backend)
+3. Tenants can have multiple DRAFT leases (not signed yet)
+4. ACTIVE lease → listing status becomes "RENTED"
+5. DRAFT lease → listing status remains "ACTIVE"
+6. If tenant tries to sign 2nd lease → Backend returns error
+
+💰 PAYMENTS:
+- Automatically generated for ACTIVE leases
+- Monthly rent payments
+- Some maintenance-related payments
+
+🔧 MAINTENANCE:
+- Various priority levels
+- Different statuses (OPEN, IN_PROGRESS, COMPLETED)
+- Some have invoices linked
+
+🧾 INVOICES:
+- Linked to maintenance requests
+- Create corresponding MAINTENANCE payments
+- Status synced with payments
+
+==========================================
+*/
+
 async function main() {
   console.log("Starting database seeding...\n");
 
@@ -25,7 +108,7 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash("password123", 10);
 
-  console.log("👥 Creating users (20 tenants + 3 landlords)...");
+  console.log("👥 Creating users (5 tenants + 3 landlords)...");
 
   const landlord1 = await prisma.user.create({
     data: {
@@ -63,29 +146,16 @@ async function main() {
     },
   });
 
-  // Create 20 tenants
+  // Create tenants: 3 with active leases + 2 without leases (for applications)
   const tenants = [];
   const tenantData = [
-    { email: "tenant@test.com", firstName: "Jane", lastName: "Tenant", img: 1 },
-    { email: "mike.renter@test.com", firstName: "Mike", lastName: "Renter", img: 15 },
-    { email: "emma.wilson@test.com", firstName: "Emma", lastName: "Wilson", img: 9 },
-    { email: "alex.chen@test.com", firstName: "Alex", lastName: "Chen", img: 33 },
-    { email: "lisa.martinez@test.com", firstName: "Lisa", lastName: "Martinez", img: 10 },
-    { email: "robert.johnson@test.com", firstName: "Robert", lastName: "Johnson", img: 52 },
-    { email: "sophia.brown@test.com", firstName: "Sophia", lastName: "Brown", img: 23 },
-    { email: "james.davis@test.com", firstName: "James", lastName: "Davis", img: 51 },
-    { email: "olivia.taylor@test.com", firstName: "Olivia", lastName: "Taylor", img: 25 },
-    { email: "william.anderson@test.com", firstName: "William", lastName: "Anderson", img: 32 },
-    { email: "ava.thomas@test.com", firstName: "Ava", lastName: "Thomas", img: 16 },
-    { email: "noah.jackson@test.com", firstName: "Noah", lastName: "Jackson", img: 60 },
-    { email: "isabella.white@test.com", firstName: "Isabella", lastName: "White", img: 44 },
-    { email: "ethan.harris@test.com", firstName: "Ethan", lastName: "Harris", img: 68 },
-    { email: "mia.clark@test.com", firstName: "Mia", lastName: "Clark", img: 27 },
-    { email: "lucas.lewis@test.com", firstName: "Lucas", lastName: "Lewis", img: 56 },
-    { email: "charlotte.walker@test.com", firstName: "Charlotte", lastName: "Walker", img: 20 },
-    { email: "benjamin.hall@test.com", firstName: "Benjamin", lastName: "Hall", img: 70 },
-    { email: "amelia.allen@test.com", firstName: "Amelia", lastName: "Allen", img: 26 },
-    { email: "henry.young@test.com", firstName: "Henry", lastName: "Young", img: 54 },
+    // Tenants WITH active leases (will NOT appear in applications)
+    { email: "tenant@test.com", firstName: "Jane", lastName: "Tenant", img: 1, hasLease: true },
+    { email: "mike.renter@test.com", firstName: "Mike", lastName: "Renter", img: 15, hasLease: true },
+    { email: "emma.wilson@test.com", firstName: "Emma", lastName: "Wilson", img: 9, hasLease: true },
+    // Tenants WITHOUT active leases (CAN appear in applications)
+    { email: "alex.tenant@test.com", firstName: "Alex", lastName: "Anderson", img: 7, hasLease: false },
+    { email: "sophia.resident@test.com", firstName: "Sophia", lastName: "Chen", img: 10, hasLease: false },
   ];
 
   for (let i = 0; i < tenantData.length; i++) {
@@ -104,6 +174,50 @@ async function main() {
   }
 
   console.log("🏠 Creating 20 listings...");
+
+  // Different property images for each listing type
+  const propertyImages = [
+    // 0 - Modern Apartment
+    ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267", "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"],
+    // 1 - Suburban House
+    ["https://images.unsplash.com/photo-1568605114967-8130f3a36994", "https://images.unsplash.com/photo-1570129477492-45c003edd2be"],
+    // 2 - Luxury Condo
+    ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750"],
+    // 3 - Victorian Townhouse
+    ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"],
+    // 4 - Studio
+    ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688", "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1"],
+    // 5 - Loft
+    ["https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
+    // 6 - Family Home
+    ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
+    // 7 - Beachfront Condo
+    ["https://images.unsplash.com/photo-1600607687920-4e2a09cf159d", "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3"],
+    // 8 - Garden Apartment
+    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1560440021-33f9b867899d"],
+    // 9 - High-rise Condo
+    ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
+    // 10 - Penthouse
+    ["https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea", "https://images.unsplash.com/photo-1600573472592-401b489837a2"],
+    // 11 - Cottage
+    ["https://images.unsplash.com/photo-1600585154526-990dced4db0d", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
+    // 12 - Downtown Loft
+    ["https://images.unsplash.com/photo-1600573472550-8090b5e0745e", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb"],
+    // 13 - Townhome
+    ["https://images.unsplash.com/photo-1600585154363-67eb9e2e2099", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
+    // 14 - Ranch House
+    ["https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"],
+    // 15 - Urban Apartment
+    ["https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
+    // 16 - Country Home
+    ["https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6"],
+    // 17 - Modern Loft
+    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1536376072261-38c75010e6c9"],
+    // 18 - Duplex
+    ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"],
+    // 19 - Executive Suite
+    ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"],
+  ];
 
   const listings = [];
   const listingData = [
@@ -329,7 +443,8 @@ async function main() {
     },
   ];
 
-  for (const data of listingData) {
+  for (let i = 0; i < listingData.length; i++) {
+    const data = listingData[i];
     const listing = await prisma.listing.create({
       data: {
         landlordId: data.landlord.id,
@@ -360,8 +475,8 @@ async function main() {
         },
         images: {
           create: [
-            { url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267", isPrimary: true },
-            { url: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2", isPrimary: false },
+            { url: propertyImages[i][0], isPrimary: true },
+            { url: propertyImages[i][1], isPrimary: false },
           ],
         },
       },
@@ -369,66 +484,340 @@ async function main() {
     listings.push(listing);
   }
 
-  console.log("📋 Creating 20+ applications...");
+  console.log("📋 Creating applications for different test scenarios...");
 
   const applications = [];
-  const applicationStatuses = ["NEW", "PENDING", "APPROVED", "REJECTED"];
   
-  for (let i = 0; i < 20; i++) {
-    const tenant = tenants[i];
-    const listing = listings[i % listings.length];
-    const status = applicationStatuses[Math.floor(Math.random() * applicationStatuses.length)];
-    const daysAgo = Math.floor(Math.random() * 60) + 1;
-    const publicId = `APP-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+  /*
+  ==========================================
+  📋 APPLICATION SCENARIOS FOR TESTING
+  ==========================================
+  
+  ⚠️ CRITICAL BUSINESS RULES:
+  
+  1️⃣ PENDING Applications (NOT Assigned):
+     ✓ tenantId = NULL (no tenant account)
+     ✓ fullName = "N/A" or null (no applicant info)
+     ✓ email/phone = N/A or null
+     ✓ Represents: Application link sent but not submitted yet
+     ✓ Landlord cannot send lease until tenant submits and registers
+  
+  2️⃣ NEW Applications (Assigned):
+     ✓ tenantId = Specific tenant ID
+     ✓ Represents: Registered tenant submitted application
+     ✓ Landlord can approve/reject
+  
+  3️⃣ APPROVED Applications (Assigned):
+     ✓ tenantId = Specific tenant ID
+     ✓ Ready to create and send lease
+     ✓ Tenant can sign lease ONLY if they don't have an active one
+  
+  4️⃣ REJECTED Applications (Assigned):
+     ✓ tenantId = Specific tenant ID
+     ✓ Application declined by landlord
+  
+  5️⃣ Tenant with ACTIVE Lease:
+     ⚠️ Should NOT appear in applications (business rule)
+     ⚠️ In TEST data: We use separate tenants without leases (Alex, Sophia)
+     ⚠️ Backend BLOCKS signing: Returns error if tenant has active lease
+     ⚠️ Tenants Jane, Mike, Emma have active leases → NOT in applications
+  
+  6️⃣ Listing with ACTIVE Lease:
+     ❌ Applications are HIDDEN from landlord's Applications page
+     ✓ Frontend filters these out automatically
+     ✓ Prevents double-booking
+  
+  ==========================================
+  TEST SCENARIOS BELOW:
+  ==========================================
+  
+  SCENARIO 1: NO LEASE → ✅ VISIBLE
+  - Listings: 6, 11, 12, 13, 14, 15, 16, 17, 18, 19
+  - Applications: Mix of NEW, PENDING, APPROVED, REJECTED
+  - Purpose: Test full application workflow
+  
+  SCENARIO 2: ACTIVE LEASE → ❌ HIDDEN
+  - Standard Leases: Listings 0 (Jane), 3 (Mike)
+  - Custom Leases: Listing 2 (Emma)
+  - Applications: Still exist in DB but hidden from UI
+  - Purpose: Verify filtering logic works
+  
+  SCENARIO 3: DRAFT LEASE → ✅ VISIBLE
+  - Standard: Listings 8, 10 (Emma's drafts)
+  - Custom: Listings 1, 4, 7, 9 (Jane & Mike's drafts)
+  - Applications: Can still receive/send lease
+  - Purpose: Test sending draft leases to approved applicants
+  
+  ==========================================
+  */
+  
+  // SCENARIO 1: Applications for listings WITHOUT any lease (✅ VISIBLE)
+  const noLeaseApplications = [
+    // NEW - Registered tenant WITHOUT active lease applied
+    { tenant: tenants[3], listing: listings[6], status: "NEW" },    // Alex (no active lease)
+    
+    // PENDING - No tenant info (application link sent but not submitted)
+    { tenant: null, listing: listings[11], status: "PENDING" },
+    { tenant: null, listing: listings[12], status: "PENDING" },
+    
+    // APPROVED - Tenants WITHOUT active leases, ready to create and send lease
+    { tenant: tenants[4], listing: listings[13], status: "APPROVED" },  // Sophia (no active lease)
+    { tenant: tenants[3], listing: listings[15], status: "APPROVED" },  // Alex (no active lease)
+    
+    // REJECTED - Application declined
+    { tenant: tenants[4], listing: listings[14], status: "REJECTED" },  // Sophia
+  ];
+
+  for (let i = 0; i < noLeaseApplications.length; i++) {
+    const data = noLeaseApplications[i];
+    const daysAgo = Math.floor(Math.random() * 30) + 1;
+    const publicId = `APP-NOLEASE-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
     
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: tenant.id,
-        landlordId: listing.landlordId,
-        listingId: listing.id,
-        fullName: `${tenant.firstName} ${tenant.lastName}`,
-        email: tenant.email,
-        phone: tenant.phone,
-        moveInDate: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000),
-        currentAddress: `${Math.floor(Math.random() * 9999)} ${["Main", "Oak", "Pine", "Maple", "Cedar"][Math.floor(Math.random() * 5)]} St`,
-        monthlyIncome: Math.floor(Math.random() * 8000) + 4000,
-        status: status,
+        tenantId: data.tenant?.id || null, // null for PENDING status
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
+        email: data.tenant ? data.tenant.email : "N/A",
+        phone: data.tenant ? data.tenant.phone : "N/A",
+        moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Main St` : "N/A",
+        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },
     });
     applications.push(app);
   }
 
-  console.log("📝 Creating 15+ leases...");
+  // SCENARIO 2: Applications for listings WITH ACTIVE standard lease (❌ HIDDEN)
+  // These will be filtered out on frontend but kept in DB for data integrity
+  const activeStandardLeaseApps = [
+    { tenant: null, listing: listings[0], status: "PENDING" },
+    { tenant: tenants[3], listing: listings[3], status: "NEW" },  // Alex (no active lease)
+  ];
+
+  for (let i = 0; i < activeStandardLeaseApps.length; i++) {
+    const data = activeStandardLeaseApps[i];
+    const daysAgo = Math.floor(Math.random() * 30) + 1;
+    const publicId = `APP-ACTIVE-STD-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const app = await prisma.requestApplication.create({
+      data: {
+        publicId: publicId,
+        tenantId: data.tenant?.id || null,
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
+        email: data.tenant ? data.tenant.email : "N/A",
+        phone: data.tenant ? data.tenant.phone : "N/A",
+        moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Oak St` : "N/A",
+        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
+        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      },
+    });
+    applications.push(app);
+  }
+
+  // SCENARIO 3: Applications for listings WITH DRAFT standard lease (✅ VISIBLE)
+  const draftStandardLeaseApps = [
+    { tenant: tenants[4], listing: listings[8], status: "APPROVED" },  // Sophia (no active lease) - Ready to send draft
+    { tenant: null, listing: listings[10], status: "PENDING" },
+  ];
+
+  for (let i = 0; i < draftStandardLeaseApps.length; i++) {
+    const data = draftStandardLeaseApps[i];
+    const daysAgo = Math.floor(Math.random() * 15) + 1;
+    const publicId = `APP-DRAFT-STD-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const app = await prisma.requestApplication.create({
+      data: {
+        publicId: publicId,
+        tenantId: data.tenant?.id || null,
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
+        email: data.tenant ? data.tenant.email : "N/A",
+        phone: data.tenant ? data.tenant.phone : "N/A",
+        moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Elm St` : "N/A",
+        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
+        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      },
+    });
+    applications.push(app);
+  }
+
+  // SCENARIO 4: Applications for listings WITH ACTIVE custom lease (❌ HIDDEN)
+  const activeCustomLeaseApps = [
+    { tenant: null, listing: listings[2], status: "PENDING" },
+    { tenant: tenants[4], listing: listings[2], status: "NEW" },  // Sophia (no active lease)
+  ];
+
+  for (let i = 0; i < activeCustomLeaseApps.length; i++) {
+    const data = activeCustomLeaseApps[i];
+    const daysAgo = Math.floor(Math.random() * 25) + 1;
+    const publicId = `APP-ACTIVE-CUST-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const app = await prisma.requestApplication.create({
+      data: {
+        publicId: publicId,
+        tenantId: data.tenant?.id || null,
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
+        email: data.tenant ? data.tenant.email : "N/A",
+        phone: data.tenant ? data.tenant.phone : "N/A",
+        moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Pine St` : "N/A",
+        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
+        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      },
+    });
+    applications.push(app);
+  }
+
+  // SCENARIO 5: Applications for listings WITH DRAFT custom lease (✅ VISIBLE)
+  const draftCustomLeaseApps = [
+    { tenant: tenants[3], listing: listings[7], status: "APPROVED" },  // Alex (no active lease) - Ready to send draft
+    { tenant: null, listing: listings[9], status: "PENDING" },
+  ];
+
+  for (let i = 0; i < draftCustomLeaseApps.length; i++) {
+    const data = draftCustomLeaseApps[i];
+    const daysAgo = Math.floor(Math.random() * 10) + 1;
+    const publicId = `APP-DRAFT-CUST-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const app = await prisma.requestApplication.create({
+      data: {
+        publicId: publicId,
+        tenantId: data.tenant?.id || null,
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
+        email: data.tenant ? data.tenant.email : "N/A",
+        phone: data.tenant ? data.tenant.phone : "N/A",
+        moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Maple St` : "N/A",
+        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
+        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      },
+    });
+    applications.push(app);
+  }
+
+  // Additional random applications for variety
+  // These use listings without leases (16-19)
+  // Only use tenants WITHOUT active leases
+  const extraApps = [
+    { tenant: tenants[3], listing: listings[16], status: "NEW" },      // Alex
+    { tenant: null, listing: listings[17], status: "PENDING" },
+    { tenant: tenants[4], listing: listings[18], status: "APPROVED" }, // Sophia
+    { tenant: null, listing: listings[19], status: "PENDING" },
+  ];
+
+  for (let i = 0; i < extraApps.length; i++) {
+    const data = extraApps[i];
+    const daysAgo = Math.floor(Math.random() * 40) + 1;
+    const publicId = `APP-EXTRA-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const app = await prisma.requestApplication.create({
+      data: {
+        publicId: publicId,
+        tenantId: data.tenant?.id || null,
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
+        email: data.tenant ? data.tenant.email : "N/A",
+        phone: data.tenant ? data.tenant.phone : "N/A",
+        moveInDate: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000),
+        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Cedar St` : "N/A",
+        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
+        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      },
+    });
+    applications.push(app);
+  }
+
+  console.log("📝 Creating standard leases (1 lease per listing max)...");
 
   const leases = [];
+  /*
+  ==========================================
+  📜 STANDARD LEASE CREATION GUIDE
+  ==========================================
+  
+  ⚠️ KEY BUSINESS RULES:
+  1. One listing = ONE lease maximum (standard OR custom, not both)
+  2. One tenant = ONE ACTIVE lease maximum
+  3. ACTIVE lease = Has tenant assigned, listing status = "RENTED"
+  4. DRAFT lease = NO tenant assigned (tenantId = null), listing status = "ACTIVE"
+  
+  📋 LEASE STATUS WORKFLOW:
+  
+  DRAFT (tenantId = null)
+     ↓
+  Landlord creates lease for listing
+     ↓
+  Landlord sends to approved applicant
+     ↓
+  Tenant signs lease
+     ↓
+  ACTIVE (tenantId assigned)
+  
+  📋 CURRENT ASSIGNMENTS:
+  
+  ACTIVE STANDARD LEASES (2 total):
+  - Listing 0 → Tenant 0 (Jane)   | Started 180 days ago, ends in 180 days
+  - Listing 3 → Tenant 1 (Mike)   | Started 90 days ago, ends in 270 days
+  
+  DRAFT STANDARD LEASES (2 total):
+  - Listing 8  → No tenant (will assign when sent)  | Starts in 15 days
+  - Listing 10 → No tenant (will assign when sent)  | Starts in 20 days
+  
+  📝 TO ADD MORE LEASES:
+  
+  FOR ACTIVE LEASE:
+  { tenant: tenants[X], listing: listings[Y], status: "ACTIVE", startDays: -30, endDays: 335 }
+  - Must specify tenant (who signed the lease)
+  - Ensure tenant doesn't have another ACTIVE lease
+  
+  FOR DRAFT LEASE:
+  { tenant: null, listing: listings[Y], status: "DRAFT", startDays: 15, endDays: 380 }
+  - tenant = null (not assigned yet)
+  - Landlord will assign when sending to approved applicant
+  
+  ==========================================
+  */
   const leaseData = [
-    { tenant: tenants[0], listing: listings[0], status: "ACTIVE", startDays: -180, endDays: 180 },
-    { tenant: tenants[1], listing: listings[3], status: "ACTIVE", startDays: -90, endDays: 270 },
-    { tenant: tenants[2], listing: listings[5], status: "ACTIVE", startDays: -30, endDays: 335 },
-    { tenant: tenants[3], listing: listings[8], status: "ACTIVE", startDays: -120, endDays: 240 },
-    { tenant: tenants[4], listing: listings[10], status: "ACTIVE", startDays: -60, endDays: 305 },
-    { tenant: tenants[5], listing: listings[14], status: "ACTIVE", startDays: -15, endDays: 350 },
-    { tenant: tenants[6], listing: listings[16], status: "ACTIVE", startDays: -200, endDays: 165 },
-    { tenant: tenants[7], listing: listings[18], status: "ACTIVE", startDays: -250, endDays: 115 },
-    { tenant: tenants[8], listing: listings[6], status: "DRAFT", startDays: 30, endDays: 395 },
-    { tenant: tenants[9], listing: listings[9], status: "DRAFT", startDays: 45, endDays: 410 },
-    { tenant: tenants[10], listing: listings[12], status: "DRAFT", startDays: 60, endDays: 425 },
-    { tenant: tenants[11], listing: listings[1], status: "DRAFT", startDays: 90, endDays: 455 },
-    { tenant: tenants[12], listing: listings[4], status: "ACTIVE", startDays: -340, endDays: 25 },
-    { tenant: tenants[13], listing: listings[7], status: "ACTIVE", startDays: -320, endDays: 45 },
-    { tenant: tenants[14], listing: listings[11], status: "ACTIVE", startDays: -300, endDays: 65 },
+    // ✅ ACTIVE STANDARD LEASES (Tenant assigned after signing)
+    { tenant: tenants[0], listing: listings[0], status: "ACTIVE", startDays: -180, endDays: 180 },  // Jane signed
+    { tenant: tenants[1], listing: listings[3], status: "ACTIVE", startDays: -90, endDays: 270 },   // Mike signed
+    
+    // 📝 DRAFT STANDARD LEASES (No tenant assigned yet - will assign when sent)
+    { tenant: null, listing: listings[8], status: "DRAFT", startDays: 15, endDays: 380 },   // Not assigned
+    { tenant: null, listing: listings[10], status: "DRAFT", startDays: 20, endDays: 385 },  // Not assigned
   ];
 
   for (const data of leaseData) {
     const startDate = new Date(Date.now() + data.startDays * 24 * 60 * 60 * 1000);
     const endDate = new Date(Date.now() + data.endDays * 24 * 60 * 60 * 1000);
     
+    // Get landlord info
+    const landlord = await prisma.user.findUnique({ where: { id: data.listing.landlordId } });
+    
     const lease = await prisma.lease.create({
       data: {
         listing: { connect: { id: data.listing.id } },
-        tenant: { connect: { id: data.tenant.id } },
+        ...(data.tenant ? { tenant: { connect: { id: data.tenant.id } } } : {}),
         landlord: { connect: { id: data.listing.landlordId } },
         leaseStatus: data.status,
         startDate: startDate,
@@ -436,30 +825,110 @@ async function main() {
         rentAmount: data.listing.rentAmount,
         paymentFrequency: data.listing.rentCycle,
         securityDeposit: data.listing.securityDeposit,
+        securityDepositDueDate: startDate,
+        paymentDay: 1,
+        petDeposit: null,
+        petDepositDueDate: null,
+        parkingSpaces: 1,
+        includedServices: ["Water", "Garbage Collection"],
+        // Add required fields for standard lease
+        landlordFullName: `${landlord.firstName} ${landlord.lastName}`,
+        landlordEmail: landlord.email,
+        landlordPhone: landlord.phone,
+        landlordAddress: `${data.listing.streetAddress}, ${data.listing.city}, ${data.listing.state}`,
+        tenantFullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : null,
+        tenantEmail: data.tenant?.email || null,
+        tenantPhone: data.tenant?.phone || null,
+        tenantOtherPhone: null,
+        tenantOtherEmail: null,
+        additionalTenants: [],
+        additionalLandlords: [],
+        unitNumber: data.listing.aptUnit || `${Math.floor(Math.random() * 500) + 100}`,
+        propertyAddress: data.listing.streetAddress,
+        propertyCity: data.listing.city,
+        propertyState: data.listing.state,
+        propertyZipCode: data.listing.zipCode,
+        leaseTermType: "LONG_TERM",
+        periodicBasis: null,
+        periodicOther: null,
+        fixedEndCondition: "continues",
+        vacateReason: null,
+        // contractPdfUrl will be null for now (can be generated later)
+        contractPdfUrl: null,
       },
     });
     leases.push(lease);
+    
+    // Update listing status to RENTED for ACTIVE leases
+    if (data.status === "ACTIVE") {
+      await prisma.listing.update({
+        where: { id: data.listing.id },
+        data: { status: "RENTED" },
+      });
+    }
   }
 
-  console.log("📑 Creating 15+ custom leases...");
+  console.log("📑 Creating custom leases (1 lease per listing max, no overlap with standard)...");
 
   const customLeases = [];
+  /*
+  ==========================================
+  📄 CUSTOM LEASE CREATION GUIDE
+  ==========================================
+  
+  ⚠️ KEY BUSINESS RULES:
+  1. One listing = ONE lease maximum (standard OR custom, not both)
+  2. One tenant = ONE ACTIVE lease maximum (standard OR custom)
+  3. ACTIVE lease = Has tenant assigned, listing status = "RENTED"
+  4. DRAFT lease = NO tenant assigned (tenantId = null), listing status = "ACTIVE"
+  5. Custom lease uses uploaded PDF (fileUrl) instead of generated contract
+  
+  📋 LEASE STATUS WORKFLOW:
+  
+  DRAFT (tenantId = null)
+     ↓
+  Landlord creates custom lease with PDF
+     ↓
+  Landlord sends to approved applicant
+     ↓
+  Tenant signs lease
+     ↓
+  ACTIVE (tenantId assigned)
+  
+  📋 CURRENT ASSIGNMENTS:
+  
+  ACTIVE CUSTOM LEASES (1 total):
+  - Listing 2 → Tenant 2 (Emma)  | Started 90 days ago, 12-month lease
+  
+  DRAFT CUSTOM LEASES (4 total):
+  - Listing 1 → No tenant (will assign when sent)  | Starts in 30 days
+  - Listing 4 → No tenant (will assign when sent)  | Starts in 45 days
+  - Listing 7 → No tenant (will assign when sent)  | Starts in 15 days
+  - Listing 9 → No tenant (will assign when sent)  | Starts in 30 days
+  
+  📝 TO ADD MORE LEASES:
+  
+  FOR ACTIVE LEASE:
+  { tenant: tenants[X], listing: listings[Y], status: "ACTIVE", startDays: -30, months: 12, rent: 2500 }
+  - Must specify tenant (who signed the lease)
+  - Ensure tenant doesn't have another ACTIVE lease
+  
+  FOR DRAFT LEASE:
+  { tenant: null, listing: listings[Y], status: "DRAFT", startDays: 30, months: 12, rent: 2500 }
+  - tenant = null (not assigned yet)
+  - Landlord will assign when sending to approved applicant
+  
+  ==========================================
+  */
   const customLeaseData = [
-    { tenant: tenants[15], listing: listings[2], status: "ACTIVE", startDays: -60, months: 12, rent: 4800 },
-    { tenant: tenants[16], listing: listings[13], status: "DRAFT", startDays: 15, months: 12, rent: 4200 },
-    { tenant: tenants[17], listing: listings[15], status: "DRAFT", startDays: 30, months: 6, rent: 3500 },
-    { tenant: tenants[18], listing: listings[17], status: "ACTIVE", startDays: -120, months: 12, rent: 5800 },
-    { tenant: tenants[19], listing: listings[19], status: "ACTIVE", startDays: -30, months: 12, rent: 4100 },
-    { tenant: tenants[0], listing: listings[2], status: "DRAFT", startDays: 60, months: 6, rent: 4800 },
-    { tenant: tenants[1], listing: listings[4], status: "DRAFT", startDays: 20, months: 12, rent: 2200 },
-    { tenant: tenants[2], listing: listings[7], status: "ACTIVE", startDays: -90, months: 24, rent: 7500 },
-    { tenant: tenants[3], listing: listings[9], status: "ACTIVE", startDays: -45, months: 12, rent: 2800 },
-    { tenant: tenants[4], listing: listings[11], status: "ACTIVE", startDays: -180, months: 18, rent: 5000 },
-    { tenant: tenants[5], listing: listings[13], status: "DRAFT", startDays: 45, months: 12, rent: 4200 },
-    { tenant: tenants[6], listing: listings[15], status: "DRAFT", startDays: 10, months: 12, rent: 3500 },
-    { tenant: tenants[7], listing: listings[17], status: "ACTIVE", startDays: -210, months: 12, rent: 5800 },
-    { tenant: tenants[8], listing: listings[19], status: "ACTIVE", startDays: -75, months: 12, rent: 4100 },
-    { tenant: tenants[9], listing: listings[1], status: "ACTIVE", startDays: -150, months: 12, rent: 4200 },
+    // ✅ ACTIVE CUSTOM LEASE (Tenant assigned after signing)
+    { tenant: tenants[2], listing: listings[2], status: "ACTIVE", startDays: -90, months: 12, rent: 4800 }, // Emma signed
+    
+    // 📝 DRAFT CUSTOM LEASES (No tenant assigned yet)
+    { tenant: null, listing: listings[1], status: "DRAFT", startDays: 30, months: 12, rent: 4200 },
+    { tenant: null, listing: listings[4], status: "DRAFT", startDays: 45, months: 24, rent: 2200 },
+    { tenant: null, listing: listings[7], status: "DRAFT", startDays: 15, months: 12, rent: 7500 },
+    { tenant: null, listing: listings[9], status: "DRAFT", startDays: 30, months: 12, rent: 2800 },
   ];
 
   for (const data of customLeaseData) {
@@ -469,7 +938,7 @@ async function main() {
     const customLease = await prisma.customLease.create({
       data: {
         listing: { connect: { id: data.listing.id } },
-        tenant: { connect: { id: data.tenant.id } },
+        ...(data.tenant ? { tenant: { connect: { id: data.tenant.id } } } : {}),
         landlord: { connect: { id: data.listing.landlordId } },
         leaseName: `Custom Lease - ${data.listing.title}`,
         leaseStatus: data.status,
@@ -481,10 +950,18 @@ async function main() {
         securityDeposit: data.rent,
         depositAmount: data.rent,
         paymentMethod: ["BANK_TRANSFER", "CHECK", "CASH"][Math.floor(Math.random() * 3)],
-        fileUrl: `/leases/custom-lease-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.pdf`,
+        fileUrl: `/lease-agreement-sample.pdf`, // Reference to public folder PDF
       },
     });
     customLeases.push(customLease);
+    
+    // Update listing status to RENTED for ACTIVE custom leases
+    if (data.status === "ACTIVE") {
+      await prisma.listing.update({
+        where: { id: data.listing.id },
+        data: { status: "RENTED" },
+      });
+    }
   }
 
   console.log("💰 Creating 40+ payments...");
@@ -617,9 +1094,38 @@ async function main() {
 
   const maintenanceStatuses = ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
   
-  for (let i = 0; i < 25; i++) {
+  // Create 3 maintenance requests specifically for DEMO TENANT (tenants[0] - tenant@test.com)
+  // These will show in tenant's dashboard and maintenance view
+  const demoTenantMaintenance = [
+    { title: "Air Conditioning Not Cooling", desc: "AC not working properly in bedroom. Need urgent repair.", priority: "HIGH", category: "HVAC", status: "OPEN", daysAgo: 2 },
+    { title: "Kitchen Sink Leak", desc: "Small leak under kitchen sink. Water dripping slowly.", priority: "MEDIUM", category: "PLUMBING", status: "IN_PROGRESS", daysAgo: 7 },
+    { title: "Broken Light Fixture", desc: "Light fixture in living room stopped working.", priority: "LOW", category: "ELECTRICAL", status: "COMPLETED", daysAgo: 15 },
+  ];
+
+  // Find the demo tenant's lease listing (listings[2])
+  const demoListing = listings[2];
+  
+  for (const issue of demoTenantMaintenance) {
+    const createdDate = new Date(Date.now() - issue.daysAgo * 24 * 60 * 60 * 1000);
+    await prisma.maintenanceRequest.create({
+      data: {
+        listingId: demoListing.id,
+        userId: tenants[0].id, // Request submitted BY tenant
+        title: issue.title,
+        description: issue.desc,
+        priority: issue.priority,
+        category: issue.category,
+        status: issue.status,
+        createdAt: createdDate,
+        updatedAt: issue.status === "COMPLETED" ? new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000) : createdDate,
+      },
+    });
+  }
+  
+  // Create remaining maintenance requests (for other listings)
+  for (let i = 0; i < 22; i++) {
     const issue = maintenanceIssues[i];
-    const listing = listings[i % listings.length];
+    const listing = listings[(i + 3) % listings.length]; // Skip listings[0,1,2] to avoid conflicts
     const status = maintenanceStatuses[Math.floor(Math.random() * maintenanceStatuses.length)];
     const daysAgo = Math.floor(Math.random() * 120) + 1;
     const createdDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
@@ -639,17 +1145,193 @@ async function main() {
     });
   }
 
+  // ========================================
+  // INVOICES (Auto-creates Payments)
+  // ========================================
+  console.log("\n🧾 Creating invoices for maintenance requests...");
+  
+  // Get all maintenance requests to create invoices for some
+  const allMaintenanceRequests = await prisma.maintenanceRequest.findMany({
+    include: {
+      listing: {
+        include: {
+          leases: {
+            where: { leaseStatus: "ACTIVE" },
+          },
+          customLeases: {
+            where: { leaseStatus: "ACTIVE" },
+          },
+        },
+      },
+    },
+  });
+
+  // Invoice descriptions with amounts
+  const invoiceTemplates = [
+    { description: "Labor: 2 hours @ $75/hr\nParts: $50\nService fee: $25", amount: 225 },
+    { description: "Emergency service call\nDiagnostic: $100\nRepair labor: $150\nParts and materials: $80", amount: 330 },
+    { description: "Standard maintenance service\nLabor: 3 hours @ $65/hr\nMaterials: $45", amount: 240 },
+    { description: "Parts replacement: $120\nInstallation: $80\nTesting: $50", amount: 250 },
+    { description: "Professional cleaning service\nLabor: 4 hours @ $50/hr\nSupplies: $30", amount: 230 },
+    { description: "Inspection: $75\nRepair work: $180\nFollow-up service: $45", amount: 300 },
+    { description: "HVAC maintenance\nFilter replacement: $40\nCleaning: $120\nTuning: $90", amount: 250 },
+    { description: "Plumbing repair\nLabor: $150\nPipe fittings: $35\nSealant: $15", amount: 200 },
+    { description: "Electrical work\nLabor: 2.5 hours @ $80/hr\nCircuit breaker: $45\nWiring: $30", amount: 275 },
+    { description: "Appliance repair\nDiagnostic fee: $85\nReplacement part: $120\nLabor: $95", amount: 300 },
+  ];
+
+  let invoiceCount = 0;
+  
+  // Create invoices for maintenance requests based on status
+  for (const request of allMaintenanceRequests) {
+    // Determine if this request should have an invoice
+    let shouldCreateInvoice = false;
+    let invoiceStatus = "PENDING";
+    let sharedWithTenant = true;
+    
+    if (request.status === "COMPLETED") {
+      // ALL completed requests should have invoices (80% paid, 20% pending)
+      shouldCreateInvoice = true;
+      invoiceStatus = Math.random() > 0.2 ? "PAID" : "PENDING";
+      sharedWithTenant = true;
+    } else if (request.status === "IN_PROGRESS") {
+      // ALL in-progress requests should have invoices (work has started)
+      shouldCreateInvoice = true;
+      invoiceStatus = "PENDING";
+      sharedWithTenant = true;
+    } else if (request.status === "OPEN") {
+      // OPEN requests typically don't have invoices yet (work not started)
+      // But 20% might have preliminary estimates
+      shouldCreateInvoice = Math.random() > 0.8;
+      if (shouldCreateInvoice) {
+        invoiceStatus = "PENDING";
+        sharedWithTenant = false; // Don't share until work starts
+      }
+    } else if (request.status === "CANCELLED") {
+      // 50% of cancelled requests have invoices (for work done before cancellation)
+      shouldCreateInvoice = Math.random() > 0.5;
+      invoiceStatus = "CANCELLED";
+      sharedWithTenant = false;
+    }
+    
+    if (!shouldCreateInvoice) {
+      continue; // Skip to next maintenance request
+    }
+    
+    const template = invoiceTemplates[invoiceCount % invoiceTemplates.length];
+
+    // Get tenant from active lease
+    const activeLease = request.listing.leases[0] || request.listing.customLeases[0];
+    const tenantId = activeLease?.tenantId || request.userId;
+    const leaseId = request.listing.leases[0]?.id || null;
+    const customLeaseId = request.listing.customLeases[0]?.id || null;
+
+    // Determine payment status
+    let paymentStatus = "PENDING";
+    let paidDate = null;
+    
+    if (invoiceStatus === "PAID") {
+      paymentStatus = "PAID";
+      // Set paid date to a few days after maintenance completion
+      paidDate = new Date(request.updatedAt.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000);
+    } else if (invoiceStatus === "CANCELLED") {
+      paymentStatus = "CANCELLED";
+    }
+
+    // Create payment first
+    const payment = await prisma.payment.create({
+      data: {
+        type: "MAINTENANCE",
+        amount: template.amount,
+        status: paymentStatus,
+        dueDate: request.createdAt, // Due when maintenance request created
+        paidDate: paidDate,
+        landlordId: request.listing.landlordId,
+        tenantId: tenantId,
+        leaseId: leaseId,
+        customLeaseId: customLeaseId,
+        notes: template.description.split('\n')[0], // First line as note
+      },
+    });
+
+    // Create invoice linked to payment
+    await prisma.invoice.create({
+      data: {
+        maintenanceRequestId: request.id,
+        description: template.description,
+        amount: template.amount,
+        status: invoiceStatus,
+        sharedWithTenant: sharedWithTenant,
+        paymentId: payment.id,
+        createdAt: new Date(request.createdAt.getTime() + 2 * 24 * 60 * 60 * 1000), // Created 2 days after request
+      },
+    });
+
+    invoiceCount++;
+  }
+
+  console.log(`Created ${invoiceCount} invoices with linked payments`);
+
   console.log("\n✅ Seeding completed successfully!");
   console.log(`
+==========================================
+📊 DATABASE SEEDING SUMMARY
+==========================================
+
 Created:
 - 3 Landlords
-- 20 Tenants
+- 5 Tenants (3 with active leases, 2 available)
 - 20 Listings
-- 20+ Applications
-- 15 Standard Leases
-- 15 Custom Leases
-- 40+ Payments
-- 25 Maintenance Requests
+- 20+ Applications (including ${applications.filter(a => a.status === 'PENDING' && !a.tenantId).length} unassigned PENDING)
+- ${leases.length} Standard Leases (${leases.filter(l => l.leaseStatus === 'ACTIVE').length} ACTIVE, ${leases.filter(l => l.leaseStatus === 'DRAFT').length} DRAFT)
+- ${customLeases.length} Custom Leases (${customLeases.filter(l => l.leaseStatus === 'ACTIVE').length} ACTIVE, ${customLeases.filter(l => l.leaseStatus === 'DRAFT').length} DRAFT)
+- 40+ Rent Payments
+- 25+ Maintenance Requests
+- ${invoiceCount} Invoices with Payments
+
+📋 TENANT LEASE ASSIGNMENTS:
+──────────────────────────────────────
+👤 ${tenants[0].firstName} ${tenants[0].lastName} (tenant@test.com):
+   ✅ ACTIVE: ${leases.filter(l => l.tenantId === tenants[0].id && l.leaseStatus === 'ACTIVE').length + customLeases.filter(l => l.tenantId === tenants[0].id && l.leaseStatus === 'ACTIVE').length} lease(s) - Standard
+
+👤 ${tenants[1].firstName} ${tenants[1].lastName} (mike.renter@test.com):
+   ✅ ACTIVE: ${leases.filter(l => l.tenantId === tenants[1].id && l.leaseStatus === 'ACTIVE').length + customLeases.filter(l => l.tenantId === tenants[1].id && l.leaseStatus === 'ACTIVE').length} lease(s) - Standard
+
+👤 ${tenants[2].firstName} ${tenants[2].lastName} (emma.wilson@test.com):
+   ✅ ACTIVE: ${leases.filter(l => l.tenantId === tenants[2].id && l.leaseStatus === 'ACTIVE').length + customLeases.filter(l => l.tenantId === tenants[2].id && l.leaseStatus === 'ACTIVE').length} lease(s) - Custom
+
+👤 ${tenants[3].firstName} ${tenants[3].lastName} (alex.tenant@test.com):
+   ✅ ACTIVE: 0 lease(s) - Available to sign
+
+👤 ${tenants[4].firstName} ${tenants[4].lastName} (sophia.resident@test.com):
+   ✅ ACTIVE: 0 lease(s) - Available to sign
+
+📝 DRAFT LEASES (No tenant assigned):
+   - ${leases.filter(l => l.leaseStatus === 'DRAFT').length} Standard draft leases
+   - ${customLeases.filter(l => l.leaseStatus === 'DRAFT').length} Custom draft leases
+
+🔑 TEST CREDENTIALS:
+──────────────────────────────────────
+Landlord: landlord@test.com / password123
+
+Tenants WITH Active Leases (CANNOT sign new leases):
+  - tenant@test.com / password123 (Jane - has standard lease)
+  - mike.renter@test.com / password123 (Mike - has standard lease)
+  - emma.wilson@test.com / password123 (Emma - has custom lease)
+
+Tenants WITHOUT Leases (CAN sign leases & appear in applications):
+  - alex.tenant@test.com / password123 (Alex)
+  - sophia.resident@test.com / password123 (Sophia)
+
+⚠️ BUSINESS RULES ENFORCED:
+──────────────────────────────────────
+✓ One tenant = ONE ACTIVE lease maximum
+✓ One listing = ONE lease maximum
+✓ PENDING applications = NOT assigned to tenant
+✓ Active lease → listing status = RENTED
+✓ Draft lease → listing status = ACTIVE
+
+==========================================
   `);
 }
 

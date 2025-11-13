@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,87 @@ export default function StandardLeaseStep1({
     onContinue,
 }) {
     const [errors, setErrors] = useState({});
+
+    // Pre-fill rent amount when listing is selected
+    useEffect(() => {
+        console.log('useEffect triggered - selectedListing:', selectedListing);
+        console.log('Current rentAmount:', standardLeaseData.rentAmount);
+        
+        if (selectedListing && listings.length > 0) {
+            const listing = listings.find(l => l.id === selectedListing);
+            console.log('Found listing:', listing?.title, 'Rent:', listing?.rentAmount);
+            
+            // Pre-fill rent if listing has rentAmount and current rent is empty or not set
+            if (listing && listing.rentAmount) {
+                const currentRent = standardLeaseData.rentAmount;
+                if (!currentRent || currentRent === '' || currentRent === '0') {
+                    console.log('✅ Pre-filling rent from listing:', listing.rentAmount);
+                    setStandardLeaseData(prev => ({
+                        ...prev,
+                        rentAmount: listing.rentAmount.toString()
+                    }));
+                } else {
+                    console.log('⚠️ Rent already set, not overriding:', currentRent);
+                }
+            } else {
+                console.log('⚠️ Listing has no rent or listing not found');
+            }
+        } else {
+            console.log('⚠️ No listing selected or listings empty');
+        }
+    }, [selectedListing, listings]);
+
+    // Function to generate random demo data
+    const fillDemoData = () => {
+        const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'Robert', 'Lisa'];
+        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis'];
+        const streets = ['Main Street', 'Oak Avenue', 'Maple Drive', 'Pine Road', 'Cedar Lane'];
+        const cities = ['Vancouver', 'Victoria', 'Kelowna', 'Surrey', 'Burnaby'];
+        const provinces = ['BC', 'BC', 'BC', 'AB', 'ON'];
+        
+        const randomName = () => ({
+            first: firstNames[Math.floor(Math.random() * firstNames.length)],
+            last: lastNames[Math.floor(Math.random() * lastNames.length)]
+        });
+        
+        const landlord = randomName();
+        const tenant = randomName();
+        const randomCity = cities[Math.floor(Math.random() * cities.length)];
+        const randomStreet = `${Math.floor(Math.random() * 9000) + 1000} ${streets[Math.floor(Math.random() * streets.length)]}`;
+        const randomUnit = `${Math.floor(Math.random() * 500) + 100}`; // Always generate unit number
+        const postalCodes = ['V6B 1A1', 'V5K 0A1', 'V6Z 1Y6', 'V7Y 1B3', 'V3M 5Z5'];
+        
+        // Auto-select first listing if available and get its rent
+        let listingToUse = listings.find(l => l.id === selectedListing);
+        if (listings.length > 0 && !selectedListing) {
+            setSelectedListing(listings[0].id);
+            listingToUse = listings[0];
+        }
+        
+        setStandardLeaseData({
+            ...standardLeaseData,
+            landlordLastName: landlord.last,
+            landlordFirstName: landlord.first,
+            landlordPhone: `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+            landlordEmail: `${landlord.first.toLowerCase()}.${landlord.last.toLowerCase()}@example.com`,
+            tenantLastName: tenant.last,
+            tenantFirstName: tenant.first,
+            tenantPhone: `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+            tenantEmail: `${tenant.first.toLowerCase()}.${tenant.last.toLowerCase()}@email.com`,
+            tenantOtherPhone: Math.random() > 0.5 ? `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}` : '',
+            tenantOtherEmail: Math.random() > 0.5 ? `${tenant.first.toLowerCase()}2@email.com` : '',
+            unitNumber: randomUnit,
+            streetAddress: randomStreet,
+            city: randomCity,
+            province: provinces[Math.floor(Math.random() * provinces.length)],
+            postalCode: postalCodes[Math.floor(Math.random() * postalCodes.length)],
+            // Keep existing rentAmount if already set (from listing pre-fill)
+            // rentAmount is NOT updated here - preserves the listing's rent
+        });
+        
+        // Clear any errors
+        setErrors({});
+    };
 
     const validateField = (field, value) => {
         let error = "";
@@ -121,6 +202,19 @@ export default function StandardLeaseStep1({
                 </DialogTitle>
             </DialogHeader>
 
+            {/* Fill Demo Data Button */}
+            <div className="flex justify-center mb-3">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={fillDemoData}
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                >
+                    🎲 Fill Demo Data
+                </Button>
+            </div>
+
             <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                 {/* Listing Select */}
                 <div className="space-y-2">
@@ -164,6 +258,14 @@ export default function StandardLeaseStep1({
                                                                 setListingPopoverOpen(false);
                                                                 setListingSearchQuery("");
                                                                 if (errors.selectedListing) setErrors(prev => ({ ...prev, selectedListing: "" }));
+                                                                
+                                                                // Pre-fill rent amount from listing
+                                                                if (l.id !== selectedListing && l.rentAmount) {
+                                                                    setStandardLeaseData(prev => ({
+                                                                        ...prev,
+                                                                        rentAmount: l.rentAmount.toString()
+                                                                    }));
+                                                                }
                                                             }}
                                             >
                                                 <Check
@@ -216,6 +318,27 @@ export default function StandardLeaseStep1({
                                 />
                             </div>
                         </div>
+                        <p className="text-xs text-gray-500 mb-2">Contact Information for Landlord(s)</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">Phone (optional)</Label>
+                                <Input
+                                    type="tel"
+                                    placeholder="Phone number"
+                                    value={standardLeaseData.landlordPhone}
+                                    onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlordPhone: e.target.value }))}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">Email (optional)</Label>
+                                <Input
+                                    type="email"
+                                    placeholder="Email address"
+                                    value={standardLeaseData.landlordEmail}
+                                    onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlordEmail: e.target.value }))}
+                                />
+                            </div>
+                        </div>
                         <p className="text-xs text-gray-500">Additional landlord (optional)</p>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
@@ -265,6 +388,7 @@ export default function StandardLeaseStep1({
                                 />
                             </div>
                         </div>
+                        <p className="text-xs text-gray-500 mb-2">Contact Information for Tenant(s)</p>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">Phone (optional)</Label>
@@ -289,6 +413,26 @@ export default function StandardLeaseStep1({
                                     className={errors.tenantEmail ? "border-red-500" : ""}
                                 />
                                 {errors.tenantEmail && <p className="text-xs text-red-600">{errors.tenantEmail}</p>}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">Other Phone (optional)</Label>
+                                <Input
+                                    type="tel"
+                                    placeholder="Other phone number"
+                                    value={standardLeaseData.tenantOtherPhone}
+                                    onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenantOtherPhone: e.target.value }))}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">Other Email (optional)</Label>
+                                <Input
+                                    type="email"
+                                    placeholder="Other email address"
+                                    value={standardLeaseData.tenantOtherEmail}
+                                    onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenantOtherEmail: e.target.value }))}
+                                />
                             </div>
                         </div>
                         <p className="text-xs text-gray-500">Additional tenant (optional)</p>

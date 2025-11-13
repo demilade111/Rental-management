@@ -181,15 +181,23 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
     whereClause.listingId = tenantListingId;
 
   } else if (userRole === "ADMIN") {
-    whereClause.listing = {
-      landlordId: userId,
-    };
+    // If listingId is provided, filter by both landlordId and listingId
+    if (listingId) {
+      whereClause.listingId = listingId;
+      whereClause.listing = {
+        landlordId: userId,
+      };
+    } else {
+      // If no listingId, just filter by landlordId
+      whereClause.listing = {
+        landlordId: userId,
+      };
+    }
   }
 
   if (status) whereClause.status = status;
   if (priority) whereClause.priority = priority;
   if (category) whereClause.category = category;
-  if (listingId) whereClause.listingId = listingId;
 
   const maintenanceRequests = await prisma.maintenanceRequest.findMany({
     where: whereClause,
@@ -220,11 +228,29 @@ async function getAllMaintenanceRequests(userId, userRole, filters = {}) {
           tenantId: true,
         },
       },
+      invoices: {
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+        },
+      },
     },
     orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
   });
 
-  return maintenanceRequests;
+  // Calculate total cost for each maintenance request
+  const maintenanceWithCosts = maintenanceRequests.map(request => ({
+    ...request,
+    totalCost: request.invoices.reduce((sum, invoice) => sum + invoice.amount, 0),
+  }));
+
+  // Debug logging
+  if (listingId) {
+    console.log(`📍 Fetching maintenance for listingId: ${listingId}, found ${maintenanceWithCosts.length} records`);
+  }
+
+  return maintenanceWithCosts;
 }
 
 async function getMaintenanceRequestById(requestId, userId, userRole) {

@@ -4,11 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Eye, FileText } from 'lucide-react';
 import LoadingState from '@/components/shared/LoadingState';
+import InvoiceDetailsModal from '@/components/shared/InvoiceDetailsModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
-const getStatusBadgeClass = (status, dueDate) => {
+const getStatusBadgeClass = (status, dueDate, hasReceipt) => {
   const baseClasses = 'px-3 py-1 rounded-md text-[14px] font-medium';
   
   if (status === 'PAID') {
@@ -16,6 +17,12 @@ const getStatusBadgeClass = (status, dueDate) => {
   }
   
   if (status === 'PENDING') {
+    // If receipt uploaded, show as "Under Review"
+    if (hasReceipt) {
+      return `${baseClasses} bg-blue-100 text-blue-800`;
+    }
+    
+    // Otherwise check if overdue
     const now = new Date();
     const due = new Date(dueDate);
     if (due < now) {
@@ -27,9 +34,13 @@ const getStatusBadgeClass = (status, dueDate) => {
   return `${baseClasses} bg-gray-200 text-gray-800`;
 };
 
-const getStatusText = (status, dueDate) => {
+const getStatusText = (status, dueDate, hasReceipt) => {
   if (status === 'PAID') return 'Paid';
   if (status === 'PENDING') {
+    // If receipt uploaded, show "Under Review"
+    if (hasReceipt) return 'Under Review';
+    
+    // Otherwise check if overdue
     const now = new Date();
     const due = new Date(dueDate);
     if (due < now) return 'Overdue';
@@ -40,7 +51,17 @@ const getStatusText = (status, dueDate) => {
 
 const TenantPaymentTable = ({ payments, isLoading }) => {
     const [uploadingId, setUploadingId] = useState(null);
+    const [selectedPayment, setSelectedPayment] = useState(null);
+    const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
     const queryClient = useQueryClient();
+
+    const handleViewInvoice = (payment) => {
+        console.log('🧾 View Invoice clicked for payment:', payment.id);
+        console.log('   Invoice data:', payment.invoice);
+        console.log('   Maintenance Request:', payment.invoice?.maintenanceRequest);
+        setSelectedPayment(payment);
+        setInvoiceModalOpen(true);
+    };
 
     // Upload receipt mutation
     const uploadReceiptMutation = useMutation({
@@ -71,7 +92,6 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['tenant-payments']);
-            queryClient.invalidateQueries(['tenant-payment-summary']);
             toast.success('Payment receipt uploaded successfully!');
             setUploadingId(null);
         },
@@ -104,30 +124,43 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
     // Ensure payments is an array
     const paymentList = Array.isArray(payments) ? payments : [];
 
+    // Debug: Log payments with invoices
+    React.useEffect(() => {
+        const paymentsWithInvoices = paymentList.filter(p => p.invoice);
+        if (paymentsWithInvoices.length > 0) {
+            console.log(`\n💳 ${paymentsWithInvoices.length} payments have invoices:`);
+            paymentsWithInvoices.forEach((p, idx) => {
+                console.log(`  [${idx}] ${p.type} - $${p.amount} - Invoice ID: ${p.invoice?.id?.slice(-8)}`);
+            });
+        }
+    }, [paymentList]);
+
     return (
-        <div className="h-full overflow-y-auto">
-            {/* Table Header */}
-            <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0 sticky top-0 z-10">
+        <div className="h-full flex flex-col">
+            {/* Table Header - Always visible */}
+            <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0">
                 <div>Date</div>
                 <div className="border-l border-gray-300 pl-4">Note</div>
                 <div className="border-l border-gray-300 pl-4">Category</div>
-                <div className="border-l border-gray-300 pl-4">Amount</div>
+                <div className="border-l border-gray-300 pl-4 pr-4 text-right">Amount</div>
                 <div className="border-l border-gray-300 pl-4">Status</div>
                 <div className="border-l border-gray-300 pl-4">Actions</div>
             </div>
 
             {/* Table Content */}
-            {isLoading ? (
-                <LoadingState message="Loading payments..." compact={true} />
-            ) : paymentList.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                    <p className="text-lg">No payment records found</p>
-                </div>
-            ) : (
-                <div className="space-y-3">
-                {paymentList.map((payment) => {
+            <div className="flex-1 overflow-y-auto min-h-0">
+                {isLoading ? (
+                    <LoadingState message="Loading payments..." compact={true} />
+                ) : paymentList.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                        <p className="text-lg">No payment records found</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                    {paymentList.map((payment) => {
                     const listing = payment.lease?.listing || payment.customLease?.listing;
-                    const status = getStatusText(payment.status, payment.dueDate);
+                    const hasReceipt = !!payment.proofUrl;
+                    const status = getStatusText(payment.status, payment.dueDate, hasReceipt);
                     const isPaid = payment.status === 'PAID';
                     const displayDate = isPaid ? payment.paidDate : payment.dueDate;
                     const dateLabel = isPaid ? 'Paid' : 'Due';
@@ -160,35 +193,51 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                                 </div>
 
                                 {/* Category */}
-                                <div className="text-[16px] font-semibold text-gray-900 capitalize border-l border-gray-300 pl-4">
-                                    {payment.type.toLowerCase()}
+                                <div className="border-l border-gray-300 pl-4">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[16px] font-semibold text-gray-900 capitalize">
+                                            {payment.type.toLowerCase()}
+                                        </span>
+                                        {payment.invoice && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleViewInvoice(payment);
+                                                }}
+                                                className="p-1.5 rounded-md text-gray-600 hover:text-white hover:bg-gray-900 transition-all cursor-pointer"
+                                                title="View Invoice Details"
+                                            >
+                                                <FileText className="h-5 w-5" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Amount */}
-                                <div className="text-[16px] font-semibold text-gray-900 border-l border-gray-300 pl-4">
+                                <div className="text-[16px] font-semibold text-gray-900 border-l border-gray-300 pl-4 pr-4 text-right">
                                     ${payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
 
                                 {/* Status */}
                                 <div className="flex items-center border-l border-gray-300 pl-4">
-                                    <span className={getStatusBadgeClass(payment.status, payment.dueDate)}>
+                                    <span className={getStatusBadgeClass(payment.status, payment.dueDate, hasReceipt)}>
                                         {status}
                                     </span>
                                 </div>
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
-                                    {isPaid && payment.proofUrl ? (
+                                    {hasReceipt ? (
                                         <Button
                                             size="sm"
-                                            variant="outline"
+                                            variant={isPaid ? "outline" : "default"}
                                             onClick={() => handleViewReceipt(payment.proofUrl)}
-                                            className="text-xs"
+                                            className={`text-xs ${!isPaid ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}`}
                                         >
                                             <Eye className="w-3 h-3 mr-1" />
                                             View Receipt
                                         </Button>
-                                    ) : !isPaid ? (
+                                    ) : (
                                         <>
                                             <input
                                                 type="file"
@@ -214,16 +263,22 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                                                 )}
                                             </Button>
                                         </>
-                                    ) : (
-                                        <span className="text-xs text-gray-400">No receipt</span>
                                     )}
                                 </div>
                             </div>
                         </Card>
                     );
-                })}
-                </div>
-            )}
+                    })}
+                    </div>
+                )}
+            </div>
+            
+            {/* Invoice Details Modal */}
+            <InvoiceDetailsModal
+                open={invoiceModalOpen}
+                onClose={() => setInvoiceModalOpen(false)}
+                payment={selectedPayment}
+            />
         </div>
     );
 };

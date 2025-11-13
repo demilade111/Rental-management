@@ -70,12 +70,43 @@ const Applications = () => {
         },
     });
 
+    // Fetch all active leases (standard and custom)
+    const { data: allLeases = [], isLoading: leasesLoading } = useQuery({
+        queryKey: ["all-leases-active"],
+        queryFn: async () => {
+            const standardRes = await api.get(API_ENDPOINTS.LEASES.BASE);
+            const customRes = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+            
+            const standardLeases = Array.isArray(standardRes.data) 
+                ? standardRes.data 
+                : standardRes.data?.data || [];
+            const customLeases = Array.isArray(customRes.data) 
+                ? customRes.data 
+                : customRes.data?.data || [];
+            
+            // Filter only ACTIVE leases and get their listing IDs
+            const activeStandardListingIds = standardLeases
+                .filter(lease => lease.leaseStatus === "ACTIVE")
+                .map(lease => lease.listingId);
+            const activeCustomListingIds = customLeases
+                .filter(lease => lease.leaseStatus === "ACTIVE")
+                .map(lease => lease.listingId);
+            
+            return [...activeStandardListingIds, ...activeCustomListingIds];
+        },
+    });
+
     // filter out listings that already have an active application
     const availableListings = getAvailableListings(listings, applicationsData.applications);
 
     // filtering applications by modal (frontend filtering)
     // Note: filterApplications always filters out non-ACTIVE listings, so filteredApps may be less than API total
-    const filteredApps = filterApplications(applicationsData?.applications || [], searchQuery, filters);
+    // Also filter out applications for listings that have an ACTIVE lease
+    // Wait for leases to load before filtering to prevent flash of unfiltered content
+    const filteredApps = leasesLoading 
+        ? [] 
+        : filterApplications(applicationsData?.applications || [], searchQuery, filters)
+            .filter(app => !allLeases.includes(app.listingId));
     
     // Clear selection when filters or page change
     useEffect(() => {
@@ -126,31 +157,34 @@ const Applications = () => {
         if (!listingId) return toast.error("Listing ID not found");
 
         try {
-            const res = await api.get(`${API_ENDPOINTS.LISTINGS.BY_ID(listingId)}/check-leases`);
-            const listInfo = res.data.data;
-
-            if (!listInfo?.hasLease) {
-                setRedirectUrl("/landlord/leases");
-                setShowLeaseRedirectModal(true);
-                setSelectedApplication(app); // Store the app to get listing name
-                toast.error(`Cannot send lease. Listing doesn't have any lease attached.`);
-                return;
-            }
-
+            // Check for custom lease first
             let leaseRes = await api.get(`${API_ENDPOINTS.CUSTOM_LEASES.BY_LISTING_ID(listingId)}`);
             let lease = leaseRes.data.lease;
             let leaseType = "CUSTOM";
 
+            // If no custom lease, check for standard lease
             if (!lease) {
-                const defaultLease = await api.get(`${API_ENDPOINTS.LEASES.BY_LISTING_ID(listingId)}`);
-                if (!defaultLease.data.lease) {
-                    toast.error("No lease found for this listing");
-                    return;
-                }
-                lease = defaultLease.data.lease;
+                const defaultLeaseRes = await api.get(`${API_ENDPOINTS.LEASES.BY_LISTING_ID(listingId)}`);
+                // Backend uses SuccessResponse which wraps in { data: { lease } }
+                lease = defaultLeaseRes.data?.data?.lease;
                 leaseType = "STANDARD";
             }
 
+            // If no lease found (neither custom nor standard), show redirect modal
+            if (!lease) {
+                setRedirectUrl("/landlord/leases");
+                setShowLeaseRedirectModal(true);
+                setSelectedApplication(app); // Store the app to get listing name
+                return;
+            }
+
+            // Check if lease is already ACTIVE
+            if (lease.leaseStatus === "ACTIVE") {
+                toast.error("This listing already has an active lease. Cannot send another lease.");
+                return;
+            }
+
+            // Lease found (and in DRAFT status) - create invite and generate signing link
             const inviteRes = await api.post(`${API_ENDPOINTS.LEASES_INVITE.BASE}/${lease.id}/invite`, {
                 tenantId: app.tenantId,
                 leaseType,
@@ -158,20 +192,28 @@ const Applications = () => {
 
             const invite = inviteRes.data.invite;
 
-            // Show modal instead of copying
+            // Show modal with signing link
             setInviteUrl(invite.url);
             setInviteModalOpen(true);
 
-            // update tenant + status
-            await api.put(`${API_ENDPOINTS.CUSTOM_LEASES.BY_ID(lease.id)}`, {
-                tenantId: app.tenantId,
-                listingId,
-                leaseStatus: "ACTIVE",
-            });
+            // Update lease status to ACTIVE
+            if (leaseType === "CUSTOM") {
+                await api.put(`${API_ENDPOINTS.CUSTOM_LEASES.BY_ID(lease.id)}`, {
+                    tenantId: app.tenantId,
+                    listingId,
+                    leaseStatus: "ACTIVE",
+                });
+            } else {
+                await api.put(`${API_ENDPOINTS.LEASES.BY_ID(lease.id)}`, {
+                    tenantId: app.tenantId,
+                    listingId,
+                    leaseStatus: "ACTIVE",
+                });
+            }
 
         } catch (err) {
-            console.error(err);
-            toast.error("Failed to check lease");
+            console.error("Error sending lease:", err);
+            toast.error("Failed to send lease. Please try again.");
         }
     };
 
@@ -268,7 +310,7 @@ const Applications = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0">
-                    {listingsLoading || appsLoading ? (
+                    {listingsLoading || appsLoading || leasesLoading ? (
                         <LoadingState message="Loading applications..." />
                     ) : filteredApps.length > 0 ? (
                         filteredApps.map((app) => (
@@ -387,3 +429,4 @@ const Applications = () => {
 };
 
 export default Applications;
+

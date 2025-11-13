@@ -36,7 +36,9 @@ export const API_ENDPOINTS = {
   LEASES: {
     BASE: `${API_VERSION}/leases`,
     BY_ID: (id) => `${API_VERSION}/leases/${id}`,
+    BY_LISTING_ID: (listingId) => `${API_VERSION}/leases/by-listing/${listingId}`,
     BULK_DELETE: `${API_VERSION}/leases/bulk-delete`,
+    REGENERATE_PDF: (id) => `${API_VERSION}/leases/${id}/regenerate-pdf`,
   },
 
   // custom lease endpoints
@@ -69,6 +71,12 @@ export const API_ENDPOINTS = {
     PROFILE: `${API_VERSION}/users/profile`,
   },
 
+  // User account endpoints
+  USER: {
+    PROFILE: `${API_VERSION}/user/profile`,
+    CHANGE_PASSWORD: `${API_VERSION}/user/change-password`,
+  },
+
   // Payment endpoints
   PAYMENTS: {
     BASE: `${API_VERSION}/payments`,
@@ -76,6 +84,16 @@ export const API_ENDPOINTS = {
     SUMMARY: `${API_VERSION}/payments/summary`,
     MARK_PAID: (id) => `${API_VERSION}/payments/${id}/mark-paid`,
     SEND_REMINDER: (id) => `${API_VERSION}/payments/${id}/send-reminder`,
+    APPROVE_RECEIPT: (id) => `${API_VERSION}/payments/${id}/approve-receipt`,
+    REJECT_RECEIPT: (id) => `${API_VERSION}/payments/${id}/reject-receipt`,
+  },
+
+  // Invoice endpoints
+  INVOICES: {
+    BASE: `${API_VERSION}/invoices`,
+    BY_ID: (id) => `${API_VERSION}/invoices/${id}`,
+    UPDATE: (id) => `${API_VERSION}/invoices/${id}`,
+    UPDATE_STATUS: (id) => `${API_VERSION}/invoices/${id}/status`,
   },
 };
 

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { FileText } from 'lucide-react';
+import InvoiceDetailsModal from '@/components/shared/InvoiceDetailsModal';
 
 const getStatusBadgeClass = (status) => {
   const baseClasses = 'px-3 py-1 rounded-md text-[14px] font-medium';
@@ -31,11 +33,12 @@ const getStatusText = (status, dueDate) => {
   return status;
 };
 
-const TransactionRow = ({ payment, onSendReminder, onViewProof, isLoading }) => {
+const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
   const tenant = payment.tenant;
   const listing = payment.lease?.listing || payment.customLease?.listing;
   const status = getStatusText(payment.status, payment.dueDate);
   const isPaid = payment.status === 'PAID';
+  const hasInvoice = payment.invoice;
 
   // Determine which date to show
   const displayDate = isPaid ? payment.paidDate : payment.dueDate;
@@ -76,15 +79,29 @@ const TransactionRow = ({ payment, onSendReminder, onViewProof, isLoading }) => 
         {/* Category */}
         <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
           <div className="text-center">
-            <div className="text-[16px] font-semibold text-gray-900 capitalize">
-              {payment.type.toLowerCase()}
+            <div className="flex items-center gap-2">
+              <span className="text-[16px] font-semibold text-gray-900 capitalize">
+                {payment.type.toLowerCase()}
+              </span>
+              {hasInvoice && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewInvoice(payment);
+                  }}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                  title="View Invoice Details"
+                >
+                  <FileText className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Amount */}
-        <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
-          <div className="text-center">
+        <div className="border-l border-gray-300 pl-4 pr-4">
+          <div className="text-right">
             <div className="text-[16px] font-semibold text-gray-900">
               ${payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
@@ -116,21 +133,30 @@ const TransactionRow = ({ payment, onSendReminder, onViewProof, isLoading }) => 
 
         {/* Action */}
         <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
-          {isPaid ? (
-            <button
-              onClick={() => onViewProof(payment)}
-              className="text-blue-600 hover:text-blue-800 text-[14px] font-medium"
-            >
-              View Proof
-            </button>
+          {payment.proofUrl ? (
+            // Has receipt uploaded
+            isPaid ? (
+              // Already approved
+              <button
+                onClick={() => onViewProof(payment)}
+                className="text-gray-900 hover:text-gray-700 text-[14px] font-medium"
+              >
+                View Receipt
+              </button>
+            ) : (
+              // Awaiting review
+              <button
+                onClick={() => onViewProof(payment)}
+                className="text-blue-600 hover:text-blue-800 text-[14px] font-medium"
+              >
+                Review Receipt
+              </button>
+            )
           ) : (
-            <button
-              onClick={() => onSendReminder(payment.id)}
-              disabled={isLoading}
-              className="text-blue-600 hover:text-blue-800 text-[14px] font-medium disabled:opacity-50"
-            >
-              Send Notification
-            </button>
+            // No receipt yet
+            <span className="text-gray-400 text-[14px]">
+              Awaiting payment
+            </span>
           )}
         </div>
       </div>
@@ -138,7 +164,15 @@ const TransactionRow = ({ payment, onSendReminder, onViewProof, isLoading }) => 
   );
 };
 
-const TransactionTable = ({ payments, onSendReminder, onViewProof, isLoading }) => {
+const TransactionTable = ({ payments, onViewProof, isLoading, hideHeader = false }) => {
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+
+  const handleViewInvoice = (payment) => {
+    setSelectedPayment(payment);
+    setInvoiceModalOpen(true);
+  };
+
   if (!payments || payments.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-300 p-12 text-center">
@@ -148,31 +182,42 @@ const TransactionTable = ({ payments, onSendReminder, onViewProof, isLoading }) 
   }
 
   return (
-    <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
-      {/* Table Header */}
-      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0">
-        <div className="">Tenant</div>
-        <div className="border-l border-gray-300 pl-4">Property</div>
-        <div className="border-l border-gray-300 pl-4">Category</div>
-        <div className="border-l border-gray-300 pl-4">Amount</div>
-        <div className="border-l border-gray-300 pl-4">Date</div>
-        <div className="border-l border-gray-300 pl-4">Status</div>
-        <div className="border-l border-gray-300 pl-4">Action</div>
+    <>
+      <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
+        {/* Table Header - Conditionally render */}
+        {!hideHeader && (
+          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0">
+            <div className="">Tenant</div>
+            <div className="border-l border-gray-300 pl-4">Property</div>
+            <div className="border-l border-gray-300 pl-4">Category</div>
+            <div className="border-l border-gray-300 pl-4 pr-4 text-right">Amount</div>
+            <div className="border-l border-gray-300 pl-4">Date</div>
+            <div className="border-l border-gray-300 pl-4">Status</div>
+            <div className="border-l border-gray-300 pl-4">Action</div>
+          </div>
+        )}
+
+        {/* Table Body */}
+        <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
+          {payments.map((payment) => (
+            <TransactionRow
+              key={payment.id}
+              payment={payment}
+              onViewProof={onViewProof}
+              onViewInvoice={handleViewInvoice}
+              isLoading={isLoading}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Table Body */}
-      <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
-        {payments.map((payment) => (
-          <TransactionRow
-            key={payment.id}
-            payment={payment}
-            onSendReminder={onSendReminder}
-            onViewProof={onViewProof}
-            isLoading={isLoading}
-          />
-        ))}
-      </div>
-    </div>
+      {/* Invoice Details Modal */}
+      <InvoiceDetailsModal
+        open={invoiceModalOpen}
+        onClose={() => setInvoiceModalOpen(false)}
+        payment={selectedPayment}
+      />
+    </>
   );
 };
 

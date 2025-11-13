@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
 import StandardLeaseCard from "./StandardLeaseCard";
@@ -20,16 +21,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from "@/components/ui/dialog";
 import CreateLeaseModal from "./lease-modal/CreateLeaseModal";
 
 const StandardLeases = ({ onTotalChange }) => {
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchQuery, setSearchQuery] = useState("");
@@ -38,7 +33,6 @@ const StandardLeases = ({ onTotalChange }) => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedLease, setSelectedLease] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [viewDetailsOpen, setViewDetailsOpen] = useState(false);
     const [selectedItems, setSelectedItems] = useState(new Set());
 
     const queryClient = useQueryClient();
@@ -49,7 +43,24 @@ const StandardLeases = ({ onTotalChange }) => {
         queryFn: async () => {
             const res = await api.get(API_ENDPOINTS.LEASES.BASE);
             const data = res.data;
-            return Array.isArray(data) ? data : data.data || [];
+            const leases = Array.isArray(data) ? data : data.data || [];
+            
+            // Sort by status priority (DRAFT > ACTIVE > TERMINATED/EXPIRED), then by date
+            const statusPriority = {
+                'DRAFT': 1,      // Highest priority - needs action
+                'ACTIVE': 2,     // Second priority - currently running
+                'TERMINATED': 3, // Lower priority - ended
+                'EXPIRED': 4,    // Lowest priority - expired
+            };
+            
+            return leases.sort((a, b) => {
+                // First, sort by status priority
+                const priorityDiff = (statusPriority[a.leaseStatus] || 99) - (statusPriority[b.leaseStatus] || 99);
+                if (priorityDiff !== 0) return priorityDiff;
+                
+                // Within same status, sort by start date (most recent first)
+                return new Date(b.startDate) - new Date(a.startDate);
+            });
         },
     });
 
@@ -180,8 +191,7 @@ const StandardLeases = ({ onTotalChange }) => {
 
     // Handlers
     const handleViewDetails = (lease) => {
-        setSelectedLease(lease);
-        setViewDetailsOpen(true);
+        navigate(`/landlord/leases/standard/${lease.id}`);
     };
 
     const handleDelete = (lease) => {
@@ -233,7 +243,7 @@ const StandardLeases = ({ onTotalChange }) => {
                         checked={allSelected}
                         onCheckedChange={handleSelectAll}
                         className="!border-black"
-                        indeterminate={someSelected}
+                        indeterminate={someSelected || undefined}
                     />
                     <span className="text-sm text-gray-600">
                         {allSelected ? "Deselect all" : "Select all"}
@@ -324,56 +334,6 @@ const StandardLeases = ({ onTotalChange }) => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
-            {/* View Details Dialog */}
-            <Dialog open={viewDetailsOpen} onOpenChange={setViewDetailsOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto p-8">
-                    <DialogHeader>
-                        <DialogTitle>Lease Details</DialogTitle>
-                        <DialogDescription>
-                            View complete lease information
-                        </DialogDescription>
-                    </DialogHeader>
-                    {selectedLease && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Tenant</p>
-                                    <p className="text-sm">{selectedLease.tenant?.firstName} {selectedLease.tenant?.lastName}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Landlord</p>
-                                    <p className="text-sm">{selectedLease.landlord?.firstName} {selectedLease.landlord?.lastName}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Property</p>
-                                    <p className="text-sm">{selectedLease.listing?.title || selectedLease.propertyAddress}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Status</p>
-                                    <p className="text-sm capitalize">{selectedLease.leaseStatus?.toLowerCase()}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Start Date</p>
-                                    <p className="text-sm">{new Date(selectedLease.startDate).toLocaleDateString()}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">End Date</p>
-                                    <p className="text-sm">{new Date(selectedLease.endDate).toLocaleDateString()}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Rent Amount</p>
-                                    <p className="text-sm">${selectedLease.rentAmount?.toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Payment Frequency</p>
-                                    <p className="text-sm capitalize">{selectedLease.paymentFrequency?.toLowerCase()}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
         </>
     );
 };

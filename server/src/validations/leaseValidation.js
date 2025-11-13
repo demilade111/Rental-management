@@ -23,11 +23,17 @@ export const createLeaseSchema = z.object({
   
   // Standard lease form fields
   landlordFullName: z.string().optional(),
+  landlordPhone: z.string().optional(),
+  landlordEmail: z.string().optional(),
+  landlordAddress: z.string().optional(),
   additionalLandlords: z.array(z.any()).optional(),
   tenantFullName: z.string().optional(),
   tenantEmail: z.string().optional(),
   tenantPhone: z.string().optional(),
+  tenantOtherPhone: z.string().optional(),
+  tenantOtherEmail: z.string().optional(),
   additionalTenants: z.array(z.any()).optional(),
+  unitNumber: z.string().optional(),
   propertyAddress: z.string().optional(),
   propertyCity: z.string().optional(),
   propertyState: z.string().optional(),
