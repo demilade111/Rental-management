@@ -1,6 +1,7 @@
 import { useAuthStore } from "../../../store/authStore";
 import {Button} from "../../../components/ui/button";
 import { Upload, Bell } from "lucide-react";
+import InsuranceStatusCard from "./InsuranceStatusCard";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
@@ -153,38 +154,8 @@ const Dashboard = () => {
         </div>
 
         {/* ===== INSURANCE SECTION ===== */}
-        <div className="w-full border rounded-[15px] p-6 flex flex-col bg-white">
-          <h2 className="text-lg font-semibold mb-4">Insurance</h2>
-
-          <div className="flex flex-col lg:flex-row flex-wrap gap-[60px]">
-            <div>
-              <p className="text-sm text-gray-600">Insurance Status: Active</p>
-              <p className="text-sm text-gray-600">
-                Insurance Type: Tenant Liability Insurance
-              </p>
-              <p className="text-sm text-gray-600">
-                Expiration Date: Nov 15, 2025
-              </p>
-              <Button variant="outline" className="mt-3 bg-black text-white">
-                View Policy
-              </Button>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-600">
-                Insurance Status: Expiring in 30 days
-              </p>
-              <p className="text-sm text-gray-600">
-                Insurance Type: Personal Property Insurance
-              </p>
-              <p className="text-sm text-gray-600">
-                Expiration Date: Oct 7, 2025
-              </p>
-              <Button variant="outline" className="mt-3 bg-black text-white">
-                View Policy
-              </Button>
-            </div>
-          </div>
+        <div className="w-full">
+          <InsuranceStatusCard />
         </div>
       </div>
     </div>

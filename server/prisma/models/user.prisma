@@ -25,6 +25,8 @@ model User {
   tenantApplications   RequestApplication[] @relation("TenantApplications")
   MaintenanceMessage   MaintenanceMessage[]
   notifications        Notification[]       @relation("UserNotifications")
+  tenantInsurances     TenantInsurance[]    @relation("TenantInsurances")
+  verifiedInsurances   TenantInsurance[]    @relation("VerifiedInsurances")
 
   @@map("users")
 }

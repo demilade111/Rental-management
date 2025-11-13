@@ -19,6 +19,8 @@ import Applications from "@/pages/landlord/application/Appications";
 import LeasesPage from "@/pages/landlord/leases/LeasesPage";
 import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
 import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
+import LandlordInsurance from "@/pages/landlord/insurance/LandlordInsurance";
+import TenantInsurance from "@/pages/tenant/insurance/TenantInsurance";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ const MainLayout = () => {
           id: "maintenance",
           path: "/landlord/maintenance",
         },
+        { label: "Insurance", id: "insurance", path: "/landlord/insurance" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
@@ -53,6 +56,7 @@ const MainLayout = () => {
           path: "/tenant/maintenance",
         },
         { label: "Accounting", id: "accounting", path: "/tenant/accounting" },
+        { label: "Insurance", id: "insurance", path: "/tenant/insurance" },
       ];
 
   const activeNav =
@@ -87,11 +91,13 @@ const MainLayout = () => {
             <Route path="/landlord/applications" element={<Applications />} />
             {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
             <Route path="/landlord/leases" element={<LeasesPage />} />
+            <Route path="/landlord/insurance" element={<LandlordInsurance />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/maintenance" element={<Maintenance />} />
             <Route path="/tenant/accounting" element={<TenantAccounting />} />
             <Route path="/tenant/rental-info" element={<RentalInformation />} />
+            <Route path="/tenant/insurance" element={<TenantInsurance />} />
 
             <Route
               path="*"

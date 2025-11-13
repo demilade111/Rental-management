@@ -10,6 +10,7 @@ import {
   generateUploadUrl,
   generateDownloadUrl,
 } from "../services/fileStorageService.js";
+import { extractInsuranceData } from "../services/ocrService.js";
 import { SuccessResponse, HandleError } from "../utils/httpResponse.js";
 import {
   createInsuranceVerifiedNotification,
@@ -284,6 +285,40 @@ export async function sendReminderController(req, res) {
       tenantEmail: insurance.tenant.email,
     });
   } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+export async function extractInsuranceDataController(req, res) {
+  try {
+    const { documentUrl, fileType } = req.body;
+
+    if (!documentUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "Document URL is required",
+      });
+    }
+
+    const result = await extractInsuranceData(documentUrl, fileType || "application/pdf");
+
+    if (!result.success) {
+      return SuccessResponse(
+        res,
+        200,
+        "OCR completed with warnings. Please verify and fill in missing fields.",
+        result.data
+      );
+    }
+
+    return SuccessResponse(
+      res,
+      200,
+      "Insurance data extracted successfully",
+      result.data
+    );
+  } catch (error) {
+    console.error("Error in extractInsuranceDataController:", error);
     return HandleError(res, error);
   }
 }

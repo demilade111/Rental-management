@@ -67,6 +67,7 @@ model Lease {
   maintenanceRequests MaintenanceRequest[]
   applications        RequestApplication[]
   payments            Payment[]
+  insurances          TenantInsurance[]
 
   @@index([tenantId])
   @@index([landlordId])

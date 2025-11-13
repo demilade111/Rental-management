@@ -28,6 +28,7 @@ model CustomLease {
   updatedAt           DateTime             @updatedAt
   maintenanceRequests MaintenanceRequest[]
   payments            Payment[]
+  insurances          TenantInsurance[]
 
   // Relations
   listing  Listing? @relation(fields: [listingId], references: [id])

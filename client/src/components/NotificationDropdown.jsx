@@ -147,10 +147,26 @@ const NotificationDropdown = () => {
       console.error("Error marking notification as read:", error);
     }
     
-    // Close popover and navigate
+    // Close popover
     setOpen(false);
-    const maintenancePath = user?.role === "ADMIN" ? "/landlord/maintenance" : "/tenant/maintenance";
-    navigate(maintenancePath);
+    
+    // Navigate based on notification type
+    const insuranceTypes = [
+      "INSURANCE_EXPIRING",
+      "INSURANCE_EXPIRED",
+      "INSURANCE_VERIFIED",
+      "INSURANCE_REJECTED"
+    ];
+    
+    if (insuranceTypes.includes(notification.type)) {
+      // Navigate to insurance page
+      const insurancePath = user?.role === "ADMIN" ? "/landlord/insurance" : "/tenant/insurance";
+      navigate(insurancePath);
+    } else {
+      // Default to maintenance page for maintenance notifications
+      const maintenancePath = user?.role === "ADMIN" ? "/landlord/maintenance" : "/tenant/maintenance";
+      navigate(maintenancePath);
+    }
   };
 
   const handleReadAll = async () => {
@@ -164,10 +180,8 @@ const NotificationDropdown = () => {
       );
       setUnreadCount(0);
       
-      // Close popover and navigate
+      // Close popover
       setOpen(false);
-      const maintenancePath = user?.role === "ADMIN" ? "/landlord/maintenance" : "/tenant/maintenance";
-      navigate(maintenancePath);
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }

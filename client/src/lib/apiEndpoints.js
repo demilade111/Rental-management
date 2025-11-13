@@ -68,6 +68,18 @@ export const API_ENDPOINTS = {
     UPLOAD_PROOF: (id) => `${API_VERSION}/payments/upload-proof/${id}`,
   },
 
+  // Insurance endpoints
+  INSURANCE: {
+    BASE: `${API_VERSION}/insurance`,
+    BY_ID: (id) => `${API_VERSION}/insurance/${id}`,
+    PRESIGN: `${API_VERSION}/insurance/presign`,
+    EXTRACT: `${API_VERSION}/insurance/extract`,
+    VERIFY: (id) => `${API_VERSION}/insurance/${id}/verify`,
+    REJECT: (id) => `${API_VERSION}/insurance/${id}/reject`,
+    NOTIFY: (id) => `${API_VERSION}/insurance/${id}/notify`,
+    DOWNLOAD: `${API_VERSION}/insurance/download`,
+  },
+
   // User endpoints
   USERS: {
     BASE: `${API_VERSION}/users`,

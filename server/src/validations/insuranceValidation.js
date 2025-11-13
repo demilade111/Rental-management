@@ -145,3 +145,10 @@ export const presignUrlSchema = z.object({
     fileType: z.string().min(1, "File type is required"),
   }),
 });
+
+export const extractInsuranceSchema = z.object({
+  body: z.object({
+    documentUrl: z.string().url("Valid document URL is required"),
+    fileType: z.string().optional(),
+  }),
+});

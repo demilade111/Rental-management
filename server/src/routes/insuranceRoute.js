@@ -9,6 +9,7 @@ import {
   verifyInsuranceController,
   rejectInsuranceController,
   sendReminderController,
+  extractInsuranceDataController,
 } from "../controllers/insuranceController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
 import { authorize } from "../middleware/authorizeMiddlewear.js";
@@ -22,6 +23,7 @@ import {
   rejectInsuranceSchema,
   sendReminderSchema,
   presignUrlSchema,
+  extractInsuranceSchema,
 } from "../validations/insuranceValidation.js";
 
 const router = express.Router();
@@ -38,6 +40,14 @@ router.get(
   "/download",
   authenticate,
   getPresignedDownloadUrl
+);
+
+router.post(
+  "/extract",
+  authenticate,
+  authorize(["TENANT"]),
+  validateRequest(extractInsuranceSchema),
+  extractInsuranceDataController
 );
 
 router.post(
