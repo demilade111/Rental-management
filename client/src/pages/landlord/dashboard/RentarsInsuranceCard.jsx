@@ -13,8 +13,8 @@ const RentersInsuranceCard = () => {
     ];
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden">
-            <h2 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-3">Renters Insurance</h2>
+        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
+            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Renters Insurance</h2>
             <div className="flex items-center gap-6 lg:gap-10 flex-1">
                 <div className="w-20 sm:w-24 lg:w-32 h-56 flex-shrink-0 p-0 -ml-2">
                     <ResponsiveContainer width="100%" height="100%">

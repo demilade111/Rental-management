@@ -42,8 +42,8 @@ const PortfolioCard = () => {
 
     if (isLoading) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full">
-                <h2 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-3">Portfolio</h2>
+            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
+                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
                 <LoadingState message="Loading portfolio..." compact={true} />
             </div>
         );
@@ -51,8 +51,8 @@ const PortfolioCard = () => {
 
     if (!hasData) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full">
-                <h2 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-3">Portfolio</h2>
+            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
+                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
                 <div className="text-center py-4 text-gray-500">
                     No properties in portfolio
                 </div>
@@ -61,14 +61,14 @@ const PortfolioCard = () => {
     }
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full">
-            <h2 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-3">Portfolio</h2>
+        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
+            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
             
             {/* Category Labels with Markers */}
-            <div className="relative mb-3">
-                <div className="flex justify-between mb-2">
+            <div className="relative mb-1">
+                <div className="flex justify-between">
                     <div className="flex items-center">
-                        <span className="text-[15px] font-semibold">Listed ({totalListed})</span>
+                        <span className="text-sm font-semibold">Listed ({totalListed})</span>
                         <svg className="ml-1.5" width="10" height="10" viewBox="0 0 12 12">
                             <polygon points="6,0 12,12 0,12" fill="#374151" />
                         </svg>
@@ -77,13 +77,13 @@ const PortfolioCard = () => {
                         <svg className="mr-1.5" width="10" height="10" viewBox="0 0 12 12">
                             <polygon points="6,0 12,12 0,12" fill="#374151" />
                         </svg>
-                        <span className="text-[15px] font-semibold">Occupied ({totalOccupied})</span>
+                        <span className="text-sm font-semibold">Occupied ({totalOccupied})</span>
                     </div>
                 </div>
             </div>
 
             {/* Stacked Bar Chart - CSS Based */}
-            <div className="h-10 mb-4 flex items-center">
+            <div className="h-10 mb-1 flex items-center">
                 <div className="w-full h-8 flex rounded-full overflow-hidden bg-gray-100">
                     {/* Listed (Vacant) */}
                     {chartData.listed > 0 && (
@@ -110,23 +110,23 @@ const PortfolioCard = () => {
             </div>
 
             {/* Legend */}
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
                 {/* Listed Section */}
                 <div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 bg-gray-600 rounded"></div>
-                        <span className="font-semibold">Listed ({chartData.listed})</span>
+                        <span className="font-semibold text-sm">Listed ({chartData.listed})</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 ml-4.5">Available listings</p>
+                    <p className="text-xs text-gray-500 ml-4.5">Available listings</p>
                 </div>
 
                 {/* Occupied Section */}
                 <div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 bg-gray-300 rounded"></div>
-                        <span className="font-semibold">Occupied ({chartData.occupied})</span>
+                        <span className="font-semibold text-sm">Occupied ({chartData.occupied})</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 ml-4.5">Rented properties</p>
+                    <p className="text-xs text-gray-500 ml-4.5">Rented properties</p>
                 </div>
             </div>
         </div>
