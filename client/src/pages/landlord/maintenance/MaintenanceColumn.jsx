@@ -16,7 +16,7 @@ const MaintenanceColumn = ({
   onCardClick,
 }) => {
   return (
-    <div className="space-y-4 bg-gray-50 h-[70vh] p-6 rounded-lg flex flex-col">
+    <div className="space-y-4 bg-gray-100 h-[70vh] p-6 rounded-lg flex flex-col">
       <h2 className="font-semibold text-lg">
         {title} ({requests.length})
       </h2>

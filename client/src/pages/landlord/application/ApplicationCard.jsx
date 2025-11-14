@@ -74,7 +74,7 @@ const ApplicationCard = ({
                 </div>
 
                 {/* Column 2: Listing Info */}
-                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-10">
+                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-4">
                     {app.listing.title}
                     {app.listing.streetAddress && (
                         <div className="text-sm font-normal text-wrap text-gray-600">
@@ -84,14 +84,14 @@ const ApplicationCard = ({
                 </div>
 
                 {/* Column 3: Status */}
-                <div className="flex justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
                     <Badge className={`${getStatusColor(app.status)} whitespace-nowrap text-sm px-3 py-1 text-gray-900 border-0`}>
                         {app.status}
                     </Badge>
                 </div>
 
                 {/* Column 4: Actions */}
-                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4">
                     <div className="flex gap-3 justify-center">
                         {["PENDING", "NEW"].includes(app.status) && (
                             <Button

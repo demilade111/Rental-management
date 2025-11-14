@@ -1,52 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
+import api from '@/lib/axios';
+import API_ENDPOINTS from '@/lib/apiEndpoints';
+import LoadingState from '@/components/shared/LoadingState';
 
-// Chart config for browser data
+// Chart config
 const chartConfig = {
     expiring_leases: {
         label: "Expiring Leases",
     },
-    offers: {
-        label: "Offers",
+    draft: {
+        label: "Draft Leases",
         color: "var(--chart-1)",
     },
-    renewals: {
-        label: "Renewals",
+    active: {
+        label: "Active Leases",
         color: "var(--chart-2)",
     },
-    move_outs: {
-        label: "Move Outs",
+    expiring_soon: {
+        label: "Expiring Soon",
         color: "var(--chart-3)",
     },
-};
-
-// Sample data for different time periods
-const allData = {
-    '0-30': [
-        { browser: "offers", expiring_leases: 5, fill: "var(--color-offers)" },
-        { browser: "renewals", expiring_leases: 9, fill: "var(--color-renewals)" },
-        { browser: "move_outs", expiring_leases: 2, fill: "var(--color-move_outs)" },
-    ],
-    '31-60': [
-        { browser: "offers", expiring_leases: 6, fill: "var(--color-offers)" },
-        { browser: "renewals", expiring_leases: 8, fill: "var(--color-renewals)" },
-        { browser: "move_outs", expiring_leases: 4, fill: "var(--color-move_outs)" },
-    ],
-    '61-90': [
-        { browser: "offers", expiring_leases: 5, fill: "var(--color-offers)" },
-        { browser: "renewals", expiring_leases: 3, fill: "var(--color-renewals)" },
-        { browser: "move_outs", expiring_leases: 1, fill: "var(--color-move_outs)" },
-    ],
-    'all': [
-        { browser: "offers", expiring_leases: 7, fill: "var(--color-offers)" },
-        { browser: "renewals", expiring_leases: 9, fill: "var(--color-renewals)" },
-        { browser: "move_outs", expiring_leases: 3, fill: "var(--color-move_outs)" },
-    ]
 };
 
 const filters = [
@@ -58,51 +38,138 @@ const filters = [
 
 const ExpiringLeasesCard = () => {
     const [activeFilter, setActiveFilter] = useState('0-30');
-    const chartData = allData[activeFilter];
+
+    // Fetch all leases
+    const { data: leases = [], isLoading } = useQuery({
+        queryKey: ['leases-dashboard'],
+        queryFn: async () => {
+            const response = await api.get(API_ENDPOINTS.LEASES.BASE);
+            return response.data.data || response.data || [];
+        },
+    });
+
+    // Calculate expiring leases by time period
+    const chartData = useMemo(() => {
+        if (!leases.length) return [];
+
+        const now = new Date();
+        const filterLeasesByDays = (minDays, maxDays) => {
+            return leases.filter(lease => {
+                if (!lease.endDate || lease.leaseStatus === 'TERMINATED' || lease.leaseStatus === 'EXPIRED') {
+                    return false;
+                }
+                const endDate = new Date(lease.endDate);
+                const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+                return daysUntilExpiry >= minDays && daysUntilExpiry <= maxDays;
+            });
+        };
+
+        let filteredLeases = [];
+        if (activeFilter === '0-30') {
+            filteredLeases = filterLeasesByDays(0, 30);
+        } else if (activeFilter === '31-60') {
+            filteredLeases = filterLeasesByDays(31, 60);
+        } else if (activeFilter === '61-90') {
+            filteredLeases = filterLeasesByDays(61, 90);
+        } else {
+            filteredLeases = filterLeasesByDays(0, 365);
+        }
+
+        // Categorize leases
+        const draft = filteredLeases.filter(l => l.leaseStatus === 'DRAFT').length;
+        const active = filteredLeases.filter(l => l.leaseStatus === 'ACTIVE').length;
+        const expiringSoon = filteredLeases.filter(l => {
+            if (!l.endDate) return false;
+            const endDate = new Date(l.endDate);
+            const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+            return daysUntilExpiry <= 30 && l.leaseStatus === 'ACTIVE';
+        }).length;
+
+        return [
+            { browser: "draft", expiring_leases: draft, fill: "var(--color-draft)" },
+            { browser: "active", expiring_leases: active, fill: "var(--color-active)" },
+            { browser: "expiring_soon", expiring_leases: expiringSoon, fill: "var(--color-expiring_soon)" },
+        ];
+    }, [leases, activeFilter]);
+
+    if (isLoading) {
+        return (
+            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden">
+                <h3 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-4">Expiring Leases</h3>
+                <LoadingState message="Loading leases..." compact={true} />
+            </div>
+        );
+    }
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-6">
-            <h3 className="text-[32px] font-bold mb-10">Expiring Leases</h3>
+        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden">
+            <h3 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-4">Expiring Leases</h3>
             {/* Filter Buttons */}
-            <div className="flex gap-3 mb-8 justify-between">
+            <div className="flex gap-2 mb-3 justify-start flex-shrink-0">
                 {filters.map((filter) => (
                     <button
                         key={filter.id}
                         onClick={() => setActiveFilter(filter.id)}
-                        className={`sm:px-6 py-1.5 rounded-full text-sm font-bold transition-colors ${activeFilter === filter.id
-                                ? 'bg-gray-800 text-white'
-                                : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
+                        className={`px-3 sm:px-4 py-1 rounded-full text-sm font-bold transition-colors ${activeFilter === filter.id
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
                         {filter.label}
                     </button>
                 ))}
             </div>
-            <ChartContainer config={chartConfig}>
-                <BarChart
-                    accessibilityLayer
-                    data={chartData}
-                    layout="vertical"
-                >
-                    <YAxis
-                        dataKey="browser"
-                        type="category"
-                        tickLine={false}
-                        tickMargin={96}
-                        axisLine={true}
-                        width={100}
-                        tickFormatter={(value) => chartConfig[value]?.label}
-                        tick={{ fontSize: 16, textAnchor: 'start' }}
-                        style={{ fill: '#000' }}
-                    />
-                    <XAxis dataKey="expiring_leases" type="number" hide />
-                    <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="expiring_leases" layout="vertical" radius={[0, 10, 10, 0]} barSize={32} />
-                </BarChart>
-            </ChartContainer>
+
+            {chartData.length === 0 || chartData.every(d => d.expiring_leases === 0) ? (
+                <div className="text-center py-8 text-gray-500">
+                    No leases expiring in this period
+                </div>
+            ) : (
+                <div className="flex-1 min-h-0 overflow-hidden">
+                    <ChartContainer config={chartConfig} className="h-full">
+                        <BarChart
+                            accessibilityLayer
+                            data={chartData}
+                            layout="vertical"
+                            barCategoryGap="2%"
+                            margin={{ top: 40, right: 0, bottom: 40, left: 0 }}
+                        >
+                            <YAxis
+                                dataKey="browser"
+                                type="category"
+                                tickLine={false}
+                                tickMargin={96}
+                                axisLine={true}
+                                width={100}
+                                tickFormatter={(value) => chartConfig[value]?.label}
+                                tick={{ fontSize: 15, textAnchor: 'start' }}
+                                style={{ fill: '#000' }}
+                            />
+                            <XAxis dataKey="expiring_leases" type="number" hide />
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent
+                                    hideLabel
+                                    formatter={(value, name, item) => {
+                                        const label = chartConfig[item.payload.browser]?.label || item.payload.browser;
+                                        const color = item.payload.fill;
+                                        return [
+                                            <div key={item.payload.browser} className="flex items-center gap-2">
+                                                <div
+                                                    className="w-3 h-3 rounded"
+                                                    style={{ backgroundColor: color }}
+                                                />
+                                                <span>{label}: {value}</span>
+                                            </div>
+                                        ];
+                                    }}
+                                />}
+                            />
+                            <Bar dataKey="expiring_leases" layout="vertical" radius={[0, 20, 20, 0]} barSize={30} />
+                        </BarChart>
+                    </ChartContainer>
+                </div>
+            )}
         </div>
     );
 };

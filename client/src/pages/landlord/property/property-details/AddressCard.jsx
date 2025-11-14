@@ -78,7 +78,7 @@ const AddressCard = ({ fullAddress, zipCode, onAddressGenerated }) => {
       </div>
 
       {/* Map */}
-      <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden relative">
+      <div className="w-full h-[250px] bg-gray-200 rounded-lg overflow-hidden relative">
         {error ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-red-500 text-sm px-4 text-center">{error}</p>

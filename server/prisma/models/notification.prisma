@@ -21,9 +21,10 @@ model Notification {
 enum NotificationType {
   MAINTENANCE_REQUEST
   MAINTENANCE_MESSAGE
-  // Future types can be added here:
-  // APPLICATION_STATUS
-  // LEASE_EXPIRING
+  APPLICATION_STATUS
+  LEASE_EXPIRING
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
   // PAYMENT_DUE
 }
 

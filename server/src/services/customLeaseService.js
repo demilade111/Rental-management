@@ -2,7 +2,7 @@ import { prisma } from "../prisma/client.js";
 
 export const createCustomLease = async (landlordId, data) => {
     // console.log('this is data' + data)
-    const listing = await prisma.Listing.findUnique({
+    const listing = await prisma.listing.findUnique({
         where: { id: data.listingId },
     });
 
@@ -14,7 +14,7 @@ export const createCustomLease = async (landlordId, data) => {
         throw Object.assign(new Error("Unauthorized: You do not own this property"), { status: 403 });
     }
 
-    return prisma.CustomLease.create({
+    return prisma.customLease.create({
         data: {
             listingId: data.listingId || null,
             tenantId: data.tenantId || null,
@@ -23,13 +23,25 @@ export const createCustomLease = async (landlordId, data) => {
             description: data.description,
             propertyType: data.propertyType,
             fileUrl: data.fileUrl,
+            // Accounting fields
+            rentAmount: data.rentAmount || null,
+            paymentFrequency: data.paymentFrequency || null,
+            startDate: data.startDate || null,
+            endDate: data.endDate || null,
+            paymentDay: data.paymentDay || null,
+            securityDeposit: data.securityDeposit || null,
+            depositAmount: data.depositAmount || null,
+            paymentMethod: data.paymentMethod || null,
+            accountingNotes: data.accountingNotes || null,
         },
     });
 };
 
 export const getAllCustomLeases = async (userId, role) => {
+    console.log('getAllCustomLeases called - userId:', userId, 'role:', role);
+    
     const include = {
-        Listing: {
+        listing: {
             select: {
                 id: true,
                 title: true,
@@ -37,9 +49,10 @@ export const getAllCustomLeases = async (userId, role) => {
                 city: true,
                 state: true,
                 country: true,
+                images: true,
             },
         },
-        users_CustomLease_tenantIdTousers: {
+        tenant: {
             select: {
                 id: true,
                 firstName: true,
@@ -47,67 +60,122 @@ export const getAllCustomLeases = async (userId, role) => {
                 email: true,
             },
         },
-        users_CustomLease_landlordIdTousers: {
+        landlord: {
             select: {
                 id: true,
                 firstName: true,
                 lastName: true,
                 email: true,
+                phone: true,
             },
         },
     };
 
     if (role === "LANDLORD" || role === "ADMIN") {
-        return prisma.CustomLease.findMany({
+        const leases = await prisma.customLease.findMany({
             where: { landlordId: userId },
             include,
             orderBy: { createdAt: "desc" },
         });
+        console.log('Custom leases for landlord:', leases.length);
+        return leases;
     }
 
     if (role === "TENANT") {
-        return prisma.CustomLease.findMany({
+        const leases = await prisma.customLease.findMany({
             where: { tenantId: userId },
             include,
             orderBy: { createdAt: "desc" },
         });
+        console.log('Custom leases for tenant:', leases.length);
+        if (leases.length > 0) {
+            console.log('Tenant custom lease statuses:', leases.map(l => ({ id: l.id, status: l.leaseStatus, tenantId: l.tenantId })));
+        }
+        return leases;
     }
 
-    return prisma.CustomLease.findMany({
+    const leases = await prisma.customLease.findMany({
         include,
         orderBy: { createdAt: "desc" },
     });
+    console.log('All custom leases:', leases.length);
+    return leases;
 };
 
 export const getCustomLeaseById = (id) => {
-    return prisma.CustomLease.findUnique({
+    return prisma.customLease.findUnique({
         where: { id },
+        include: {
+            tenant: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                },
+            },
+            landlord: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                },
+            },
+            listing: {
+                select: {
+                    id: true,
+                    title: true,
+                    streetAddress: true,
+                    city: true,
+                    state: true,
+                    country: true,
+                    zipCode: true,
+                    bedrooms: true,
+                    bathrooms: true,
+                    totalSquareFeet: true,
+                    images: {
+                        select: {
+                            id: true,
+                            url: true,
+                            isPrimary: true,
+                        },
+                        orderBy: [
+                            { isPrimary: 'desc' },
+                            { createdAt: 'asc' },
+                        ],
+                    },
+                },
+            },
+        },
     });
 };
 
 export const updateCustomLeaseById = async (id, userId, data) => {
-    const lease = await prisma.CustomLease.findUnique({ where: { id } });
+    const lease = await prisma.customLease.findUnique({ where: { id } });
 
     if (!lease) throw Object.assign(new Error("Lease not found"), { status: 404 });
 
     if (lease.landlordId !== userId)
         throw Object.assign(new Error("Unauthorized"), { status: 403 });
 
-    return prisma.CustomLease.update({
+    return prisma.customLease.update({
         where: { id },
         data,
     });
 };
 
 export const deleteCustomLeaseById = async (id, userId) => {
-    const lease = await prisma.CustomLease.findUnique({ where: { id } });
+    const lease = await prisma.customLease.findUnique({ where: { id } });
 
     if (!lease) throw Object.assign(new Error("Lease not found"), { status: 404 });
 
     if (lease.landlordId !== userId)
         throw Object.assign(new Error("Unauthorized"), { status: 403 });
 
-    await prisma.CustomLease.delete({ where: { id } });
+    await prisma.customLease.delete({ where: { id } });
 
     return { message: "Custom lease deleted successfully" };
 };

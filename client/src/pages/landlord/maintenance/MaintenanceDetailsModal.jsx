@@ -14,6 +14,7 @@ import { maintenanceApi } from "@/lib/maintenanceApi";
 import { SendIcon } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import LoadingState from "@/components/shared/LoadingState";
+import InvoicesModal from "./InvoicesModal";
 
 // Move outside to prevent recreation on every render
 const ImageWithShimmer = React.memo(function ImageWithShimmer({ src, alt }) {
@@ -72,6 +73,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
     const [sending, setSending] = useState(false);
     const [messageBody, setMessageBody] = useState("");
     const messagesEndRef = useRef(null);
+    const [showInvoicesModal, setShowInvoicesModal] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -159,7 +161,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
 
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
-            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl">
+            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
                 <DialogHeader className="px-2 pt-3">
                     <DialogTitle className="text-base md:text-lg">Maintenance Details</DialogTitle>
                 </DialogHeader>
@@ -226,6 +228,31 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                             </div>
                         </div>
                     )}
+
+                    {/* View Invoices Button */}
+                    <div className="mt-6">
+                        <Button
+                            type="button"
+                            className="w-full bg-gray-900 hover:bg-gray-800 text-white rounded-lg py-2.5 font-medium flex items-center justify-center gap-2"
+                            onClick={() => setShowInvoicesModal(true)}
+                        >
+                            <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                className="w-5 h-5" 
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor"
+                            >
+                                <path 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round" 
+                                    strokeWidth={2} 
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                                />
+                            </svg>
+                            View Invoices
+                        </Button>
+                    </div>
 
                     <div className="mt-8">
                         <div className="flex flex-col gap-2 bg-orange-50/50 p-3 rounded-sm border border-gray-300">
@@ -296,6 +323,13 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                     </div>
                 </div>
             </DialogContent>
+
+            {/* Invoices Modal */}
+            <InvoicesModal
+                open={showInvoicesModal}
+                onClose={() => setShowInvoicesModal(false)}
+                maintenanceRequest={request}
+            />
         </Dialog>
     );
 };

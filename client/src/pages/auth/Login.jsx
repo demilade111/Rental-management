@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore";
 import API_ENDPOINTS from "@/lib/apiEndpoints.js";
 import api from "@/lib/axios.js";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { handleApiError } from "@/lib/errorHandler.js";
+import { toast } from "sonner"; // <-- import toast
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -28,19 +28,14 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data) => {
-      try {
-        const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
-        return response.data;
-      } catch (error) {
-        // Add more context to the error
-        const enhancedError = {
-          ...error,
-          timestamp: new Date().toISOString(),
-        };
-        throw enhancedError;
-      }
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
+      return response.data;
     },
     onSuccess: (data) => {
+      // Clear all cached queries to prevent showing stale data from previous user
+      queryClient.clear();
+      console.log('🧹 Cleared all React Query cache on login');
+      
       toast.success("Login successful!");
       setTimeout(() => {
         login(data.data.user, data.data.token);
@@ -52,44 +47,35 @@ export default function LoginPage() {
       }, 1500);
     },
     onError: (err) => {
-      handleApiError(err, toast, "Login", {
-        defaultMessage: "Invalid email or password. Please try again.",
-        duration: 5000,
-        showDetails: true,
+      // Prevent default error handling to avoid page blinking
+      console.error("Login error:", err);
+      
+      // Handle different error response formats
+      const errorMessage = 
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        err.response?.data?.data?.message ||
+        err.message || 
+        "Invalid email or password. Please try again.";
+      
+      // Show toast with longer duration
+      toast.error(errorMessage, {
+        duration: 5000, // Show for 5 seconds
       });
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Client-side validation
-    if (!formData.email || !formData.email.trim()) {
-      toast.error("Email is required");
-      return;
-    }
-
-    if (!formData.password || !formData.password.trim()) {
-      toast.error("Password is required");
-      return;
-    }
-
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
     loginMutation.mutate(formData);
   };
 
   const { isPending } = loginMutation;
 
-  // Demo credentials (these must match users in your Supabase database)
+  // Demo credentials
   const demoEmail = "landlord@test.com";
   const demoPassword = "password123";
-  const tenantEmail = "workingtest@example.com";
+  const tenantEmail = "tenant@test.com";
   const tenantPassword = "password123";
 
   const copyToClipboard = async (text, label) => {
@@ -109,14 +95,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200"
-          autoComplete="off"
-        >
-          <h1 className="text-2xl font-bold text-center mb-6 text-black">
-            Login
-          </h1>
+        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200" autoComplete="off">
+          <h1 className="text-2xl font-bold text-center mb-6 text-black">Login</h1>
           <div className="mb-4">
             <label className="block mb-1 text-black font-medium">Email</label>
             <Input
@@ -132,9 +112,7 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-6">
-            <label className="block mb-1 text-black font-medium">
-              Password
-            </label>
+            <label className="block mb-1 text-black font-medium">Password</label>
             <Input
               type="password"
               name="password"

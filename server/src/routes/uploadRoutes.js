@@ -2,6 +2,7 @@ import express from "express";
 import {
   getawsS3PresignedUrl,
   getawsS3DownloadUrl,
+  getProfilePhotoUploadUrl,
 } from "../controllers/uploadController.js";
 import { getApplicationProofUploadUrl } from "../controllers/applicationFileController.js";
 import { authenticate } from "../middleware/AuthMiddleware.js";
@@ -56,6 +57,7 @@ const router = express.Router();
 
 router.get("/s3-url", authenticate, getawsS3PresignedUrl);
 router.get("/s3-download-url", authenticate, getawsS3DownloadUrl);
+router.get("/profile-photo-upload-url", authenticate, getProfilePhotoUploadUrl);
 router.get("/application-proof-url", getApplicationProofUploadUrl);
 router.post("/:publicId/submit", submitPublicApplicationController);
 

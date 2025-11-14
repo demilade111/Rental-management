@@ -13,9 +13,10 @@ model MaintenanceRequest {
   title         String
   images        MaintenanceImage[]
   messages      MaintenanceMessage[]
+  invoices      Invoice[]
   lease         Lease?               @relation(fields: [leaseId], references: [id])
   customLease   CustomLease?         @relation(fields: [customLeaseId], references: [id])
-  listing       Listing              @relation(fields: [listingId], references: [id])
+  listing       Listing              @relation(fields: [listingId], references: [id], onDelete: Cascade)
   user          User                 @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])

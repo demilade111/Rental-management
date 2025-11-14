@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, FileText, Pencil, Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,6 +24,7 @@ const getStatusColor = (status) => {
 const CustomLeaseCard = ({
     lease,
     onViewFile,
+    onViewDetails,
     onEdit,
     onDelete,
     isSelected = false,
@@ -82,7 +83,7 @@ const CustomLeaseCard = ({
                 </div>
 
                 {/* Column 2: Listing Info */}
-                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-10">
+                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-4">
                     <div className="truncate">{listingInfo}</div>
                     {listingAddress && (
                         <div className="text-sm font-normal text-gray-600 truncate">
@@ -92,46 +93,33 @@ const CustomLeaseCard = ({
                 </div>
 
                 {/* Column 3: Tenant */}
-                <div className="flex justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
                     <div className="text-center">
                         <div className="text-[16px] font-semibold text-gray-900">{tenantName}</div>
                     </div>
                 </div>
 
                 {/* Column 4: Status */}
-                <div className="flex justify-center mr-auto border-l border-gray-300 pl-10">
+                <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
                     <Badge className={`${getStatusColor(lease.leaseStatus)} whitespace-nowrap text-xs px-2 py-1 text-gray-900 border-0`}>
                         {getStatusDisplayName(lease.leaseStatus)}
                     </Badge>
                 </div>
 
                 {/* Column 5: Actions */}
-                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-10">
-                    <div className="flex gap-3 justify-center">
+                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4">
+                    <div className="flex gap-2 justify-center">
                         <Button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onViewFile?.(lease);
+                                onViewDetails?.(lease);
                             }}
-                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-900 hover:bg-gray-800 text-white"
-                            title="View File"
+                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-black hover:bg-gray-800 text-white"
+                            title="View Details"
                             variant="ghost"
                             size="icon"
                         >
-                            <FileText className="w-5 h-5 text-white" />
-                        </Button>
-
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit?.(lease);
-                            }}
-                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-900 hover:bg-gray-800 text-white"
-                            title="Edit"
-                            variant="ghost"
-                            size="icon"
-                        >
-                            <Pencil className="w-5 h-5 text-white" />
+                            <Eye className="w-5 h-5 text-white" />
                         </Button>
 
                         <Button

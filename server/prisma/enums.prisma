@@ -40,6 +40,8 @@ enum CommercialType {
 }
 
 enum RentCycle {
+  DAILY
+  WEEKLY
   MONTHLY
   QUARTERLY
   YEARLY
@@ -129,6 +131,7 @@ enum ListingStatus {
 enum PaymentType {
   RENT
   DEPOSIT
+  MAINTENANCE
   REFUND
   OTHER
 }
