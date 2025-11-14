@@ -7,6 +7,8 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import RentersInsuranceCard from "./RentarsInsuranceCard";
 import ExpiringLeasesCard from "./ExpiringLeasesCard";
 import AccountingCard from "./AccountingCard";
+import PortfolioCard from "./PortfolioCard";
+import LoadingState from "@/components/shared/LoadingState";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
@@ -127,15 +129,15 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 p-4 md:p-6 lg:p-8 h-full">
+      <div className="flex flex-col lg:flex-row gap-3 md:gap-4 p-3 md:p-4 lg:p-6 h-auto lg:h-auto">
         {/* Main Content Grid */}
-        <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 overflow-hidden">
           <AccountingCard />
 
           {/* Applicants */}
-          <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col h-[calc((100vh-200px)/2)] min-h-0">
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-              <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold">
+          <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 flex flex-col h-full lg:h-full min-h-0 overflow-hidden">
+            <div className="flex items-center justify-between mb-3 flex-shrink-0">
+              <h3 className="text-xl md:text-2xl lg:text-[30px] font-bold">
                 Applicants
               </h3>
               <button
@@ -148,7 +150,7 @@ const Dashboard = () => {
             </div>
             <div className="flex-1 overflow-y-auto min-h-0 pr-4">
               {loadingApplications ? (
-                <div className="text-center py-4 text-sm text-gray-500">Loading...</div>
+                <LoadingState message="Loading applications..." compact={true} />
               ) : applications.length === 0 ? (
                 <div className="text-center py-4 text-sm text-gray-500">No applications</div>
               ) : (
@@ -190,19 +192,24 @@ const Dashboard = () => {
 
           <ExpiringLeasesCard />
           <RentersInsuranceCard />
+          
+          {/* Portfolio Card - Full Width */}
+          <div className="md:col-span-2 h-full lg:h-full">
+            <PortfolioCard />
+          </div>
         </div>
 
         {/* Maintenance Sidebar */}
         <div className="w-full lg:w-1/4 flex flex-col">
-          <div className="bg-card rounded-lg border border-gray-400 p-4 md:p-6 flex flex-col h-[calc(100vh-200px)] min-h-0">
-            <h3 className="text-2xl md:text-3xl lg:text-[32px] font-bold mb-4 flex-shrink-0">
+          <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 flex flex-col lg:h-full min-h-0 overflow-hidden">
+            <h3 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-3 flex-shrink-0">
               Maintenance
             </h3>
 
             {/* Scrollable table */}
             <div className="flex-1 overflow-y-auto min-h-0 pr-4">
               {loadingMaintenance ? (
-                <div className="text-center py-4 text-sm text-gray-500">Loading...</div>
+                <LoadingState message="Loading maintenance..." compact={true} />
               ) : maintenanceRequests.length === 0 ? (
                 <div className="text-center py-4 text-sm text-gray-500">No maintenance requests</div>
               ) : (

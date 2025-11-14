@@ -152,3 +152,57 @@
   background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
   animation: shimmer 1.2s infinite;
 }
+
+/* Print Styles for PDF Export */
+@media print {
+  /* Hide navigation, buttons, and interactive elements */
+  header, nav, aside, 
+  button, svg, input, textarea,
+  [role="button"] {
+    display: none !important;
+  }
+  
+  /* Ensure content fills the page */
+  body {
+    margin: 0;
+    padding: 20px;
+    background: white;
+    color: black;
+  }
+  
+  /* Remove any overflow hidden that might clip content */
+  * {
+    overflow: visible !important;
+  }
+  
+  /* Optimize layout for printing */
+  .h-full, .h-screen {
+    height: auto !important;
+  }
+  
+  /* Ensure images print properly */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+  
+  /* Avoid breaking inside important sections */
+  section, article, div[class*="card"] {
+    page-break-inside: avoid;
+  }
+  
+  /* Remove shadows and borders that don't print well */
+  * {
+    box-shadow: none !important;
+  }
+  
+  /* Ensure text is black for better printing */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    color: black !important;
+  }
+  
+  /* Page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}

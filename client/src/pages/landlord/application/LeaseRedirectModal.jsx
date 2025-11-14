@@ -22,7 +22,7 @@ const LeaseRedirectModal = ({ isOpen, onClose, redirectUrl, listingName }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-md text-center space-y-4">
+            <DialogContent className="max-w-md text-center space-y-4 p-8">
                 <DialogHeader className="pt-4">
                     <DialogTitle className="text-xl items-center mx-auto">No Lease Found !</DialogTitle>
                 </DialogHeader>

@@ -1,7 +1,7 @@
 model Lease {
   id               String      @id @default(cuid())
   listingId        String
-  tenantId         String
+  tenantId         String?
   landlordId       String
   startDate        DateTime
   endDate          DateTime
@@ -12,6 +12,7 @@ model Lease {
   leaseStatus      LeaseStatus @default(DRAFT)
   leaseDocument    String?
   signedContract   String?
+  contractPdfUrl   String?     // Generated contract PDF saved in S3
   notes            String?
 
   propertyCategory PropertyCategory?
@@ -55,14 +56,38 @@ model Lease {
   tenantFullName    String?
   tenantEmail       String?
   tenantPhone       String?
+  tenantOtherPhone  String?
+  tenantOtherEmail  String?
   additionalTenants Json?
+
+  unitNumber        String?  // Unit/Apt number for rental property
 
   allowsOccupants   Boolean @default(false)
   occupants         Json?
   numberOfOccupants Int?
 
-  listing             Listing              @relation(fields: [listingId], references: [id])
-  tenant              User                 @relation("TenantLeases", fields: [tenantId], references: [id])
+  // Standard Lease Form Fields (BC Residential Tenancy Agreement)
+  periodicBasis       String? // "weekly", "bi-weekly", "other"
+  periodicOther       String? // Custom periodic basis description
+  fixedEndCondition   String? // "continues", "ends"
+  vacateReason        String? // Required if fixedEndCondition is "ends"
+  petDeposit          Float?
+  petDepositDueDate   DateTime?
+  securityDepositDueDate DateTime?
+  includedServices    Json? // Array of services included in rent
+  parkingSpaces       Int?
+
+  // Termination tracking
+  terminationDate     DateTime?
+  terminationReason   String? // e.g., "Non-payment", "Lease violation", "Mutual agreement", "Other"
+  terminationNotes    String?
+  terminatedBy        String? // User ID who terminated
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listing             Listing              @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  tenant              User?                @relation("TenantLeases", fields: [tenantId], references: [id])
   landlord            User                 @relation("LandlordLeases", fields: [landlordId], references: [id])
   maintenanceRequests MaintenanceRequest[]
   applications        RequestApplication[]

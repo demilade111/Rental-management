@@ -26,10 +26,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, X } from "lucide-react";
 
-const NewListingModal = ({ isOpen, onClose }) => {
+const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = null }) => {
   const token = useAuthStore((state) => state.token);
   const [fieldErrors, setFieldErrors] = useState({});
   const queryClient = useQueryClient();
+  const isEditMode = Boolean(propertyId && initialData);
 
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -41,15 +42,70 @@ const NewListingModal = ({ isOpen, onClose }) => {
     setCountries(Country.getAllCountries());
   }, []);
 
-  // Preselect all amenities when modal opens
+  // Preselect all amenities when modal opens (create mode only)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isEditMode) {
       setFormData((prev) => ({
         ...prev,
         amenities: [...PREDEFINED_AMENITIES],
       }));
     }
-  }, [isOpen]);
+  }, [isOpen, isEditMode]);
+
+  // Populate form with initial data in edit mode
+  useEffect(() => {
+    if (isOpen && isEditMode && initialData) {
+      const countryCode = initialData.country || '';
+      const stateCode = initialData.state || '';
+      
+      // Load states and cities based on initial data
+      if (countryCode) {
+        const countryStates = State.getStatesOfCountry(countryCode);
+        setStates(countryStates);
+        
+        if (stateCode) {
+          const stateCities = City.getCitiesOfState(countryCode, stateCode);
+          setCities(stateCities);
+        }
+      }
+
+      // Extract amenity names
+      const amenityNames = initialData.amenities?.map(a => 
+        typeof a === 'string' ? a : a.name
+      ) || [];
+
+      // Extract image URLs
+      const imageUrls = initialData.images?.map(img => 
+        typeof img === 'string' ? img : img.url
+      ) || [];
+
+      setFormData({
+        title: initialData.title || '',
+        propertyType: initialData.propertyType || '',
+        propertyOwner: initialData.propertyOwner || '',
+        bedrooms: initialData.bedrooms?.toString() || '',
+        bathrooms: initialData.bathrooms?.toString() || '',
+        totalSquareFeet: initialData.totalSquareFeet?.toString() || '',
+        yearBuilt: initialData.yearBuilt?.toString() || '',
+        country: countryCode,
+        state: stateCode,
+        city: initialData.city || '',
+        streetAddress: initialData.streetAddress || '',
+        zipCode: initialData.zipCode || '',
+        rentCycle: initialData.rentCycle || '',
+        rentAmount: initialData.rentAmount?.toString() || '',
+        securityDeposit: initialData.securityDeposit?.toString() || '',
+        availableDate: initialData.availableDate ? new Date(initialData.availableDate) : null,
+        description: initialData.description || '',
+        contactName: initialData.contactName || '',
+        phoneNumber: initialData.phoneNumber || '',
+        email: initialData.email || '',
+        notes: initialData.notes || '',
+        amenities: amenityNames,
+        images: imageUrls,
+      });
+    }
+  }, [isOpen, isEditMode, initialData]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -211,10 +267,17 @@ const NewListingModal = ({ isOpen, onClose }) => {
   const createListingMutation = useMutation({
     mutationFn: async (data) => {
       try {
-        const response = await api.post(API_ENDPOINTS.LISTINGS.BASE, data);
+        let response;
+        if (isEditMode) {
+          // Update existing listing
+          response = await api.put(API_ENDPOINTS.LISTINGS.BY_ID(propertyId), data);
+        } else {
+          // Create new listing
+          response = await api.post(API_ENDPOINTS.LISTINGS.BASE, data);
+        }
         return response.data;
       } catch (error) {
-        console.log("Create listing error:", error);
+        console.log(isEditMode ? "Update listing error:" : "Create listing error:", error);
 
         let parsedDetails = [];
         try {
@@ -227,14 +290,17 @@ const NewListingModal = ({ isOpen, onClose }) => {
           message:
             error.response?.data?.message ||
             error.message ||
-            "Failed to create listing",
+            (isEditMode ? "Failed to update listing" : "Failed to create listing"),
           details: parsedDetails,
         };
       }
     },
     onSuccess: () => {
-      toast.success("Property added successfully!");
+      toast.success(isEditMode ? "Property updated successfully!" : "Property added successfully!");
       queryClient.invalidateQueries(["listings"]);
+      if (isEditMode) {
+        queryClient.invalidateQueries(["property", propertyId]);
+      }
       resetForm();
       onClose();
     },
@@ -398,7 +464,7 @@ const NewListingModal = ({ isOpen, onClose }) => {
         <DialogHeader className="p-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-semibold">
-              New Listing
+              {isEditMode ? 'Edit Property' : 'New Listing'}
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -597,7 +663,10 @@ const NewListingModal = ({ isOpen, onClose }) => {
                 className="bg-black text-white hover:bg-gray-800 rounded-2xl"
                 disabled={isPending}
               >
-                {isPending ? "Adding..." : "Add Property"}
+                {isPending 
+                  ? (isEditMode ? "Updating..." : "Adding...") 
+                  : (isEditMode ? "Update Property" : "Add Property")
+                }
               </Button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -5,13 +6,88 @@ import {
     DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/axios";
+import API_ENDPOINTS from "@/lib/apiEndpoints";
 
 const ApplicationDetailsDialog = ({ open, onClose, application }) => {
+    const [signedDocUrls, setSignedDocUrls] = useState({});
+    const [loadingDocs, setLoadingDocs] = useState(true);
+
+    // Fetch signed URLs for S3 documents
+    useEffect(() => {
+        if (!open || !application) {
+            setSignedDocUrls({});
+            setLoadingDocs(true);
+            return;
+        }
+
+        const fetchSignedUrls = async () => {
+            setLoadingDocs(true);
+            const urlMap = {};
+
+            try {
+                // Fetch signed URLs for employment proof documents
+                if (Array.isArray(application.employmentInfo)) {
+                    for (const job of application.employmentInfo) {
+                        if (job.proofDocument) {
+                            try {
+                                const url = new URL(job.proofDocument);
+                                const isS3 = url.hostname.includes('s3.') || url.hostname.includes('amazonaws.com');
+                                
+                                if (isS3) {
+                                    const key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+                                    const response = await api.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-download-url`, {
+                                        params: { key }
+                                    });
+                                    urlMap[job.proofDocument] = response.data?.data?.downloadURL || response.data?.downloadURL || job.proofDocument;
+                                } else {
+                                    urlMap[job.proofDocument] = job.proofDocument;
+                                }
+                            } catch {
+                                urlMap[job.proofDocument] = job.proofDocument;
+                            }
+                        }
+                    }
+                }
+
+                // Fetch signed URLs for application documents
+                if (Array.isArray(application.documents)) {
+                    for (const docUrl of application.documents) {
+                        try {
+                            const url = new URL(docUrl);
+                            const isS3 = url.hostname.includes('s3.') || url.hostname.includes('amazonaws.com');
+                            
+                            if (isS3) {
+                                const key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+                                const response = await api.get(`${API_ENDPOINTS.UPLOADS.BASE}/s3-download-url`, {
+                                    params: { key }
+                                });
+                                urlMap[docUrl] = response.data?.data?.downloadURL || response.data?.downloadURL || docUrl;
+                            } else {
+                                urlMap[docUrl] = docUrl;
+                            }
+                        } catch {
+                            urlMap[docUrl] = docUrl;
+                        }
+                    }
+                }
+
+                setSignedDocUrls(urlMap);
+            } catch (error) {
+                console.error('Error fetching signed URLs:', error);
+            } finally {
+                setLoadingDocs(false);
+            }
+        };
+
+        fetchSignedUrls();
+    }, [open, application]);
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent
                 onInteractOutside={(e) => e.preventDefault()}
-                className="max-h-[90vh] overflow-y-auto sm:max-w-4xl lg:max-w-5xl p-6 sm:p-10 pt-6 sm:pt-12"
+                className="max-h-[90vh] overflow-y-auto sm:max-w-4xl lg:max-w-5xl p-8"
             >
                 <DialogHeader>
                     <DialogTitle className="text-2xl mb-4">Application Details</DialogTitle>
@@ -102,14 +178,18 @@ const ApplicationDetailsDialog = ({ open, onClose, application }) => {
                                                 )}
                                                 {job.proofDocument && (
                                                     <div className="pt-2 border-t border-gray-200">
-                                                        <a
-                                                            href={job.proofDocument}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="text-blue-600 hover:text-blue-800 underline text-sm inline-flex items-center gap-1"
-                                                        >
-                                                            View Proof Document
-                                                        </a>
+                                                        {loadingDocs ? (
+                                                            <span className="text-gray-500 text-sm">Loading document...</span>
+                                                        ) : (
+                                                            <a
+                                                                href={signedDocUrls[job.proofDocument] || job.proofDocument}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 underline text-sm inline-flex items-center gap-1"
+                                                            >
+                                                                View Proof Document
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -124,24 +204,29 @@ const ApplicationDetailsDialog = ({ open, onClose, application }) => {
                             <div>
                                 <h3 className="font-semibold text-lg text-gray-900">Documents</h3>
                                 <div className="space-y-2">
-                                    {application.documents.map((url, index) => {
-                                        const filename = url.split("/").pop();
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="flex items-center justify-between border rounded-lg p-2 bg-gray-50"
-                                            >
-                                                <a
-                                                    href={url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 underline text-sm break-all"
+                                    {loadingDocs ? (
+                                        <p className="text-sm text-gray-500">Loading documents...</p>
+                                    ) : (
+                                        application.documents.map((url, index) => {
+                                            const filename = url.split("/").pop();
+                                            const signedUrl = signedDocUrls[url] || url;
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center justify-between border rounded-lg p-2 bg-gray-50"
                                                 >
-                                                    {filename}
-                                                </a>
-                                            </div>
-                                        );
-                                    })}
+                                                    <a
+                                                        href={signedUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 underline text-sm break-all"
+                                                    >
+                                                        {filename}
+                                                    </a>
+                                                </div>
+                                            );
+                                        })
+                                    )}
                                 </div>
                             </div>
                         )}

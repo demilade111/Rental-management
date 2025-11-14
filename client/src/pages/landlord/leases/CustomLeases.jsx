@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
 import CustomLeaseCard from "./CustomLeaseCard";
@@ -32,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import CreateLeaseModal from "./lease-modal/CreateLeaseModal";
 
 const CustomLeases = ({ onTotalChange }) => {
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchQuery, setSearchQuery] = useState("");
@@ -51,7 +53,24 @@ const CustomLeases = ({ onTotalChange }) => {
         queryKey: ["customleases"],
         queryFn: async () => {
             const res = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
-            return res.data.data || res.data || [];
+            const leases = res.data.data || res.data || [];
+            
+            // Sort by status priority (DRAFT > ACTIVE > TERMINATED/EXPIRED), then by date
+            const statusPriority = {
+                'DRAFT': 1,      // Highest priority - needs action
+                'ACTIVE': 2,     // Second priority - currently running
+                'TERMINATED': 3, // Lower priority - ended
+                'EXPIRED': 4,    // Lowest priority - expired
+            };
+            
+            return leases.sort((a, b) => {
+                // First, sort by status priority
+                const priorityDiff = (statusPriority[a.leaseStatus] || 99) - (statusPriority[b.leaseStatus] || 99);
+                if (priorityDiff !== 0) return priorityDiff;
+                
+                // Within same status, sort by start date (most recent first)
+                return new Date(b.startDate) - new Date(a.startDate);
+            });
         },
     });
 
@@ -175,6 +194,10 @@ const CustomLeases = ({ onTotalChange }) => {
         }
     };
 
+    const handleViewDetails = (lease) => {
+        navigate(`/landlord/leases/custom/${lease.id}`);
+    };
+
     const handleViewFile = (lease) => {
         setSelectedLease(lease);
         setViewFileOpen(true);
@@ -231,11 +254,11 @@ const CustomLeases = ({ onTotalChange }) => {
                             className="data-[state=checked]:bg-white data-[state=checked]:border-white"
                         />
                     </div>
-                    <div className="text-center">Lease Name</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Listing Info</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Tenant</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Status</div>
-                    <div className="text-center border-l border-gray-200 pl-10">Actions</div>
+                    <div className="">Lease Name</div>
+                    <div className="border-l border-gray-300 pl-4">Listing Info</div>
+                    <div className="border-l border-gray-300 pl-4">Tenant</div>
+                    <div className="border-l border-gray-300 pl-4">Status</div>
+                    <div className="border-l border-gray-300 pl-4">Actions</div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0">
@@ -246,6 +269,7 @@ const CustomLeases = ({ onTotalChange }) => {
                             <CustomLeaseCard
                                 key={lease.id}
                                 lease={lease}
+                                onViewDetails={handleViewDetails}
                                 onViewFile={handleViewFile}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}

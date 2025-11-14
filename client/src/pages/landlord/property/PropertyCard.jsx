@@ -82,22 +82,49 @@ const ListingThumbnail = ({ images, alt }) => {
     }
 
     return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full overflow-hidden">
+            {/* Shimmer Loading State */}
             {loading && (
-                <div className="absolute inset-0 animate-pulse bg-gray-200" />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200">
+                    <div className="absolute inset-0 shimmer-effect"></div>
+                </div>
             )}
+            {/* Image with Smooth Fade-in */}
             <img
                 src={resolvedSrc}
                 alt={alt}
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover transition-all duration-500 ease-out ${
+                    loading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+                }`}
                 onLoad={() => setLoading(false)}
                 onError={() => { setErrored(true); setLoading(false); }}
             />
+            <style jsx>{`
+                @keyframes shimmer {
+                    0% {
+                        transform: translateX(-100%);
+                    }
+                    100% {
+                        transform: translateX(100%);
+                    }
+                }
+                .shimmer-effect {
+                    background: linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0) 0%,
+                        rgba(255, 255, 255, 0.6) 40%,
+                        rgba(255, 255, 255, 0.8) 50%,
+                        rgba(255, 255, 255, 0.6) 60%,
+                        rgba(255, 255, 255, 0) 100%
+                    );
+                    animation: shimmer 2s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     );
 };
 
-const PropertyCard = ({ property, isSelected = false, onSelectionChange }) => {
+const PropertyCard = ({ property }) => {
     const navigate = useNavigate();
     
     const handleClick = () => {
@@ -107,20 +134,6 @@ const PropertyCard = ({ property, isSelected = false, onSelectionChange }) => {
     return (
         <Card onClick={handleClick} className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
             <div className="flex flex-col md:flex-row">
-                {/* Checkbox - at the front */}
-                {onSelectionChange && (
-                    <div className="flex items-center justify-center p-4 pl-4 pr-2">
-                        <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={(checked) => {
-                                onSelectionChange(property.id, Boolean(checked));
-                            }}
-                            className="!border-black"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-                    </div>
-                )}
-   
                 <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0 overflow-hidden">
                     <ListingThumbnail images={property?.images} alt={property.title || property.name || 'Listing image'} />
                 </div>
@@ -145,7 +158,7 @@ const PropertyCard = ({ property, isSelected = false, onSelectionChange }) => {
                             <p className="text-sm whitespace-nowrap">
                                 <span className="font-bold">Deposit:</span> $ {property.securityDeposit}
                             </p>
-                            {property.petDeposit && (
+                            {property.petDeposit > 0 && (
                                 <p className="text-sm whitespace-nowrap">
                                     <span className="font-bold">Pet Deposit:</span> $ {property.petDeposit}
                                 </p>
@@ -186,11 +199,19 @@ const PropertyCard = ({ property, isSelected = false, onSelectionChange }) => {
                     {/* Status Indicators */}
                     <div className="flex flex-row md:flex-col gap-3 md:gap-2 w-full md:w-auto md:flex-1 md:justify-center">
                         <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                            <div className="w-2 h-2 rounded-full bg-black flex-shrink-0"></div>
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                property.status === 'ACTIVE' 
+                                    ? 'bg-black' 
+                                    : 'border border-black'
+                            }`}></div>
                             <span>listed</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                            <div className="w-2 h-2 rounded-full border border-black flex-shrink-0"></div>
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                property.status === 'RENTED' 
+                                    ? 'bg-black' 
+                                    : 'border border-black'
+                            }`}></div>
                             <span>occupied</span>
                         </div>
                     </div>

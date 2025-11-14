@@ -7,7 +7,6 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 30000, // 30 seconds timeout
 });
 
 let isRefreshing = false;
@@ -30,7 +29,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => {
@@ -39,37 +37,20 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle network errors
-    if (!error.response) {
-      error.message =
-        error.code === "ECONNABORTED"
-          ? "Request timeout - please try again"
-          : "Network error - please check your connection";
-      return Promise.reject(error);
-    }
+    // Skip token refresh logic for public endpoints - let them handle their own errors
+    const requestUrl = originalRequest.url || originalRequest.baseURL + originalRequest.url || '';
+    const isPublicEndpoint = requestUrl.includes('/auth/login') || 
+                             requestUrl.includes('/auth/register') ||
+                             requestUrl.includes('/auth/request-reset') ||
+                             requestUrl.includes('/auth/reset-password') ||
+                             requestUrl.includes('/leases-invite/invite/') ||
+                             requestUrl.includes('/leases-invite/sign/');
 
-    // Skip token refresh logic for login/register endpoints - let them handle their own errors
-    const requestUrl =
-      originalRequest.url ||
-      originalRequest.baseURL + originalRequest.url ||
-      "";
-    const isAuthEndpoint =
-      requestUrl.includes("/auth/login") ||
-      requestUrl.includes("/auth/register") ||
-      requestUrl.includes("/auth/request-reset") ||
-      requestUrl.includes("/auth/reset-password");
-
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !isAuthEndpoint
-    ) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublicEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

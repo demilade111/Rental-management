@@ -11,7 +11,8 @@ export default function LeaseSearchBar({
     onNewLease,
     onMyLeases,
     chips = [],
-    removeChip
+    removeChip,
+    buttonText = "New Lease"
 }) {
     return (
         <div className="flex flex-col gap-3 my-4 pt-2">
@@ -72,7 +73,7 @@ export default function LeaseSearchBar({
                         onClick={onNewLease}
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        New Lease
+                        {buttonText}
                     </Button>
                 </div>
             </div>

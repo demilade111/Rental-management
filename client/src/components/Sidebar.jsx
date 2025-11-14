@@ -1,17 +1,27 @@
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Menu, X, ChevronLeft, ChevronRight, HelpCircle, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Menu, X, ChevronLeft, ChevronRight, HelpCircle, LogOut, User } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
 
+  // Check if current page is Account (not accounting)
+  const location = window.location.pathname;
+  const isAccountActive = location === '/landlord/account' || location === '/tenant/account';
+
   const handleLogout = () => {
+    // Clear all cached queries to prevent showing stale data on next login
+    queryClient.clear();
+    console.log('🧹 Cleared all React Query cache on logout');
+    
     logout();
     navigate("/login");
   };
@@ -41,21 +51,11 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         />
       )}
 
-      {/* Collapsed expand button */}
-      {isCollapsed && (
-        <button
-          onClick={() => setIsCollapsed(false)}
-          className="hidden lg:flex fixed top-4 left-4 z-40 p-2 bg-gray-800 text-white rounded-lg shadow-lg hover:bg-gray-700 transition cursor-pointer"
-        >
-          <ChevronRight size={20} />
-        </button>
-      )}
-
       {/* Sidebar container */}
       <div
         className={`
-          bg-primary fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
-          text-white transform transition-all duration-300 ease-in-out
+          bg-primary dark:bg-gray-950 dark:border-r dark:border-gray-800 fixed lg:static inset-y-0 left-0 z-40 flex flex-col justify-between
+          text-white dark:text-gray-100 transform transition-all duration-300 ease-in-out
           ${isMobileMenuOpen
             ? "translate-x-0"
             : "-translate-x-full lg:translate-x-0"
@@ -67,7 +67,16 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
       >
         {/* Top section */}
         <div className="p-4 pr-0">
-          {!isCollapsed && (
+          {isCollapsed ? (
+            <div className="mb-8 flex items-center justify-center">
+              <button
+                onClick={() => setIsCollapsed(false)}
+                className="hidden lg:block p-2 hover:bg-gray-700 rounded-lg transition"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          ) : (
             <div className="mb-8 flex items-center justify-between">
               <h1 className="text-lg font-semibold text-gray-300 whitespace-nowrap">
                 PropEase
@@ -89,29 +98,22 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
               const isBeforeActive = activeIndex !== -1 && index === activeIndex - 1;
               const isAfterActive = activeIndex !== -1 && index === activeIndex + 1;
 
-              // Determine rounded corners
-              let roundedClasses = "";
-              if (isActive) {
-                // Active item: no right corners rounded, just left corners
-                roundedClasses = "rounded-tl-full rounded-bl-full";
-              } else if (isBeforeActive) {
-                // Item before active: left corners + bottom-right corner
-                roundedClasses = "rounded-tl-full rounded-bl-full rounded-br-full";
-              } else if (isAfterActive) {
-                // Item after active: left corners + top-right corner
-                roundedClasses = "rounded-tl-full rounded-bl-full rounded-tr-full";
-              } else {
-                // Regular items: only left corners
-                roundedClasses = "rounded-tl-full rounded-bl-full";
-              }
-
               return (
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
-                    } ${isActive ? "pl-3 pr-0" : "px-3"} py-2.5 ${roundedClasses} transition-all duration-200 ease-in-out cursor-pointer ${isActive
-                      ? "bg-white"
+                  className={`w-full flex items-center ${
+                    isCollapsed 
+                      ? "justify-center px-0" 
+                      : "space-x-3"
+                    } ${
+                    !isCollapsed && isActive 
+                      ? "pl-3 pr-0" 
+                      : !isCollapsed 
+                      ? "px-3" 
+                      : ""
+                    } py-2.5 rounded-tl-full rounded-bl-full transition-all duration-200 ease-in-out cursor-pointer ${isActive
+                      ? "bg-white dark:bg-gray-900"
                       : "hover:bg-gray-300/10 active:bg-gray-300/20"
                     } relative overflow-visible`}
                 >
@@ -129,15 +131,15 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
 
                   <div
                     className={`w-8 h-8 rounded-full flex-shrink-0 relative z-10 transition-all duration-200 ease-in-out ${isActive
-                        ? "bg-[#1F363D]"
-                        : "bg-gray-300 hover:bg-gray-400"
+                        ? "bg-[#1F363D] dark:bg-gray-100"
+                        : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600"
                       }`}
                   ></div>
                   {!isCollapsed && (
                     <span
                       className={`text-[16px] whitespace-nowrap relative z-10 transition-colors duration-200 ease-in-out ${isActive
-                          ? "text-[#1F363D] font-semibold"
-                          : "text-white"
+                          ? "text-[#1F363D] dark:text-gray-100 font-semibold"
+                          : "text-white dark:text-gray-300"
                         }`}
                     >
                       {item.label}
@@ -151,36 +153,60 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-700 pt-4 mt-auto p-4 space-y-2">
+        <div className="border-t border-gray-700 dark:border-gray-800 pt-4 mt-auto p-4 pr-0 space-y-2">
           <button
-            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
-              } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+            className={`w-full flex items-center ${
+              isCollapsed ? "justify-center px-0" : "space-x-3 px-3"
+            } py-2.5 rounded-tl-full rounded-bl-full transition-all duration-200 ease-in-out cursor-pointer hover:bg-gray-300/10 active:bg-gray-300/20 relative overflow-visible`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300/20 flex items-center justify-center flex-shrink-0">
-              <HelpCircle className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-full bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 flex items-center justify-center flex-shrink-0 relative z-10 transition-all duration-200 ease-in-out">
+              <HelpCircle className="w-5 h-5 text-gray-900 dark:text-gray-100" />
             </div>
-            {!isCollapsed && <span className="text-[16px]">Help & Support</span>}
+            {!isCollapsed && <span className="text-[16px] text-white dark:text-gray-300 whitespace-nowrap relative z-10">Help & Support</span>}
           </button>
 
           <button
-            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
-              } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+            onClick={() => navigate(user?.role === "ADMIN" ? "/landlord/account" : "/tenant/account")}
+            className={`w-full flex items-center ${
+              isCollapsed ? "justify-center px-0" : "space-x-3"
+            } ${
+              !isCollapsed && isAccountActive ? "pl-3 pr-0" : !isCollapsed ? "px-3" : ""
+            } py-2.5 rounded-tl-full rounded-bl-full transition-all duration-200 ease-in-out cursor-pointer ${
+              isAccountActive 
+                ? "bg-white dark:bg-gray-900" 
+                : "hover:bg-gray-400/10 dark:hover:bg-gray-800"
+            } relative overflow-visible`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300/20 flex items-center justify-center flex-shrink-0">
-              <SettingsIcon className="w-5 h-5" />
+            <div className={`w-8 h-8 rounded-full flex-shrink-0 relative z-10 transition-all duration-200 ease-in-out ${
+              isAccountActive 
+                ? "bg-[#1F363D] dark:bg-gray-100" 
+                : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600"
+            }`}>
+              <div className="w-full h-full flex items-center justify-center">
+                <User className={`w-5 h-5 ${isAccountActive ? "text-white dark:text-gray-900" : "text-gray-900 dark:text-gray-100"}`} />
+              </div>
             </div>
-            {!isCollapsed && <span className="text-[16px]">Settings</span>}
+            {!isCollapsed && (
+              <span className={`text-[16px] whitespace-nowrap relative z-10 transition-colors duration-200 ease-in-out ${
+                isAccountActive 
+                  ? "text-[#1F363D] dark:text-gray-100 font-semibold" 
+                  : "text-white dark:text-gray-300"
+              }`}>
+                Account
+              </span>
+            )}
           </button>
 
           <button
             onClick={() => setLogoutOpen(true)}
-            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
-              } px-3 py-2 rounded-lg hover:bg-gray-400/10 transition`}
+            className={`w-full flex items-center ${
+              isCollapsed ? "justify-center px-0" : "space-x-3 px-3"
+            } py-2.5 rounded-tl-full rounded-bl-full transition-all duration-200 ease-in-out cursor-pointer hover:bg-gray-300/10 active:bg-gray-300/20 relative overflow-visible`}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-300/20 flex items-center justify-center flex-shrink-0">
-              <LogOut className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-full bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 flex items-center justify-center flex-shrink-0 relative z-10 transition-all duration-200 ease-in-out">
+              <LogOut className="w-5 h-5 text-gray-900 dark:text-gray-100" />
             </div>
-            {!isCollapsed && <span className="text-[16px]">Logout</span>}
+            {!isCollapsed && <span className="text-[16px] text-white dark:text-gray-300 whitespace-nowrap relative z-10">Logout</span>}
           </button>
         </div>
       </div>

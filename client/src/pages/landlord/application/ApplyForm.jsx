@@ -314,6 +314,59 @@ const ApplyForm = () => {
 
   // ---------- helper handlers ----------
   const updateField = (key, value) => setForm((s) => ({ ...s, [key]: value }));
+
+  // Fill demo data
+  const fillDemoData = () => {
+    const today = new Date();
+    const birthDate = new Date(today.getFullYear() - 30, 5, 15); // 30 years old
+    const moveInDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    
+    const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'Robert', 'Lisa'];
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis'];
+    const streets = ['Main Street', 'Oak Avenue', 'Maple Drive', 'Pine Road', 'Cedar Lane'];
+    const cities = ['Vancouver', 'Victoria', 'Kelowna', 'Surrey', 'Burnaby'];
+    
+    const randomName = () => ({
+      first: firstNames[Math.floor(Math.random() * firstNames.length)],
+      last: lastNames[Math.floor(Math.random() * lastNames.length)]
+    });
+    
+    const applicant = randomName();
+    const fullName = `${applicant.first} ${applicant.last}`;
+    const email = `${applicant.first.toLowerCase()}.${applicant.last.toLowerCase()}@email.com`;
+    const phone = `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
+    const randomStreet = `${Math.floor(Math.random() * 9000) + 1000} ${streets[Math.floor(Math.random() * streets.length)]}`;
+    const randomCity = cities[Math.floor(Math.random() * cities.length)];
+    const monthlyIncome = (Math.floor(Math.random() * 5000) + 3000).toString();
+    
+    setForm({
+      ...form,
+      fullName,
+      email,
+      phone,
+      dateOfBirth: birthDate,
+      currentAddress: `${randomStreet}, ${randomCity}, BC`,
+      moveInDate,
+      monthlyIncome,
+      occupantsCount: Math.floor(Math.random() * 3) + 1,
+      petsCount: Math.random() > 0.5 ? Math.floor(Math.random() * 2) + 1 : 0,
+      numberOfTenants: Math.floor(Math.random() * 2) + 1,
+      message: "I am a reliable tenant looking for a long-term rental. I have excellent rental history and stable income.",
+      employmentInfo: [
+        {
+          employerName: ["Tech Corp", "Marketing Inc", "Finance Solutions", "Healthcare Plus"][Math.floor(Math.random() * 4)],
+          jobTitle: ["Software Developer", "Marketing Manager", "Financial Analyst", "Project Manager"][Math.floor(Math.random() * 4)],
+          income: (Math.floor(Math.random() * 60000) + 40000).toString(),
+          duration: ["2 years", "3 years", "1 year", "5 years"][Math.floor(Math.random() * 4)],
+          address: `${Math.floor(Math.random() * 9000) + 1000} Business Ave, ${randomCity}, BC`,
+          proofDocument: null
+        }
+      ],
+      documents: []
+    });
+    
+    toast.success("Demo data filled!");
+  };
   
   // Validate a single employment field
   const validateEmploymentField = (index, field, value) => {
@@ -602,6 +655,19 @@ const ApplyForm = () => {
           >
             4. Documents
           </div>
+        </div>
+
+        {/* Demo Data Button */}
+        <div className="flex justify-center mb-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={fillDemoData}
+            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+          >
+            🎲 Fill Demo Data
+          </Button>
         </div>
 
         {/* Form Body */}
