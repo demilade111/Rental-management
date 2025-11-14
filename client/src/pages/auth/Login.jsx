@@ -34,8 +34,8 @@ export default function LoginPage() {
     onSuccess: (data) => {
       // Clear all cached queries to prevent showing stale data from previous user
       queryClient.clear();
-      console.log('🧹 Cleared all React Query cache on login');
-      
+      console.log("🧹 Cleared all React Query cache on login");
+
       toast.success("Login successful!");
       setTimeout(() => {
         login(data.data.user, data.data.token);
@@ -49,15 +49,15 @@ export default function LoginPage() {
     onError: (err) => {
       // Prevent default error handling to avoid page blinking
       console.error("Login error:", err);
-      
+
       // Handle different error response formats
-      const errorMessage = 
-        err.response?.data?.message || 
-        err.response?.data?.error || 
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
         err.response?.data?.data?.message ||
-        err.message || 
+        err.message ||
         "Invalid email or password. Please try again.";
-      
+
       // Show toast with longer duration
       toast.error(errorMessage, {
         duration: 5000, // Show for 5 seconds
@@ -78,14 +78,14 @@ export default function LoginPage() {
   const tenantEmail = "tenant@test.com";
   const tenantPassword = "password123";
 
-  const copyToClipboard = async (text, label) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied`);
-    } catch {
-      toast.error(`Failed to copy ${label}`);
-    }
-  };
+  // const copyToClipboard = async (text, label) => {
+  //   try {
+  //     await navigator.clipboard.writeText(text);
+  //     toast.success(`${label} copied`);
+  //   } catch {
+  //     toast.error(`Failed to copy ${label}`);
+  //   }
+  // };
 
   const fillDemo = () => {
     setFormData({ email: demoEmail, password: demoPassword });
@@ -95,8 +95,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
       <div className="w-full max-w-md">
-        <form onSubmit={handleSubmit} className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200" autoComplete="off">
-          <h1 className="text-2xl font-bold text-center mb-6 text-black">Login</h1>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-200"
+          autoComplete="off"
+        >
+          <h1 className="text-2xl font-bold text-center mb-6 text-black">
+            Login
+          </h1>
           <div className="mb-4">
             <label className="block mb-1 text-black font-medium">Email</label>
             <Input
@@ -112,7 +118,9 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-6">
-            <label className="block mb-1 text-black font-medium">Password</label>
+            <label className="block mb-1 text-black font-medium">
+              Password
+            </label>
             <Input
               type="password"
               name="password"

@@ -21,7 +21,10 @@ import LeaseDetailPage from "@/pages/landlord/leases/LeaseDetailPage";
 import Accounting from "@/pages/landlord/accounting/Accounting";
 import TenantAccounting from "@/pages/tenant/accounting/TenantAccounting";
 import TenantRentalInfo from "@/pages/tenant/rental-info/RentalInfo";
+import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
 import Account from "@/pages/account/Account";
+import LandlordInsurance from "@/pages/landlord/insurance/LandlordInsurance";
+import TenantInsurance from "@/pages/tenant/insurance/TenantInsurance";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -42,20 +45,37 @@ const MainLayout = () => {
           path: "/landlord/applications",
         },
         { label: "Leases", id: "leases", path: "/landlord/leases" },
-        { label: "Maintenance", id: "maintenance", path: "/landlord/maintenance" },
+        {
+          label: "Maintenance",
+          id: "maintenance",
+          path: "/landlord/maintenance",
+        },
         { label: "Accounting", id: "accounting", path: "/landlord/accounting" },
+        { label: "Insurance", id: "insurance", path: "/landlord/insurance" },
         // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
-        { label: "Rental Info", id: "rental-info", path: "/tenant/rental-info" },
-        { label: "Maintenance", id: "maintenance", path: "/tenant/maintenance" },
-        { label: "Accounting", id: "payments", path: "/tenant/payments" },
+        {
+          label: "Rental Info",
+          id: "rental-info",
+          path: "/tenant/rental-info",
+        },
+        {
+          label: "Maintenance",
+          id: "maintenance",
+          path: "/tenant/maintenance",
+        },
+        { label: "Accounting", id: "accounting", path: "/tenant/accounting" },
+        { label: "Insurance", id: "insurance", path: "/tenant/insurance" },
       ];
 
   const activeNav =
     navItems.find((item) => location.pathname.startsWith(item.path))?.id ||
-    (location.pathname === '/landlord/account' || location.pathname === '/tenant/account' ? 'account' : 'dashboard');
+    (location.pathname === "/landlord/account" ||
+    location.pathname === "/tenant/account"
+      ? "account"
+      : "dashboard");
 
   const handleNavChange = (id) => {
     const item = navItems.find((nav) => nav.id === id);
@@ -87,13 +107,18 @@ const MainLayout = () => {
             <Route path="/landlord/account" element={<Account />} />
             {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
             <Route path="/landlord/leases" element={<LeasesPage />} />
-            <Route path="/landlord/leases/:type/:id" element={<LeaseDetailPage />} />
+            <Route
+              path="/landlord/leases/:type/:id"
+              element={<LeaseDetailPage />}
+            />
+            <Route path="/landlord/insurance" element={<LandlordInsurance />} />
 
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/rental-info" element={<TenantRentalInfo />} />
             <Route path="/tenant/maintenance" element={<Maintenance />} />
-            <Route path="/tenant/payments" element={<TenantAccounting />} />
+            <Route path="/tenant/accounting" element={<TenantAccounting />} />
             <Route path="/tenant/account" element={<Account />} />
+            <Route path="/tenant/insurance" element={<TenantInsurance />} />
 
             <Route
               path="*"
