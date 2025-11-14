@@ -233,7 +233,7 @@ const Account = () => {
   const menuItems = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'password', label: 'Password', icon: Lock },
-    { id: 'system', label: 'System', icon: Globe },
+    // { id: 'system', label: 'System', icon: Globe },
   ];
 
   return (

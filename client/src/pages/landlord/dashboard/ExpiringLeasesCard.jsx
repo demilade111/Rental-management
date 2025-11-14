@@ -40,7 +40,7 @@ const ExpiringLeasesCard = () => {
     const [activeFilter, setActiveFilter] = useState('0-30');
 
     // Fetch all leases
-    const { data: leases = [], isLoading } = useQuery({
+    const { data: leases = [], isLoading, isFetched } = useQuery({
         queryKey: ['leases-dashboard'],
         queryFn: async () => {
             const response = await api.get(API_ENDPOINTS.LEASES.BASE);
@@ -92,25 +92,19 @@ const ExpiringLeasesCard = () => {
         ];
     }, [leases, activeFilter]);
 
-    if (isLoading) {
-        return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden">
-                <h3 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-4">Expiring Leases</h3>
-                <LoadingState message="Loading leases..." compact={true} />
-            </div>
-        );
-    }
+    // Don't show loading indicator on first load
+    const showLoading = isLoading && isFetched;
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden">
-            <h3 className="text-xl md:text-2xl lg:text-[30px] font-bold mb-4">Expiring Leases</h3>
+        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
+            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-6">Expiring Leases</h3>
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-3 justify-start flex-shrink-0">
                 {filters.map((filter) => (
                     <button
                         key={filter.id}
                         onClick={() => setActiveFilter(filter.id)}
-                        className={`px-3 sm:px-4 py-1 rounded-full text-sm font-bold transition-colors ${activeFilter === filter.id
+                        className={`px-2 sm:px-3 py-1 rounded-full text-xs font-bold transition-colors ${activeFilter === filter.id
                             ? 'bg-gray-800 text-white'
                             : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
                             }`}
@@ -120,29 +114,39 @@ const ExpiringLeasesCard = () => {
                 ))}
             </div>
 
-            {chartData.length === 0 || chartData.every(d => d.expiring_leases === 0) ? (
-                <div className="text-center py-8 text-gray-500">
-                    No leases expiring in this period
+            {showLoading ? (
+                <LoadingState message="Loading leases..." compact={true} />
+            ) : chartData.length === 0 || chartData.every(d => d.expiring_leases === 0) ? (
+                <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center">
+                    {isLoading && !isFetched ? (
+                        <div className="animate-pulse w-full space-y-3">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="h-6 bg-gray-200 rounded"></div>
+                            ))}
+                        </div>
+                    ) : (
+                        'No leases expiring in this period'
+                    )}
                 </div>
             ) : (
-                <div className="flex-1 min-h-0 overflow-hidden">
+                <div className="flex-1 min-h-0 max-h-[220px] overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full">
                         <BarChart
                             accessibilityLayer
                             data={chartData}
                             layout="vertical"
-                            barCategoryGap="2%"
-                            margin={{ top: 40, right: 0, bottom: 40, left: 0 }}
+                            barCategoryGap="5%"
+                            margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
                         >
                             <YAxis
                                 dataKey="browser"
                                 type="category"
                                 tickLine={false}
-                                tickMargin={96}
+                                tickMargin={70}
                                 axisLine={true}
-                                width={100}
+                                width={80}
                                 tickFormatter={(value) => chartConfig[value]?.label}
-                                tick={{ fontSize: 15, textAnchor: 'start' }}
+                                tick={{ fontSize: 12, textAnchor: 'start' }}
                                 style={{ fill: '#000' }}
                             />
                             <XAxis dataKey="expiring_leases" type="number" hide />
@@ -165,7 +169,7 @@ const ExpiringLeasesCard = () => {
                                     }}
                                 />}
                             />
-                            <Bar dataKey="expiring_leases" layout="vertical" radius={[0, 20, 20, 0]} barSize={30} />
+                            <Bar dataKey="expiring_leases" layout="vertical" radius={[0, 16, 16, 0]} barSize={20} />
                         </BarChart>
                     </ChartContainer>
                 </div>
