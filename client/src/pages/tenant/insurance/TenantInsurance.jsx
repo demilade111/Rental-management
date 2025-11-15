@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, FileText, Calendar, DollarSign, Building } from "lucide-react";
+import { Plus, FileText, Calendar, DollarSign, Building, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { getAllInsurances } from "@/services/insuranceService";
@@ -13,6 +13,7 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import UploadInsurance from "./UploadInsurance";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from "@/components/shared/PageHeader";
+import PolicyDocumentViewer from "@/pages/landlord/insurance/components/PolicyDocumentViewer";
 
 const TenantInsurance = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const TenantInsurance = () => {
   const [insurances, setInsurances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
+  const [viewingInsurance, setViewingInsurance] = useState(null);
 
   // Fetch tenant's active leases
   const { data: allLeases = [] } = useQuery({
@@ -245,26 +247,40 @@ const TenantInsurance = () => {
                     </div>
                   </div>
 
-                  {insurance.coverageAmount && (
+                  {(insurance.coverageAmount || insurance.documentKey) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">
-                          Coverage Amount:{" "}
-                          <span className="font-medium text-gray-900">
-                            ${insurance.coverageAmount.toLocaleString()}
-                          </span>
-                        </span>
-                        {insurance.monthlyCost && (
-                          <>
-                            <span className="text-gray-400">•</span>
+                      <div className="flex items-center justify-between">
+                        {insurance.coverageAmount && (
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-gray-400" />
                             <span className="text-sm text-gray-600">
-                              Monthly Cost:{" "}
+                              Coverage Amount:{" "}
                               <span className="font-medium text-gray-900">
-                                ${insurance.monthlyCost}
+                                ${insurance.coverageAmount.toLocaleString()}
                               </span>
                             </span>
-                          </>
+                            {insurance.monthlyCost && (
+                              <>
+                                <span className="text-gray-400">•</span>
+                                <span className="text-sm text-gray-600">
+                                  Monthly Cost:{" "}
+                                  <span className="font-medium text-gray-900">
+                                    ${insurance.monthlyCost}
+                                  </span>
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        {insurance.documentKey && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setViewingInsurance(insurance)}
+                            size="sm"
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Doc
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -292,6 +308,15 @@ const TenantInsurance = () => {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Modal */}
+      {viewingInsurance && (
+        <PolicyDocumentViewer
+          documentKey={viewingInsurance.documentKey}
+          documentUrl={viewingInsurance.documentUrl}
+          onClose={() => setViewingInsurance(null)}
+        />
+      )}
     </div>
   );
 };

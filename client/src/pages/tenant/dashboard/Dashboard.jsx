@@ -5,14 +5,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Bell, Check } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { Upload, Bell, Check, FileText, Eye } from "lucide-react";
+import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
+import { getAllInsurances } from "@/services/insuranceService";
+import PolicyDocumentViewer from "@/pages/landlord/insurance/components/PolicyDocumentViewer";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [viewingInsurance, setViewingInsurance] = useState(null);
 
   // Get current month and year
   const currentMonth = format(new Date(), 'MMMM');
@@ -78,6 +81,69 @@ const Dashboard = () => {
   const recentMaintenance = maintenanceRequests
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 3);
+
+  // Fetch tenant's insurance records
+  const { data: insuranceData = {}, isLoading: loadingInsurance } = useQuery({
+    queryKey: ['tenant-insurances-dashboard'],
+    queryFn: async () => {
+      const data = await getAllInsurances();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const insurances = insuranceData.insurances || [];
+  
+  // Get first one or two insurance records, sorted by expiry date (soonest first)
+  const displayedInsurances = insurances
+    .filter(ins => ins.status === 'VERIFIED' || ins.status === 'PENDING')
+    .sort((a, b) => {
+      if (!a.expiryDate && !b.expiryDate) return 0;
+      if (!a.expiryDate) return 1;
+      if (!b.expiryDate) return -1;
+      return new Date(a.expiryDate) - new Date(b.expiryDate);
+    })
+    .slice(0, 2);
+
+  const getInsuranceStatusText = (insurance) => {
+    if (insurance.status === 'PENDING') {
+      return 'Pending';
+    }
+    if (insurance.status === 'REJECTED') {
+      return 'Rejected';
+    }
+    if (!insurance.expiryDate) {
+      return 'Active';
+    }
+    const daysUntilExpiry = differenceInDays(new Date(insurance.expiryDate), new Date());
+    if (daysUntilExpiry < 0) {
+      return 'Expired';
+    }
+    if (daysUntilExpiry <= 30) {
+      return `Expiring in ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`;
+    }
+    return 'Active';
+  };
+
+  const getInsuranceStatusColor = (status, expiryDate) => {
+    if (status === 'PENDING') {
+      return 'text-yellow-600';
+    }
+    if (status === 'REJECTED') {
+      return 'text-red-600';
+    }
+    if (!expiryDate) {
+      return 'text-green-600';
+    }
+    const daysUntilExpiry = differenceInDays(new Date(expiryDate), new Date());
+    if (daysUntilExpiry < 0) {
+      return 'text-red-600';
+    }
+    if (daysUntilExpiry <= 30) {
+      return 'text-orange-600';
+    }
+    return 'text-green-600';
+  };
 
   // Upload receipt mutation
   const uploadReceiptMutation = useMutation({
@@ -308,38 +374,80 @@ const Dashboard = () => {
         <div className="bg-white rounded-2xl border border-gray-300 p-6">
           <h2 className="text-xl md:text-2xl font-semibold mb-6">Insurance</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Insurance Status:</span> Active
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Insurance Type:</span> Tenant Liability Insurance
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Expiration Date:</span> Nov 15, 2025
-              </p>
-              <Button className="mt-4 bg-black text-white hover:bg-gray-800 rounded-2xl">
-                View Policy
-              </Button>
+          {loadingInsurance ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
+              {[1, 2].map((i) => (
+                <div key={i} className="space-y-2 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-10 bg-gray-200 rounded w-32"></div>
+                </div>
+              ))}
             </div>
-
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Insurance Status:</span> Expiring in 30 days
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Insurance Type:</span> Personal Property Insurance
-              </p>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Expiration Date:</span> Oct 7, 2025
-              </p>
-              <Button className="mt-4 bg-black text-white hover:bg-gray-800 rounded-2xl">
-                View Policy
-              </Button>
+          ) : displayedInsurances.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <FileText size={48} className="mx-auto mb-4 text-gray-400" />
+              <p className="text-lg font-medium">No insurance records</p>
+              <p className="text-sm mt-2">Upload your insurance documents to get started</p>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
+              {displayedInsurances.map((insurance) => (
+                <div key={insurance.id} className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Insurance Status:</span>{' '}
+                    <span className={getInsuranceStatusColor(insurance.status, insurance.expiryDate)}>
+                      {getInsuranceStatusText(insurance)}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Provider:</span> {insurance.providerName || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Policy Number:</span> {insurance.policyNumber || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Coverage Type:</span> {insurance.coverageType || 'N/A'}
+                  </p>
+                  {insurance.expiryDate && (
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Expiration Date:</span>{' '}
+                      {format(new Date(insurance.expiryDate), 'MMM dd, yyyy')}
+                    </p>
+                  )}
+                  <div className="flex gap-2 mt-4">
+                    {insurance.documentKey && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setViewingInsurance(insurance)}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Doc
+                      </Button>
+                    )}
+                    <Button 
+                      className="flex-1 sm:flex-none bg-black text-white hover:bg-gray-800 rounded-2xl"
+                      onClick={() => window.location.href = '/tenant/insurance'}
+                    >
+                      View Policy
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Document Viewer Modal */}
+        {viewingInsurance && (
+          <PolicyDocumentViewer
+            documentKey={viewingInsurance.documentKey}
+            documentUrl={viewingInsurance.documentUrl}
+            onClose={() => setViewingInsurance(null)}
+          />
+        )}
       </div>
     </div>
   );
