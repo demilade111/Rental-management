@@ -9,23 +9,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  User,
   MapPin,
   Calendar,
   X,
-  CheckCircle2,
   Reply,
   Trash2,
   Eye,
   Check,
-  ViewIcon,
-  ToolCase,
-  Cog,
-  ToolCaseIcon,
-  Settings2Icon,
-  LucideSettings,
-  Settings,
+  Image as ImageIcon,
 } from "lucide-react";
+import PropertyImage from "@/components/shared/PropertyImage";
 import {
   getPriorityDisplayName,
   getCategoryDisplayName,
@@ -47,8 +40,16 @@ const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActio
     <div className="mb-2">
       <Card className="cursor-pointer" onClick={() => onCardClick?.(request)}>
         <CardHeader className="flex items-center gap-3">
-          <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center">
-            <Settings className="size-6 text-muted-foreground" />
+          <div className="w-20 h-20 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+            {request.images?.length ? (
+              <PropertyImage
+                image={request.images[0]}
+                alt={request.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="size-6 text-muted-foreground" />
+            )}
           </div>
           <div className="flex-1">
             <CardTitle className="text-sm font-semibold leading-tight mb-0.5">{request.title}</CardTitle>

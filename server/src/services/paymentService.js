@@ -1,5 +1,205 @@
 import { prisma } from '../prisma/client.js';
 
+const ACTIVE_RENT_LEASE_STATUSES = ['ACTIVE'];
+const DEFAULT_PAYMENT_FREQUENCY = 'MONTHLY';
+
+const FREQUENCY_STEPS = {
+  DAILY: { days: 1 },
+  WEEKLY: { days: 7 },
+  MONTHLY: { months: 1 },
+  QUARTERLY: { months: 3 },
+  YEARLY: { years: 1 },
+};
+
+const normalizeDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const addFrequencyToDate = (date, frequency = DEFAULT_PAYMENT_FREQUENCY) => {
+  const normalizedFrequency = (frequency || DEFAULT_PAYMENT_FREQUENCY).toUpperCase();
+  const current = new Date(date);
+  current.setHours(0, 0, 0, 0);
+
+  const step = FREQUENCY_STEPS[normalizedFrequency] || FREQUENCY_STEPS[DEFAULT_PAYMENT_FREQUENCY];
+
+  if (step.days) {
+    current.setDate(current.getDate() + step.days);
+  } else if (step.months) {
+    current.setMonth(current.getMonth() + step.months);
+  } else if (step.years) {
+    current.setFullYear(current.getFullYear() + step.years);
+  } else {
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  return current;
+};
+
+const buildAutoReference = (leaseId, dueDate, prefix) => {
+  const month = `${dueDate.getMonth() + 1}`.padStart(2, '0');
+  const day = `${dueDate.getDate()}`.padStart(2, '0');
+  return `AUTO-${prefix}-${leaseId}-${dueDate.getFullYear()}${month}${day}`;
+};
+
+const leaseAutoSelect = {
+  id: true,
+  landlordId: true,
+  tenantId: true,
+  rentAmount: true,
+  startDate: true,
+  endDate: true,
+  paymentFrequency: true,
+  paymentMethod: true,
+};
+
+const shouldGeneratePaymentsForLease = (lease) => {
+  if (!lease) return false;
+  if (!lease.startDate || !lease.tenantId || !lease.rentAmount) return false;
+  return true;
+};
+
+const determineGenerationLimitDate = (lease) => {
+  const startDate = normalizeDate(lease.startDate);
+  if (!startDate) return null;
+
+  const today = normalizeDate(new Date());
+  let limit = today && today > startDate ? today : startDate;
+
+  const leaseEnd = normalizeDate(lease.endDate);
+  if (leaseEnd && leaseEnd < limit) {
+    limit = leaseEnd;
+  }
+
+  return limit;
+};
+
+const ensureRentPaymentsForLease = async (lease, { isCustom = false } = {}) => {
+  if (!shouldGeneratePaymentsForLease(lease)) {
+    return;
+  }
+
+  const limitDate = determineGenerationLimitDate(lease);
+  if (!limitDate) return;
+
+  const startDate = normalizeDate(lease.startDate);
+  if (!startDate || startDate > limitDate) return;
+
+  const frequency = (lease.paymentFrequency || DEFAULT_PAYMENT_FREQUENCY).toUpperCase();
+
+  const existingPayments = await prisma.payment.findMany({
+    where: {
+      type: 'RENT',
+      ...(isCustom ? { customLeaseId: lease.id } : { leaseId: lease.id }),
+    },
+    select: {
+      dueDate: true,
+    },
+  });
+
+  const existingDueDates = new Set(
+    existingPayments
+      .filter((payment) => payment.dueDate)
+      .map((payment) => normalizeDate(payment.dueDate).getTime())
+  );
+
+  const leaseEndDate = normalizeDate(lease.endDate);
+  const paymentsToCreate = [];
+
+  let cursor = new Date(startDate);
+
+  while (cursor <= limitDate) {
+    const cursorKey = cursor.getTime();
+    if (!existingDueDates.has(cursorKey)) {
+      paymentsToCreate.push({
+        landlordId: lease.landlordId,
+        tenantId: lease.tenantId,
+        leaseId: isCustom ? null : lease.id,
+        customLeaseId: isCustom ? lease.id : null,
+        type: 'RENT',
+        amount: lease.rentAmount,
+        status: 'PENDING',
+        dueDate: new Date(cursor),
+        paymentMethod: lease.paymentMethod || null,
+        reference: buildAutoReference(lease.id, cursor, isCustom ? 'C' : 'S'),
+      });
+    }
+
+    const nextCursor = addFrequencyToDate(cursor, frequency);
+    cursor = nextCursor;
+
+    if (leaseEndDate && cursor > leaseEndDate) {
+      break;
+    }
+  }
+
+  if (paymentsToCreate.length > 0) {
+    await prisma.payment.createMany({
+      data: paymentsToCreate,
+    });
+  }
+};
+
+const ensureRentPaymentsForLeaseCollection = async (leases, options = {}) => {
+  for (const lease of leases) {
+    try {
+      await ensureRentPaymentsForLease(lease, options);
+    } catch (error) {
+      console.error('Failed to generate rent payments for lease', lease.id, error);
+    }
+  }
+};
+
+const ensureAutomaticRentPaymentsForLandlord = async (landlordId) => {
+  if (!landlordId) return;
+
+  const standardLeases = await prisma.lease.findMany({
+    where: {
+      landlordId,
+      leaseStatus: { in: ACTIVE_RENT_LEASE_STATUSES },
+      tenantId: { not: null },
+    },
+    select: leaseAutoSelect,
+  });
+
+  const customLeases = await prisma.customLease.findMany({
+    where: {
+      landlordId,
+      leaseStatus: { in: ACTIVE_RENT_LEASE_STATUSES },
+      tenantId: { not: null },
+    },
+    select: leaseAutoSelect,
+  });
+
+  await ensureRentPaymentsForLeaseCollection(standardLeases, { isCustom: false });
+  await ensureRentPaymentsForLeaseCollection(customLeases, { isCustom: true });
+};
+
+const ensureAutomaticRentPaymentsForTenant = async (tenantId) => {
+  if (!tenantId) return;
+
+  const standardLeases = await prisma.lease.findMany({
+    where: {
+      tenantId,
+      leaseStatus: { in: ACTIVE_RENT_LEASE_STATUSES },
+    },
+    select: leaseAutoSelect,
+  });
+
+  const customLeases = await prisma.customLease.findMany({
+    where: {
+      tenantId,
+      leaseStatus: { in: ACTIVE_RENT_LEASE_STATUSES },
+    },
+    select: leaseAutoSelect,
+  });
+
+  await ensureRentPaymentsForLeaseCollection(standardLeases, { isCustom: false });
+  await ensureRentPaymentsForLeaseCollection(customLeases, { isCustom: true });
+};
+
 /**
  * Payment Service
  * Handles all payment-related business logic
@@ -33,6 +233,8 @@ export const getPaymentsForLandlord = async (landlordId, filters = {}) => {
       { notes: { contains: search, mode: 'insensitive' } },
     ];
   }
+
+  await ensureAutomaticRentPaymentsForLandlord(landlordId);
 
   const payments = await prisma.payment.findMany({
     where,
@@ -111,6 +313,8 @@ export const getPaymentsForLandlord = async (landlordId, filters = {}) => {
  */
 export const calculatePaymentSummary = async (landlordId) => {
   const now = new Date();
+
+  await ensureAutomaticRentPaymentsForLandlord(landlordId);
 
   // Outstanding balances (PENDING status)
   const outstanding = await prisma.payment.groupBy({
@@ -496,6 +700,8 @@ export const getPaymentsForTenant = async (tenantId, filters = {}) => {
     ];
   }
 
+  await ensureAutomaticRentPaymentsForTenant(tenantId);
+
   const payments = await prisma.payment.findMany({
     where,
     include: {
@@ -602,6 +808,8 @@ export const getPaymentsForTenant = async (tenantId, filters = {}) => {
  */
 export const calculateTenantPaymentSummary = async (tenantId) => {
   const now = new Date();
+
+  await ensureAutomaticRentPaymentsForTenant(tenantId);
 
   // Outstanding balance (PENDING status)
   const outstandingResult = await prisma.payment.aggregate({

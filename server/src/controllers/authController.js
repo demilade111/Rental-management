@@ -9,8 +9,8 @@ import { CreatedResponse, SuccessResponse, HandleError } from "../utils/httpResp
 
 export const register = async (req, res) => {
   try {
-    const user = await registerUser(req.body || {});
-    return CreatedResponse(res, "User registered successfully", { user });
+    const { user, token } = await registerUser(req.body || {});
+    return CreatedResponse(res, "User registered successfully", { user, token });
   } catch (error) {
     return HandleError(res, error);
   }

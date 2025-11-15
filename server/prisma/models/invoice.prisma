@@ -8,11 +8,16 @@ model Invoice {
   amount                Float
   status                InvoiceStatus       @default(PENDING)
   sharedWithTenant      Boolean             @default(true)
+  sharedWithLandlord    Boolean             @default(true)
+  createdById           String?
+  createdBy             User?               @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByRole         UserRole?
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
 
   @@index([maintenanceRequestId])
   @@index([paymentId])
+  @@index([createdById])
   @@map("invoices")
 }
 

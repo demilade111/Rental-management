@@ -16,8 +16,8 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 
-// Create invoice (landlord only)
-router.post("/", authorize(["LANDLORD", "ADMIN"]), createInvoiceController);
+// Create invoice (landlord or authorized tenant)
+router.post("/", authorize(["LANDLORD", "ADMIN", "TENANT"]), createInvoiceController);
 
 // Get all invoices (with query filters)
 router.get("/", getAllInvoicesController);

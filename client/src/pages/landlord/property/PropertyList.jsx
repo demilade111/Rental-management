@@ -14,7 +14,7 @@ const PropertyList = ({ properties, selectedItems = new Set(), onSelectionChange
           onClick={(e) => e.stopPropagation()}
         />
         {/* Card takes remaining width */}
-        <div className="flex-1">
+        <div className="flex-1 cursor-pointer">
           <PropertyCard property={property} />
         </div>
       </div>

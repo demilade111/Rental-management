@@ -43,6 +43,24 @@ const ImageWithShimmer = React.memo(function ImageWithShimmer({ src, alt }) {
   );
 });
 
+const demoTitles = [
+  "Water leaking under kitchen sink",
+  "AC unit making loud rattling noise",
+  "Washer door seal damaged",
+  "Backyard gate hinge broken",
+  "Living room outlet flickering"
+];
+
+const demoDescriptions = [
+  "Noticed the issue this morning. Water keeps pooling even after wiping and there is a slight damp smell around the cabinet.",
+  "Noise starts whenever the unit cycles on. Concerned something may be loose inside and could damage the compressor.",
+  "Seal is tearing and causing minor leaks during spin cycles. Would appreciate an inspection before it worsens.",
+  "Gate no longer closes fully which is a safety concern for pets. Needs hinge replacement or tightening.",
+  "Outlet sparks when plugging in devices. Please send someone to check wiring and replace the faceplate."
+];
+
+const randomFrom = (list) => list[Math.floor(Math.random() * list.length)];
+
 const MaintenanceForm = ({
   formData,
   properties,
@@ -114,8 +132,44 @@ const MaintenanceForm = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
-        <DialogHeader className="px-2 pt-3">
-          <DialogTitle>New Maintenance Request</DialogTitle>
+        <DialogHeader className="px-2 pt-3 pb-2">
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle>New Maintenance Request</DialogTitle>
+            <Button
+              type="button"
+              className="bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-2xl text-sm"
+              onClick={() => {
+                const propertyOptions = userRole === "TENANT" ? properties.slice(0, 1) : properties;
+                const chosenProperty = propertyOptions.length
+                  ? propertyOptions[Math.floor(Math.random() * propertyOptions.length)]
+                  : null;
+                const demoPayload = {
+                  title: randomFrom(demoTitles),
+                  priority: randomFrom([
+                    MAINTENANCE_PRIORITY.MEDIUM,
+                    MAINTENANCE_PRIORITY.HIGH,
+                    MAINTENANCE_PRIORITY.URGENT,
+                  ]),
+                  category: randomFrom([
+                    MAINTENANCE_CATEGORY.PLUMBING,
+                    MAINTENANCE_CATEGORY.ELECTRICAL,
+                    MAINTENANCE_CATEGORY.APPLIANCE,
+                    MAINTENANCE_CATEGORY.HVAC,
+                    MAINTENANCE_CATEGORY.STRUCTURAL,
+                  ]),
+                  description: randomFrom(demoDescriptions),
+                  listingId: userRole !== "TENANT" ? chosenProperty?.id || "" : formData.listingId,
+                };
+                Object.entries(demoPayload).forEach(([name, value]) => {
+                  if (value !== undefined) {
+                    onChange?.({ target: { name, value } });
+                  }
+                });
+              }}
+            >
+              Demo Autofill
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 3 w-full max-w-xl max-h-[90vh] overflow-y-auto overflow-x-visible px-2">

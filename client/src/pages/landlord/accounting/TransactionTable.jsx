@@ -45,7 +45,7 @@ const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
   const dateLabel = isPaid ? 'Paid' : 'Due';
 
   return (
-    <Card className="border border-gray-300 hover:shadow-md cursor-pointer transition-shadow mb-3 p-3">
+    <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-3 p-3">
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
         {/* Tenant */}
         <div className="text-[16px] text-gray-700 truncate">

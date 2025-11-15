@@ -15,6 +15,17 @@ import { toast } from "sonner";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import InvoicesTable from "./InvoicesTable";
+import { useAuthStore } from "@/store/authStore";
+
+const demoInvoiceItems = [
+    { description: "Leak detection & repair labor (2 hrs)", amount: 220 },
+    { description: "Capacitor replacement & tune-up", amount: 165 },
+    { description: "Appliance service call", amount: 80 },
+    { description: "Replacement P-trap & fittings", amount: 48 },
+    { description: "Door seal replacement kit", amount: 54 },
+    { description: "HVAC diagnostic visit", amount: 95 },
+    { description: "Emergency after-hours fee", amount: 120 },
+];
 
 const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
     const [invoiceItems, setInvoiceItems] = useState([]);
@@ -22,7 +33,9 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
         description: "",
         amount: "",
     });
-    const [shareWithTenant, setShareWithTenant] = useState(true);
+    const { user } = useAuthStore();
+    const isTenantUser = user?.role === "TENANT";
+    const [shareWithCounterparty, setShareWithCounterparty] = useState(isTenantUser ? false : true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [invoiceRefreshTrigger, setInvoiceRefreshTrigger] = useState(0);
 
@@ -34,9 +47,9 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
                 description: "",
                 amount: "",
             });
-            setShareWithTenant(true);
+            setShareWithCounterparty(isTenantUser ? false : true);
         }
-    }, [open, maintenanceRequest]);
+    }, [open, maintenanceRequest, isTenantUser]);
 
     if (!maintenanceRequest) return null;
 
@@ -83,13 +96,14 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
         setIsSubmitting(true);
 
         try {
-            // Create all invoice items with the same sharing setting
             const promises = invoiceItems.map((item) =>
                 api.post(API_ENDPOINTS.INVOICES.BASE, {
                     maintenanceRequestId: maintenanceRequest.id,
                     description: item.description,
                     amount: item.amount,
-                    sharedWithTenant: shareWithTenant,
+                    ...(isTenantUser
+                        ? { sharedWithLandlord: shareWithCounterparty }
+                        : { sharedWithTenant: shareWithCounterparty }),
                 })
             );
 
@@ -115,16 +129,32 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col [&>button]:hidden rounded-xl">
                 <DialogHeader className="flex-shrink-0 pb-4 border-b">
-                    <div className="flex items-center justify-between">
-                        <DialogTitle className="text-2xl font-bold">Invoice</DialogTitle>
-                        <div className="flex items-center gap-3">
-                            <Label htmlFor="share-toggle" className="text-sm font-medium cursor-pointer">
-                                Share with tenant
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <DialogTitle className="text-2xl font-bold">Invoice</DialogTitle>
+                            <Button
+                                type="button"
+                                className="bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-2xl text-sm"
+                                onClick={() => {
+                                    const sample =
+                                        demoInvoiceItems[Math.floor(Math.random() * demoInvoiceItems.length)];
+                                    setCurrentItem({
+                                        description: sample.description,
+                                        amount: sample.amount.toString(),
+                                    });
+                                }}
+                            >
+                                Demo Autofill
+                            </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="share-toggle" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                                {isTenantUser ? "Share with landlord" : "Share with tenant"}
                             </Label>
                             <Switch
                                 id="share-toggle"
-                                checked={shareWithTenant}
-                                onCheckedChange={setShareWithTenant}
+                                checked={shareWithCounterparty}
+                                onCheckedChange={setShareWithCounterparty}
                             />
                         </div>
                     </div>
@@ -135,9 +165,11 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
                         <p className="text-sm text-gray-600">
                             <span className="font-medium">Request:</span> {maintenanceRequest?.title}
                         </p>
-                        {!shareWithTenant && (
+                        {!shareWithCounterparty && (
                             <p className="text-xs text-orange-600 mt-2 italic">
-                                ⚠️ Invoices will be visible only to you (landlord)
+                                {isTenantUser
+                                    ? "⚠️ Invoices will be visible only to you until you share with the landlord."
+                                    : "⚠️ Invoices will be visible only to you until you share with the tenant."}
                             </p>
                         )}
                     </div>

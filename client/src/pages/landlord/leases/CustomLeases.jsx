@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
 import CustomLeaseCard from "./CustomLeaseCard";
-import LoadingState from "@/components/shared/LoadingState";
+import { Skeleton } from "@/components/ui/skeleton";
 import CustomLeaseSearchBar from "./CustomLeaseSearchBar";
 import FilterCustomLeaseDialog from "./FilterCustomLeaseDialog";
 import Pagination from "@/components/shared/Pagination";
@@ -263,7 +263,28 @@ const CustomLeases = ({ onTotalChange }) => {
 
                 <div className="flex-1 overflow-y-auto min-h-0">
                     {isLoading ? (
-                        <LoadingState message="Loading custom leases..." />
+                        <div className="space-y-3">
+                            {[...Array(4)].map((_, idx) => (
+                                <div key={`custom-lease-skeleton-${idx}`} className="flex items-center gap-3">
+                                    <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
+                                    <div className="flex-1">
+                                        <div className="border border-gray-200 rounded-2xl p-4 animate-pulse">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
+                                                <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                                            </div>
+                                            <div className="h-5 w-1/2 bg-gray-100 rounded-full mb-3" />
+                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div className="h-3 w-3/4 bg-gray-100 rounded-full" />
+                                                <div className="h-3 w-1/2 bg-gray-100 rounded-full" />
+                                                <div className="h-3 w-2/3 bg-gray-100 rounded-full" />
+                                                <div className="h-3 w-1/3 bg-gray-100 rounded-full" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : paginatedLeases.length > 0 ? (
                         paginatedLeases.map((lease) => (
                             <CustomLeaseCard

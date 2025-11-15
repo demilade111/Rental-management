@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Calendar, DollarSign, FileText, User, Home, Clock, XCircle } from "lucide-react";
+import { differenceInCalendarDays } from "date-fns";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
-import LoadingState from "@/components/shared/LoadingState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -237,7 +238,22 @@ const LeaseDetailPage = () => {
     if (isLoading) {
         return (
             <div className="h-full overflow-y-auto bg-white">
-                <LoadingState message="Loading lease details..." />
+                <div className="px-4 md:px-8 py-4 space-y-4">
+                    <Skeleton className="h-6 w-48 rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-2xl" />
+                    <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+                        <div className="space-y-4">
+                            <Skeleton className="h-64 w-full rounded-3xl" />
+                            <Skeleton className="h-40 w-full rounded-3xl" />
+                            <Skeleton className="h-56 w-full rounded-3xl" />
+                        </div>
+                        <div className="space-y-4">
+                            <Skeleton className="h-36 w-full rounded-3xl" />
+                            <Skeleton className="h-32 w-full rounded-3xl" />
+                            <Skeleton className="h-40 w-full rounded-3xl" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -409,19 +425,21 @@ const LeaseDetailPage = () => {
                                         const now = new Date();
                                         const startDate = new Date(lease.startDate);
                                         const endDate = new Date(lease.endDate);
-                                        const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                                        const totalDays = Math.max(0, differenceInCalendarDays(endDate, startDate));
                                         
                                         // Check if lease has started
                                         const hasStarted = now >= startDate;
                                         
                                         if (!hasStarted) {
                                             // Lease hasn't started yet
-                                            const daysUntilStart = Math.ceil((startDate - now) / (1000 * 60 * 60 * 24));
+                                            const daysUntilStart = Math.max(0, differenceInCalendarDays(startDate, now));
                                             return (
                                                 <div className="max-w-sm">
                                                     <div className="flex items-baseline gap-2 mb-2">
                                                         <p className="text-sm font-semibold text-gray-900">Lease Starts In</p>
-                                                        <p className="text-xl font-bold text-blue-600">{daysUntilStart} Days</p>
+                                                        <p className="text-xl font-bold text-blue-600">
+                                                            {daysUntilStart === 0 ? "Today" : `${daysUntilStart} Days`}
+                                                        </p>
                                                     </div>
                                                     
                                                     {/* Placeholder Progress Bar - Empty/Not Started */}
@@ -434,7 +452,7 @@ const LeaseDetailPage = () => {
                                                     
                                                     {/* Duration Stats */}
                                                     <div className="flex justify-between gap-4 text-xs text-gray-500 mt-1.5">
-                                                        <span>Not started</span>
+                                                        <span>{daysUntilStart === 0 ? "Starts today" : "Not started"}</span>
                                                         <span>{totalDays} days total</span>
                                                     </div>
                                                 </div>
@@ -442,15 +460,15 @@ const LeaseDetailPage = () => {
                                         }
                                         
                                         // Lease has started - show normal progress
-                                        const remainingDays = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+                                        const remainingDays = Math.max(0, differenceInCalendarDays(endDate, now));
                                         const elapsedDays = Math.max(0, totalDays - remainingDays);
                                         const progressPercentage = totalDays > 0 ? (elapsedDays / totalDays) * 100 : 0;
                                         
                                         return (
                                             <div className="max-w-sm">
-                                                <div className="flex items-baseline gap-2 mb-2">
-                                                    <p className="text-sm font-semibold text-gray-900">Lease Expire In</p>
-                                                    <p className="text-xl font-bold text-gray-900">{remainingDays} Days</p>
+                                                    <div className="flex items-baseline gap-2 mb-2">
+                                                        <p className="text-sm font-semibold text-gray-900">Lease Expire In</p>
+                                                        <p className="text-xl font-bold text-gray-900">{remainingDays} Days</p>
                                                 </div>
                                                 
                                                 {/* Progress Bar */}

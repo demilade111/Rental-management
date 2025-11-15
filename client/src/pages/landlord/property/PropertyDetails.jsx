@@ -9,12 +9,13 @@ import ContactInfo from './property-details/ContactInfo';
 import AddressCard from './property-details/AddressCard';
 import NeighbourhoodScore from './property-details/NeighbourhoodScore';
 import OwnerNotes from './property-details/OwnerNotes';
+import TenancyInfo from './property-details/TenancyInfo';
 import NewListingModal from './NewListingModal';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import API_ENDPOINTS from '@/lib/apiEndpoints';
-import LoadingState from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
 import ErrorState from '@/components/shared/ErrorState';
 import EmptyState from '@/components/shared/EmptyState';
 import { getRentCycleLabel } from '@/constants/rentCycles';
@@ -81,7 +82,36 @@ const PropertyDetails = () => {
     return (
         <div className="h-full overflow-y-auto bg-white">
 
-            {isLoading && <LoadingState message="Loading property details..." />}
+            {isLoading && (
+                <div className="px-4 md:px-8 py-4 space-y-5">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-40 rounded-xl" />
+                        <Skeleton className="h-5 w-64 rounded-lg" />
+                    </div>
+                    <Skeleton className="h-12 w-full rounded-2xl" />
+                    <div className="grid grid-cols-1 lg:grid-cols-[7fr_5fr] gap-5">
+                        <div className="space-y-4">
+                            <Skeleton className="h-[320px] w-full rounded-2xl" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Skeleton className="h-36 w-full rounded-2xl" />
+                                <Skeleton className="h-36 w-full rounded-2xl" />
+                            </div>
+                            <Skeleton className="h-40 w-full rounded-2xl" />
+                        </div>
+                        <div className="space-y-4">
+                            <Skeleton className="h-32 w-full rounded-2xl" />
+                            <Skeleton className="h-28 w-full rounded-2xl" />
+                            <Skeleton className="h-36 w-full rounded-2xl" />
+                            <Skeleton className="h-32 w-full rounded-2xl" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {[...Array(3)].map((_, idx) => (
+                            <Skeleton key={`details-card-${idx}`} className="h-36 w-full rounded-xl" />
+                        ))}
+                    </div>
+                </div>
+            )}
             {isError && <ErrorState message={error.message} />}
             {!isLoading && !isError && !property && <EmptyState message="Property not found" />}
             {!isLoading && !isError && property && (
@@ -164,8 +194,8 @@ const PropertyDetails = () => {
 
                         {/* Tenancy Info - Show when tenancy card is active (ABOVE owner notes) */}
                         {activeCard === 'tenancy' && (
-                            <div className="mt-8 text-center py-12 text-gray-500 bg-white border border-gray-300 rounded-lg">
-                                <p>Tenancy information will be displayed here.</p>
+                            <div className="mt-8">
+                                <TenancyInfo listingId={id} />
                             </div>
                         )}
 

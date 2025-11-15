@@ -40,7 +40,7 @@ export default function SignUpPage() {
     onSuccess: (data) => {
       toast.success("Registration successful!"); // <-- toast success
       // Authenticate immediately
-      login(data.data.user, data.data.user.token);
+      login(data.data.user, data.data.token);
 
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get("redirect");

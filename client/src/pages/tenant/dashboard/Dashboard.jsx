@@ -36,18 +36,26 @@ const Dashboard = () => {
   });
 
   // Find current month's rent payment
-  const currentMonthRent = payments.find((payment) => {
-    if (payment.type !== 'RENT') return false;
-    
-    const paymentDate = new Date(payment.dueDate);
+  const currentMonthRent = (() => {
     const now = new Date();
-    
-    return (
-      paymentDate.getMonth() === now.getMonth() &&
-      paymentDate.getFullYear() === now.getFullYear() &&
-      payment.status === 'PENDING'
-    );
-  });
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    return payments.find((payment) => {
+      if (payment.type !== 'RENT') return false;
+
+      const dueDate = new Date(payment.dueDate);
+
+      const isCurrentMonth =
+        dueDate >= startOfMonth &&
+        dueDate <= endOfMonth;
+
+      const isPendingOrInTransit =
+        payment.status === 'PENDING' || payment.status === 'IN_TRANSIT';
+
+      return isCurrentMonth && isPendingOrInTransit;
+    });
+  })();
 
   // Fetch tenant's maintenance requests
   const { data: maintenanceRequests = [], isLoading: loadingMaintenance } = useQuery({
@@ -100,6 +108,8 @@ const Dashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tenant-payments-dashboard']);
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries(['payments-summary']);
       toast.success('Payment receipt uploaded successfully!');
       setUploadingReceipt(false);
     },
@@ -191,7 +201,7 @@ const Dashboard = () => {
                   <Button 
                     className="bg-black text-white hover:bg-gray-800 px-6 py-2 rounded-2xl"
                     onClick={() => document.getElementById('rent-receipt-upload').click()}
-                    disabled={uploadingReceipt || currentMonthRent.proofUrl}
+                    disabled={uploadingReceipt || currentMonthRent.proofUrl || !currentMonthRent}
                   >
                     <Upload size={16} className="mr-2" />
                     {uploadingReceipt ? 'Uploading...' : 'Upload Payment Proof'}

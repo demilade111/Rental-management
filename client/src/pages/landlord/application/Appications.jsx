@@ -4,7 +4,7 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import api from "@/lib/axios";
 import GenerateApplicationDialog from "./GenerateApplicationModal";
 import ApplicationCard from "./ApplicationCard";
-import LoadingState from "@/components/shared/LoadingState";
+import { Skeleton } from "@/components/ui/skeleton";
 import ApplicationSearchBar from "./ApplicationSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import FilterApplicationDialog from "./FilterApplicationDialog";
@@ -29,6 +29,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+const PLACEHOLDER_FULL_NAME = "N/A";
+const PLACEHOLDER_EMAIL = "na@example.com";
+
+const isPlaceholderApplication = (app = {}) =>
+    app.fullName === PLACEHOLDER_FULL_NAME && app.email === PLACEHOLDER_EMAIL && !app.tenantId;
 
 const Applications = () => {
     const [page, setPage] = useState(1);
@@ -70,9 +76,12 @@ const Applications = () => {
         },
     });
 
-    // Fetch all active leases (standard and custom)
-    const { data: allLeases = [], isLoading: leasesLoading } = useQuery({
-        queryKey: ["all-leases-active"],
+    // Fetch lease status per listing (active + terminated)
+    const {
+        data: leaseStatusData = { activeListingIds: [], terminatedListingIds: [] },
+        isLoading: leasesLoading,
+    } = useQuery({
+        queryKey: ["lease-status-by-listing"],
         queryFn: async () => {
             const standardRes = await api.get(API_ENDPOINTS.LEASES.BASE);
             const customRes = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
@@ -84,29 +93,43 @@ const Applications = () => {
                 ? customRes.data 
                 : customRes.data?.data || [];
             
-            // Filter only ACTIVE leases and get their listing IDs
-            const activeStandardListingIds = standardLeases
-                .filter(lease => lease.leaseStatus === "ACTIVE")
-                .map(lease => lease.listingId);
-            const activeCustomListingIds = customLeases
-                .filter(lease => lease.leaseStatus === "ACTIVE")
-                .map(lease => lease.listingId);
-            
-            return [...activeStandardListingIds, ...activeCustomListingIds];
+            const getListingIdsByStatus = (leases = [], status) =>
+                leases
+                    .filter((lease) => lease.leaseStatus === status)
+                    .map((lease) => lease.listingId)
+                    .filter(Boolean);
+
+            const activeListingIds = [
+                ...getListingIdsByStatus(standardLeases, "ACTIVE"),
+                ...getListingIdsByStatus(customLeases, "ACTIVE"),
+            ];
+
+            const terminatedListingIds = [
+                ...getListingIdsByStatus(standardLeases, "TERMINATED"),
+                ...getListingIdsByStatus(customLeases, "TERMINATED"),
+            ];
+
+            return { activeListingIds, terminatedListingIds };
         },
     });
+    const activeLeaseListingIds = leaseStatusData.activeListingIds || [];
+    const terminatedListingIds = leaseStatusData.terminatedListingIds || [];
 
     // filter out listings that already have an active application
-    const availableListings = getAvailableListings(listings, applicationsData.applications);
+    const applicationsForAvailability = (applicationsData.applications || [])
+        .filter((app) => !terminatedListingIds.includes(app.listingId))
+        .filter((app) => !isPlaceholderApplication(app));
+    const availableListings = getAvailableListings(listings, applicationsForAvailability);
 
     // filtering applications by modal (frontend filtering)
     // Note: filterApplications always filters out non-ACTIVE listings, so filteredApps may be less than API total
     // Also filter out applications for listings that have an ACTIVE lease
     // Wait for leases to load before filtering to prevent flash of unfiltered content
-    const filteredApps = leasesLoading 
-        ? [] 
+    const filteredApps = leasesLoading
+        ? []
         : filterApplications(applicationsData?.applications || [], searchQuery, filters)
-            .filter(app => !allLeases.includes(app.listingId));
+            .filter((app) => !activeLeaseListingIds.includes(app.listingId))
+            .filter((app) => !terminatedListingIds.includes(app.listingId));
     
     // Clear selection when filters or page change
     useEffect(() => {
@@ -149,8 +172,8 @@ const Applications = () => {
         onError: () => toast.error("Failed to update status"),
     });
 
-    const handleApprove = (id) => updateStatusMutation.mutate({ id, status: "APPROVED" });
-    const handleReject = (id) => updateStatusMutation.mutate({ id, status: "REJECTED" });
+    const handleApprove = (id) => updateStatusMutation.mutateAsync({ id, status: "APPROVED" });
+    const handleReject = (id) => updateStatusMutation.mutateAsync({ id, status: "REJECTED" });
 
     const handleSendLease = async (app) => {
         const listingId = app?.listing?.id;
@@ -184,7 +207,7 @@ const Applications = () => {
                 return;
             }
 
-            // Lease found (and in DRAFT status) - create invite and generate signing link
+            // Lease found (should be in DRAFT status) - create invite and generate signing link
             const inviteRes = await api.post(`${API_ENDPOINTS.LEASES_INVITE.BASE}/${lease.id}/invite`, {
                 tenantId: app.tenantId,
                 leaseType,
@@ -196,28 +219,23 @@ const Applications = () => {
             setInviteUrl(invite.url);
             setInviteModalOpen(true);
 
-            // Update lease status to ACTIVE
-            if (leaseType === "CUSTOM") {
-                await api.put(`${API_ENDPOINTS.CUSTOM_LEASES.BY_ID(lease.id)}`, {
-                    tenantId: app.tenantId,
-                    listingId,
-                    leaseStatus: "ACTIVE",
-                });
-            } else {
-                await api.put(`${API_ENDPOINTS.LEASES.BY_ID(lease.id)}`, {
-                    tenantId: app.tenantId,
-                    listingId,
-                    leaseStatus: "ACTIVE",
-                });
-            }
-
+            toast.success("Lease invite generated. Awaiting tenant signature.");
         } catch (err) {
             console.error("Error sending lease:", err);
             toast.error("Failed to send lease. Please try again.");
         }
     };
 
-    const handleDelete = (id) => toast.success(`Application ${id} deleted`);
+    const handleDelete = async (id) => {
+        try {
+            await api.delete(`${API_ENDPOINTS.APPLICATIONS.BASE}/${id}`);
+            toast.success("Application deleted");
+            refetchApplications();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to delete application");
+            throw error;
+        }
+    };
     const handleView = (app) => {
         setSelectedApplication(app);
         setDialogOpen(true);
@@ -295,7 +313,7 @@ const Applications = () => {
 
             <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
                 {/* Table Header */}
-                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -305,13 +323,44 @@ const Applications = () => {
                     </div>
                     <div className="">Applicant Info</div>
                     <div className="border-l border-gray-300 pl-4">Listing Info</div>
+                    <div className="border-l border-gray-300 pl-4">Created</div>
                     <div className="border-l border-gray-300 pl-4">Status</div>
                     <div className="border-l border-gray-300 pl-4">Actions</div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0">
                     {listingsLoading || appsLoading || leasesLoading ? (
-                        <LoadingState message="Loading applications..." />
+                        <div className="space-y-3">
+                            {[...Array(5)].map((_, idx) => (
+                                <div
+                                    key={`application-skeleton-${idx}`}
+                                    className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 border border-gray-200 rounded-2xl p-3 items-center"
+                                >
+                                    <div className="flex justify-center">
+                                        <Skeleton className="h-4 w-4 rounded-sm" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-40 rounded-lg" />
+                                        <Skeleton className="h-3 w-28 rounded-md" />
+                                    </div>
+                                    <div className="space-y-2 border-l border-gray-100 pl-4">
+                                        <Skeleton className="h-4 w-32 rounded-lg" />
+                                        <Skeleton className="h-3 w-24 rounded-md" />
+                                    </div>
+                                    <div className="border-l border-gray-100 pl-4">
+                                        <Skeleton className="h-4 w-28 rounded-lg" />
+                                    </div>
+                                    <div className="border-l border-gray-100 pl-4 flex items-center gap-2">
+                                        <Skeleton className="h-4 w-16 rounded-full" />
+                                        <Skeleton className="h-4 w-12 rounded-md" />
+                                    </div>
+                                    <div className="border-l border-gray-100 pl-4 flex justify-end gap-2">
+                                        <Skeleton className="h-8 w-8 rounded-xl" />
+                                        <Skeleton className="h-8 w-8 rounded-xl" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : filteredApps.length > 0 ? (
                         filteredApps.map((app) => (
                             <ApplicationCard

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Trash2, Home, DollarSign, Calendar, AlertTriangle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatDistanceToNow, isPast } from "date-fns";
+import { formatDistanceToNow, isPast, format } from "date-fns";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
@@ -240,20 +240,31 @@ const StandardLeaseCard = ({
                     </div>
 
                     {/* Lease Expiration Status - larger width */}
-                    <div className="flex items-center w-full md:w-40 flex-shrink-0">
+                    <div className="flex items-center w-full md:w-44 flex-shrink-0">
                         <div className="space-y-1">
                             {isExpired ? (
                                 <>
                                     <p className="text-sm font-semibold text-red-600">Lease expired</p>
                                     <p className="text-xs text-gray-600">{expirationText}</p>
+                                    <p className="text-xs text-gray-500">
+                                        Created {lease.createdAt ? `${format(new Date(lease.createdAt), "MMM d, yyyy")} at ${format(new Date(lease.createdAt), "h:mm a")}` : "N/A"}
+                                    </p>
                                 </>
                             ) : expirationText ? (
                                 <>
                                     <p className="text-sm font-semibold text-gray-900">Lease expires</p>
                                     <p className="text-xs text-gray-600">{expirationText}</p>
+                                    <p className="text-xs text-gray-500">
+                                        Created {lease.createdAt ? `${format(new Date(lease.createdAt), "MMM d, yyyy")} at ${format(new Date(lease.createdAt), "h:mm a")}` : "N/A"}
+                                    </p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-600">No end date</p>
+                                <>
+                                    <p className="text-sm text-gray-600">No end date</p>
+                                    <p className="text-xs text-gray-500">
+                                        Created {lease.createdAt ? `${format(new Date(lease.createdAt), "MMM d, yyyy")} at ${format(new Date(lease.createdAt), "h:mm a")}` : "N/A"}
+                                    </p>
+                                </>
                             )}
                         </div>
                     </div>

@@ -7,7 +7,13 @@ const prisma = new PrismaClient();
  * Automatically creates a MAINTENANCE payment when invoice is created
  */
 export const createInvoice = async (data, userId, userRole) => {
-  const { maintenanceRequestId, description, amount, sharedWithTenant = true } = data;
+  const {
+    maintenanceRequestId,
+    description,
+    amount,
+    sharedWithTenant = true,
+    sharedWithLandlord = true,
+  } = data;
 
   // Verify maintenance request exists and user has access
   const maintenanceRequest = await prisma.maintenanceRequest.findUnique({
@@ -33,9 +39,29 @@ export const createInvoice = async (data, userId, userRole) => {
     throw new Error("Maintenance request not found");
   }
 
-  // Check authorization - only landlord of the property can create invoice
-  if (userRole !== "ADMIN" && maintenanceRequest.listing.landlordId !== userId) {
-    throw new Error("Unauthorized to create invoice for this maintenance request");
+  const creatorRole = userRole === "ADMIN" ? "LANDLORD" : userRole;
+  const isLandlord = maintenanceRequest.listing.landlordId === userId;
+
+  const tenantHasActiveLease =
+    maintenanceRequest.listing.leases.some(
+      (lease) => lease.tenantId === userId
+    ) ||
+    maintenanceRequest.listing.customLeases.some(
+      (lease) => lease.tenantId === userId
+    );
+
+  const isTenantRequestOwner = maintenanceRequest.userId === userId;
+
+  if (creatorRole === "LANDLORD") {
+    if (!isLandlord && userRole !== "ADMIN") {
+      throw new Error("Unauthorized to create invoice for this maintenance request");
+    }
+  } else if (creatorRole === "TENANT") {
+    if (!isTenantRequestOwner && !tenantHasActiveLease) {
+      throw new Error("Unauthorized to create invoice for this maintenance request");
+    }
+  } else {
+    throw new Error("Unsupported role for invoice creation");
   }
 
   // Get tenant from active lease (standard or custom)
@@ -44,32 +70,67 @@ export const createInvoice = async (data, userId, userRole) => {
   const leaseId = maintenanceRequest.listing.leases[0]?.id || null;
   const customLeaseId = maintenanceRequest.listing.customLeases[0]?.id || null;
 
-  // Use transaction to create invoice and payment together
-  const result = await prisma.$transaction(async (tx) => {
-    // Create payment first
-    const payment = await tx.payment.create({
-      data: {
-        type: "MAINTENANCE",
-        amount: parseFloat(amount),
-        status: "PENDING",
-        dueDate: new Date(), // Due immediately
-        landlordId: maintenanceRequest.listing.landlordId,
-        tenantId: tenantId,
-        leaseId: leaseId,
-        customLeaseId: customLeaseId,
-        notes: description,
-      },
-    });
+  let result;
 
-    // Create invoice linked to payment
-    const invoice = await tx.invoice.create({
+  if (creatorRole === "LANDLORD") {
+    result = await prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.create({
+        data: {
+          type: "MAINTENANCE",
+          amount: parseFloat(amount),
+          status: "PENDING",
+          dueDate: new Date(),
+          landlordId: maintenanceRequest.listing.landlordId,
+          tenantId: tenantId,
+          leaseId: leaseId,
+          customLeaseId: customLeaseId,
+          notes: description,
+        },
+      });
+
+      const invoice = await tx.invoice.create({
+        data: {
+          maintenanceRequestId,
+          description,
+          amount: parseFloat(amount),
+          status: "PENDING",
+          sharedWithTenant: Boolean(sharedWithTenant),
+          sharedWithLandlord: true,
+          paymentId: payment.id,
+          createdById: userId,
+          createdByRole: creatorRole,
+        },
+        include: {
+          maintenanceRequest: {
+            include: {
+              listing: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          payment: true,
+        },
+      });
+
+      return invoice;
+    });
+  } else {
+    result = await prisma.invoice.create({
       data: {
         maintenanceRequestId,
         description,
         amount: parseFloat(amount),
         status: "PENDING",
-        sharedWithTenant: Boolean(sharedWithTenant),
-        paymentId: payment.id,
+        sharedWithTenant: true,
+        sharedWithLandlord: Boolean(sharedWithLandlord),
+        createdById: userId,
+        createdByRole: creatorRole,
       },
       include: {
         maintenanceRequest: {
@@ -88,21 +149,29 @@ export const createInvoice = async (data, userId, userRole) => {
         payment: true,
       },
     });
-
-    return invoice;
-  });
+  }
 
   // Debug logging
   console.log(`\n🧾 INVOICE CREATED:`);
   console.log(`  Invoice ID: ${result.id}`);
   console.log(`  Payment ID: ${result.paymentId}`);
+  console.log(`  Creator Role: ${creatorRole}`);
+  console.log(`  Created By: ${userId}`);
   console.log(`  Tenant ID: ${tenantId}`);
   console.log(`  Amount: $${amount}`);
   console.log(`  sharedWithTenant: ${result.sharedWithTenant}`);
+  console.log(`  sharedWithLandlord: ${result.sharedWithLandlord}`);
   if (!result.sharedWithTenant) {
     console.log(`   🔒 This invoice is NOT shared - payment will be HIDDEN from tenant`);
   } else {
     console.log(`   ✅ This invoice IS shared - payment will be VISIBLE to tenant`);
+  }
+  if (creatorRole === "TENANT") {
+    if (!result.sharedWithLandlord) {
+      console.log(`   🔒 This invoice is NOT shared with landlord yet`);
+    } else {
+      console.log(`   ✅ This invoice IS shared with landlord`);
+    }
   }
 
   return result;
@@ -126,9 +195,10 @@ export const getInvoicesByMaintenanceRequest = async (maintenanceRequestId, user
 
   // Check authorization
   const isLandlord = maintenanceRequest.listing.landlordId === userId;
+  const isRequestOwner = maintenanceRequest.userId === userId;
   
   // For tenants, check if they have an active lease for this listing
-  let isTenantWithActiveLease = false;
+  let tenantHasActiveLease = false;
   if (userRole === "TENANT") {
     const activeLease = await prisma.lease.findFirst({
       where: {
@@ -146,24 +216,37 @@ export const getInvoicesByMaintenanceRequest = async (maintenanceRequestId, user
       },
     });
     
-    isTenantWithActiveLease = !!(activeLease || activeCustomLease);
+    tenantHasActiveLease = !!(activeLease || activeCustomLease);
   }
   
-  if (userRole !== "ADMIN" && !isLandlord && !isTenantWithActiveLease) {
+  const tenantHasAccess = isRequestOwner || tenantHasActiveLease;
+
+  if (
+    userRole !== "ADMIN" &&
+    !isLandlord &&
+    !(userRole === "TENANT" && tenantHasAccess)
+  ) {
     throw new Error("Unauthorized to view invoices for this maintenance request");
   }
 
-  // Build where clause - tenants only see shared invoices
-  const where = {
+  const whereClause = {
     maintenanceRequestId,
   };
-  
+
   if (userRole === "TENANT") {
-    where.sharedWithTenant = true;
+    whereClause.OR = [
+      { createdById: userId },
+      { sharedWithTenant: true },
+    ];
+  } else if (isLandlord) {
+    whereClause.OR = [
+      { createdById: userId }, // Landlord-created invoices (old + new)
+      { sharedWithLandlord: { not: false } }, // includes true or null
+    ];
   }
 
   const invoices = await prisma.invoice.findMany({
-    where,
+    where: whereClause,
     orderBy: { createdAt: "desc" },
     include: {
       maintenanceRequest: {
@@ -181,11 +264,13 @@ export const getInvoicesByMaintenanceRequest = async (maintenanceRequestId, user
   console.log(`  User ID: ${userId}`);
   console.log(`  User Role: ${userRole}`);
   console.log(`  Is Landlord: ${isLandlord}`);
-  console.log(`  Is Tenant with Active Lease: ${isTenantWithActiveLease}`);
-  console.log(`  Where clause:`, JSON.stringify(where));
+  console.log(`  Is Request Owner: ${isRequestOwner}`);
+  console.log(`  Tenant Has Active Lease: ${tenantHasActiveLease}`);
   console.log(`  Found ${invoices.length} invoices`);
   invoices.forEach((inv, idx) => {
-    console.log(`    [${idx}] Amount: $${inv.amount}, Shared: ${inv.sharedWithTenant}`);
+    console.log(
+      `    [${idx}] Amount: $${inv.amount}, SharedWithTenant: ${inv.sharedWithTenant}, SharedWithLandlord: ${inv.sharedWithLandlord}, Creator: ${inv.createdByRole}`
+    );
   });
 
   return invoices;
@@ -233,7 +318,7 @@ export const getInvoiceById = async (invoiceId, userId, userRole) => {
  * Update invoice (general - can update sharedWithTenant, status, etc.)
  */
 export const updateInvoice = async (invoiceId, updateData, userId, userRole) => {
-  const { status, sharedWithTenant } = updateData;
+  const { status, sharedWithTenant, sharedWithLandlord } = updateData;
 
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
@@ -262,6 +347,9 @@ export const updateInvoice = async (invoiceId, updateData, userId, userRole) => 
   }
   if (sharedWithTenant !== undefined) {
     updatePayload.sharedWithTenant = Boolean(sharedWithTenant);
+  }
+  if (sharedWithLandlord !== undefined) {
+    updatePayload.sharedWithLandlord = Boolean(sharedWithLandlord);
   }
 
   const updatedInvoice = await prisma.invoice.update({
@@ -415,21 +503,37 @@ export const getAllInvoicesForUser = async (userId, userRole, filters = {}) => {
   let where = {};
 
   if (userRole === "TENANT") {
-    // Tenant sees only shared invoices for their maintenance requests
     where = {
-      maintenanceRequest: {
-        userId,
-      },
-      sharedWithTenant: true,
+      OR: [
+        {
+          maintenanceRequest: {
+            userId,
+          },
+          sharedWithTenant: true,
+        },
+        {
+          createdById: userId,
+        },
+      ],
     };
   } else if (userRole === "LANDLORD") {
-    // Landlord sees invoices for their properties
     where = {
       maintenanceRequest: {
         listing: {
           landlordId: userId,
         },
       },
+      OR: [
+        {
+          createdByRole: {
+            in: ["LANDLORD", "ADMIN", null],
+          },
+        },
+        {
+          createdByRole: "TENANT",
+          sharedWithLandlord: true,
+        },
+      ],
     };
   }
 

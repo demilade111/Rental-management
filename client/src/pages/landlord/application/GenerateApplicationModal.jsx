@@ -90,7 +90,10 @@ const GenerateApplicationDialog = ({
     });
 
     const handleGenerate = () => {
-        if (!selectedListing) return alert("Please select a listing");
+        if (!selectedListing) {
+            toast.error("Please select a listing before generating a link.");
+            return;
+        }
         generateApplicationMutation.mutate({
             listingId: selectedListing,
             requirements,
