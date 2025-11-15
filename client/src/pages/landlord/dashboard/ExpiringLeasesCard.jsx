@@ -37,10 +37,10 @@ const filters = [
 ];
 
 const ExpiringLeasesCard = () => {
-    const [activeFilter, setActiveFilter] = useState('0-30');
+    const [activeFilter, setActiveFilter] = useState('all');
 
-    // Fetch all leases
-    const { data: leases = [], isLoading, isFetched } = useQuery({
+    // Fetch standard leases
+    const { data: standardLeases = [], isLoading: isLoadingStandard, isFetched: isFetchedStandard } = useQuery({
         queryKey: ['leases-dashboard'],
         queryFn: async () => {
             const response = await api.get(API_ENDPOINTS.LEASES.BASE);
@@ -48,41 +48,90 @@ const ExpiringLeasesCard = () => {
         },
     });
 
+    // Fetch custom leases
+    const { data: customLeases = [], isLoading: isLoadingCustom, isFetched: isFetchedCustom } = useQuery({
+        queryKey: ['customleases-dashboard'],
+        queryFn: async () => {
+            const response = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+            return response.data.data || response.data || [];
+        },
+    });
+
+    // Combine both standard and custom leases
+    const leases = [...standardLeases, ...customLeases];
+    const isLoading = isLoadingStandard || isLoadingCustom;
+    const isFetched = isFetchedStandard && isFetchedCustom;
+
     // Calculate expiring leases by time period
     const chartData = useMemo(() => {
         if (!leases.length) return [];
 
         const now = new Date();
-        const filterLeasesByDays = (minDays, maxDays) => {
-            return leases.filter(lease => {
-                if (!lease.endDate || lease.leaseStatus === 'TERMINATED' || lease.leaseStatus === 'EXPIRED') {
+        
+        // Filter out terminated and expired leases
+        const validLeases = leases.filter(lease => {
+            // Check both possible field names (leaseStatus or status)
+            const status = lease.leaseStatus || lease.status;
+            return status !== 'TERMINATED' && status !== 'EXPIRED';
+        });
+
+        // Separate draft leases - always show ALL draft leases regardless of date filter
+        const allDraftLeases = validLeases.filter(lease => {
+            // Check both possible field names (leaseStatus or status)
+            const status = lease.leaseStatus || lease.status;
+            return status === 'DRAFT';
+        });
+
+        // Filter non-draft leases by endDate and time period
+        const filterNonDraftLeasesByDays = (minDays, maxDays) => {
+            return validLeases.filter(lease => {
+                // Check both possible field names (leaseStatus or status)
+                const status = lease.leaseStatus || lease.status;
+                
+                // Skip draft leases (handled separately)
+                if (status === 'DRAFT') {
                     return false;
                 }
+                
+                // Skip leases without endDate
+                if (!lease.endDate) {
+                    return false;
+                }
+                
                 const endDate = new Date(lease.endDate);
                 const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
                 return daysUntilExpiry >= minDays && daysUntilExpiry <= maxDays;
             });
         };
 
-        let filteredLeases = [];
+        // Filter non-draft leases by time period
+        let filteredNonDraftLeases = [];
         if (activeFilter === '0-30') {
-            filteredLeases = filterLeasesByDays(0, 30);
+            filteredNonDraftLeases = filterNonDraftLeasesByDays(0, 30);
         } else if (activeFilter === '31-60') {
-            filteredLeases = filterLeasesByDays(31, 60);
+            filteredNonDraftLeases = filterNonDraftLeasesByDays(31, 60);
         } else if (activeFilter === '61-90') {
-            filteredLeases = filterLeasesByDays(61, 90);
+            filteredNonDraftLeases = filterNonDraftLeasesByDays(61, 90);
         } else {
-            filteredLeases = filterLeasesByDays(0, 365);
+            // For "All" filter, include all non-draft leases with endDate within 365 days
+            filteredNonDraftLeases = filterNonDraftLeasesByDays(0, 365);
         }
 
+        // Combine draft leases (always included) with filtered non-draft leases
+        const filteredLeases = [...allDraftLeases, ...filteredNonDraftLeases];
+
         // Categorize leases
-        const draft = filteredLeases.filter(l => l.leaseStatus === 'DRAFT').length;
-        const active = filteredLeases.filter(l => l.leaseStatus === 'ACTIVE').length;
-        const expiringSoon = filteredLeases.filter(l => {
+        const draft = allDraftLeases.length;
+        const active = filteredNonDraftLeases.filter(l => {
+            const status = l.leaseStatus || l.status;
+            return status === 'ACTIVE';
+        }).length;
+        const expiringSoon = filteredNonDraftLeases.filter(l => {
             if (!l.endDate) return false;
+            const status = l.leaseStatus || l.status;
             const endDate = new Date(l.endDate);
             const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-            return daysUntilExpiry <= 30 && l.leaseStatus === 'ACTIVE';
+            return daysUntilExpiry <= 30 && status === 'ACTIVE';
         }).length;
 
         return [

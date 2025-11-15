@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import API_ENDPOINTS from '@/lib/apiEndpoints';
-import LoadingState from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PortfolioCard = () => {
     // Fetch all listings
@@ -43,8 +43,38 @@ const PortfolioCard = () => {
     if (isLoading) {
         return (
             <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
-                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
-                <LoadingState message="Loading portfolio..." compact={true} />
+                <Skeleton className="h-7 w-32 mb-2" />
+                
+                {/* Category Labels Skeleton */}
+                <div className="relative mb-1">
+                    <div className="flex justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-24" />
+                    </div>
+                </div>
+
+                {/* Stacked Bar Chart Skeleton */}
+                <div className="h-10 mb-1 flex items-center">
+                    <Skeleton className="w-full h-8 rounded-full" />
+                </div>
+
+                {/* Legend Skeleton */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                    <div>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                            <Skeleton className="w-3 h-3 rounded" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                        <Skeleton className="h-3 w-32 ml-4.5" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                            <Skeleton className="w-3 h-3 rounded" />
+                            <Skeleton className="h-4 w-28" />
+                        </div>
+                        <Skeleton className="h-3 w-36 ml-4.5" />
+                    </div>
+                </div>
             </div>
         );
     }
