@@ -8,9 +8,9 @@ import {
   MAINTENANCE_PRIORITY,
   getStatusDisplayName,
 } from "@/lib/maintenanceApi";
-import axios from "@/lib/axios";
+import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
-import MaintenanceSearchBar from "./MaintanenceSearchBar";
+import MaintenanceSearchBar from "@/pages/landlord/maintenance/MaintanenceSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import TenantMaintenanceForm from "./TenantMaintenanceForm";
@@ -41,14 +41,16 @@ function Maintenance() {
   });
 
   const [updatingActions, setUpdatingActions] = useState({}); // { [requestId]: action }
+  const [isLeaseTerminated, setIsLeaseTerminated] = useState(false);
 
   const token = useAuthStore((state) => state.token);
+  const { user } = useAuthStore();
 
-  // Fetch properties
+  // Fetch properties and check lease status
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const response = await axios.get(API_ENDPOINTS.LISTINGS.GET_ALL);
+        const response = await api.get(API_ENDPOINTS.LISTINGS.GET_ALL);
         const data = response.data;
         const listings = Array.isArray(data) ? data : data.listing || [];
         setProperties(listings);
@@ -58,8 +60,71 @@ function Maintenance() {
       }
     };
 
-    if (token) fetchListings();
-  }, [token]);
+    const checkLeaseStatus = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Fetch tenant's leases
+        const standardResponse = await api.get(API_ENDPOINTS.TENANT_LEASES.BASE);
+        const standardData = standardResponse.data;
+        const standardLeases = Array.isArray(standardData) ? standardData : 
+                              standardData.data || standardData.leases || [];
+        
+        // Fetch custom leases
+        const customResponse = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+        const customData = customResponse.data;
+        const customLeases = Array.isArray(customData) ? customData :
+                            customData.data || customData.leases || [];
+        
+        // Filter custom leases for tenant
+        const tenantCustomLeases = customLeases.filter(lease => 
+          lease.tenantId === user?.id
+        );
+        
+        // Combine all leases
+        const allLeases = [
+          ...standardLeases,
+          ...tenantCustomLeases,
+        ];
+        
+        console.log('All leases:', allLeases);
+        
+        // Check if tenant has an active lease
+        const activeLeases = allLeases.filter(lease => 
+          lease.leaseStatus === 'ACTIVE'
+        );
+        
+        const hasActiveLease = activeLeases.length > 0;
+        
+        // Check if there are any terminated leases
+        const terminatedLeases = allLeases.filter(lease => 
+          lease.leaseStatus === 'TERMINATED'
+        );
+        
+        console.log('Active leases:', activeLeases.length, 'Terminated leases:', terminatedLeases.length);
+        
+        // If no active lease AND there are terminated leases, disable the button
+        // This means the tenant's current listing/lease was terminated
+        if (!hasActiveLease && terminatedLeases.length > 0) {
+          console.log('Lease is terminated - disabling button');
+          setIsLeaseTerminated(true);
+        } else {
+          console.log('Lease is active or no terminated leases - enabling button');
+          setIsLeaseTerminated(false);
+        }
+      } catch (err) {
+        console.error("Error checking lease status:", err);
+        // Don't show error toast, just assume lease is not terminated
+        setIsLeaseTerminated(false);
+      }
+    };
+
+    if (token) {
+      fetchListings();
+      checkLeaseStatus();
+    }
+  }, [token, user?.id]);
+
 
   // Fetch maintenance requests
   useEffect(() => {
@@ -230,9 +295,16 @@ function Maintenance() {
         search={search}
         setSearch={setSearch}
         onFilter={() => console.log("Filter clicked")}
-        onNewRequest={() => setShowModal(true)}
+        onNewRequest={() => {
+          if (!isLeaseTerminated) {
+            setShowModal(true);
+          } else {
+            toast.error("Your lease has been terminated. Maintenance requests are no longer available.");
+          }
+        }}
         chips={chips}
         removeChip={(label) => setChips((prev) => prev.filter((c) => c !== label))}
+        disabled={isLeaseTerminated}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
