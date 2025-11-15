@@ -106,7 +106,7 @@ const RentersInsuranceCard = () => {
         <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
             <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Renters Insurance</h2>
             {showLoading ? (
-                <div className="flex items-center gap-6 lg:gap-10 flex-1">
+                <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px]">
                     <div className="w-20 sm:w-24 lg:w-32 h-56 flex-shrink-0 p-0 -ml-2">
                         <div className="w-full h-full bg-gray-100 rounded animate-pulse" />
                     </div>
@@ -115,7 +115,7 @@ const RentersInsuranceCard = () => {
                     </div>
                 </div>
             ) : (
-                <div className="flex items-center gap-6 lg:gap-10 flex-1">
+                <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px]">
                     <div className="w-20 sm:w-24 lg:w-32 h-56 flex-shrink-0 p-0 -ml-2">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
