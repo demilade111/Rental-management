@@ -27,7 +27,8 @@ export default function MaintenanceSearchBar({
     onNewRequest,
     chips = [],
     removeChip,
-    currentFilters = {}
+    currentFilters = {},
+    disabled = false
 }) {
     // local modal state (lightweight, instant open)
     const [open, setOpen] = useState(false);
@@ -136,6 +137,8 @@ export default function MaintenanceSearchBar({
                         variant="outline"
                         className="rounded-2xl border border-gray-900"
                         onClick={onNewRequest}
+                        disabled={disabled}
+                        title={disabled ? "Your lease has been terminated. Maintenance requests are no longer available." : ""}
                     >
                         <Plus className="w-4 h-4 mr-2 rounded-full bg-gray-900 text-white" />
                         New Request

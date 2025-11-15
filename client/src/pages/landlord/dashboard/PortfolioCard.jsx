@@ -101,26 +101,16 @@ const PortfolioCard = () => {
             <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
             
             {/* Category Labels with Markers */}
-            <div className="relative mb-1">
-                <div className="flex justify-between">
-                    <div className="flex items-center">
-                        <span className="text-sm font-semibold">Listed ({totalListed})</span>
-                        <svg className="ml-1.5" width="10" height="10" viewBox="0 0 12 12">
-                            <polygon points="6,0 12,12 0,12" fill="#374151" />
-                        </svg>
-                    </div>
-                    <div className="flex items-center" style={{ marginLeft: `${totalListed > 0 && totalOccupied > 0 ? (totalListed / (totalListed + totalOccupied)) * 100 : 50}%` }}>
-                        <svg className="mr-1.5" width="10" height="10" viewBox="0 0 12 12">
-                            <polygon points="6,0 12,12 0,12" fill="#374151" />
-                        </svg>
-                        <span className="text-sm font-semibold">Occupied ({totalOccupied})</span>
-                    </div>
+            <div className="relative mb-1 overflow-visible">
+                <div className="flex justify-between items-center w-full">
+                    <div className="flex items-center flex-shrink-0"><span className="text-sm font-semibold">Listed</span><span className="text-sm font-semibold ml-1">({totalListed})</span><svg className="ml-1.5" width="10" height="10" viewBox="0 0 12 12"><polygon points="6,0 12,12 0,12" fill="#374151" /></svg></div>
+                    <div className="flex items-center flex-shrink-0 ml-auto"><svg className="mr-1.5" width="10" height="10" viewBox="0 0 12 12"><polygon points="6,0 12,12 0,12" fill="#374151" /></svg><span className="text-sm font-semibold">Occupied</span><span className="text-sm font-semibold ml-1">({totalOccupied})</span></div>
                 </div>
             </div>
 
             {/* Stacked Bar Chart - CSS Based */}
             <div className="h-10 mb-1 flex items-center">
-                <div className="w-full h-8 flex rounded-full overflow-hidden bg-gray-100">
+                <div className="w-full h-6 flex rounded-full overflow-hidden bg-gray-100">
                     {/* Listed (Vacant) */}
                     {chartData.listed > 0 && (
                         <div 
