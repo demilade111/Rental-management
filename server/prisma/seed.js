@@ -551,21 +551,32 @@ async function main() {
   ==========================================
   */
 
+  // Helper function to generate placeholder applicant data
+  const getPlaceholderApplicant = () => {
+    const firstNames = ["Sarah", "Michael", "Emily", "David", "Jessica", "Daniel", "Amanda", "Christopher", "Lisa", "Matthew"];
+    const lastNames = ["Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez"];
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 1000)}@email.com`;
+    const phone = `555-${Math.floor(Math.random() * 9000) + 1000}`;
+    return { firstName, lastName, email, phone };
+  };
+
   // SCENARIO 1: Applications for listings WITHOUT any lease (✅ VISIBLE)
   const noLeaseApplications = [
-    // NEW - Registered tenant WITHOUT active lease applied
-    { tenant: tenants[3], listing: listings[6], status: "NEW" },    // Alex (no active lease)
+    // NEW - Applicant submitted application but hasn't signed lease yet
+    { applicant: getPlaceholderApplicant(), listing: listings[6], status: "NEW" },
 
-    // PENDING - No tenant info (application link sent but not submitted)
-    { tenant: null, listing: listings[11], status: "PENDING" },
-    { tenant: null, listing: listings[12], status: "PENDING" },
+    // PENDING - No applicant info (application link sent but not submitted)
+    { applicant: null, listing: listings[11], status: "PENDING" },
+    { applicant: null, listing: listings[12], status: "PENDING" },
 
-    // APPROVED - Tenants WITHOUT active leases, ready to create and send lease
-    { tenant: tenants[4], listing: listings[13], status: "APPROVED" },  // Sophia (no active lease)
-    { tenant: tenants[3], listing: listings[15], status: "APPROVED" },  // Alex (no active lease)
+    // APPROVED - Applicants ready to create and send lease (not signed yet)
+    { applicant: getPlaceholderApplicant(), listing: listings[13], status: "APPROVED" },
+    { applicant: getPlaceholderApplicant(), listing: listings[15], status: "APPROVED" },
 
     // REJECTED - Application declined
-    { tenant: tenants[4], listing: listings[14], status: "REJECTED" },  // Sophia
+    { applicant: getPlaceholderApplicant(), listing: listings[14], status: "REJECTED" },
   ];
 
   for (let i = 0; i < noLeaseApplications.length; i++) {
@@ -576,15 +587,15 @@ async function main() {
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: data.tenant?.id || null, // null for PENDING status
+        tenantId: null, // No tenant assigned until lease is signed
         landlordId: data.listing.landlordId,
         listingId: data.listing.id,
-        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
-        email: data.tenant ? data.tenant.email : "N/A",
-        phone: data.tenant ? data.tenant.phone : "N/A",
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
         moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Main St` : "N/A",
-        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} Main St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
         status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },
@@ -595,8 +606,8 @@ async function main() {
   // SCENARIO 2: Applications for listings WITH ACTIVE standard lease (❌ HIDDEN)
   // These will be filtered out on frontend but kept in DB for data integrity
   const activeStandardLeaseApps = [
-    { tenant: null, listing: listings[0], status: "PENDING" },
-    { tenant: tenants[3], listing: listings[3], status: "NEW" },  // Alex (no active lease)
+    { applicant: null, listing: listings[0], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[3], status: "NEW" },  // Placeholder applicant (not signed contract yet)
   ];
 
   for (let i = 0; i < activeStandardLeaseApps.length; i++) {
@@ -607,15 +618,15 @@ async function main() {
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: data.tenant?.id || null,
+        tenantId: null, // No tenant assigned until lease is signed
         landlordId: data.listing.landlordId,
         listingId: data.listing.id,
-        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
-        email: data.tenant ? data.tenant.email : "N/A",
-        phone: data.tenant ? data.tenant.phone : "N/A",
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
         moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Oak St` : "N/A",
-        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} Oak St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
         status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },
@@ -625,8 +636,8 @@ async function main() {
 
   // SCENARIO 3: Applications for listings WITH DRAFT standard lease (✅ VISIBLE)
   const draftStandardLeaseApps = [
-    { tenant: tenants[4], listing: listings[8], status: "APPROVED" },  // Sophia (no active lease) - Ready to send draft
-    { tenant: null, listing: listings[10], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[8], status: "APPROVED" },  // Placeholder applicant - Ready to send draft
+    { applicant: null, listing: listings[10], status: "PENDING" },
   ];
 
   for (let i = 0; i < draftStandardLeaseApps.length; i++) {
@@ -637,15 +648,15 @@ async function main() {
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: data.tenant?.id || null,
+        tenantId: null, // No tenant assigned until lease is signed
         landlordId: data.listing.landlordId,
         listingId: data.listing.id,
-        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
-        email: data.tenant ? data.tenant.email : "N/A",
-        phone: data.tenant ? data.tenant.phone : "N/A",
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
         moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Elm St` : "N/A",
-        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} Elm St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
         status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },
@@ -655,8 +666,8 @@ async function main() {
 
   // SCENARIO 4: Applications for listings WITH ACTIVE custom lease (❌ HIDDEN)
   const activeCustomLeaseApps = [
-    { tenant: null, listing: listings[2], status: "PENDING" },
-    { tenant: tenants[4], listing: listings[2], status: "NEW" },  // Sophia (no active lease)
+    { applicant: null, listing: listings[2], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[2], status: "NEW" },  // Placeholder applicant (not signed contract yet)
   ];
 
   for (let i = 0; i < activeCustomLeaseApps.length; i++) {
@@ -667,15 +678,15 @@ async function main() {
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: data.tenant?.id || null,
+        tenantId: null, // No tenant assigned until lease is signed
         landlordId: data.listing.landlordId,
         listingId: data.listing.id,
-        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
-        email: data.tenant ? data.tenant.email : "N/A",
-        phone: data.tenant ? data.tenant.phone : "N/A",
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
         moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Pine St` : "N/A",
-        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} Pine St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
         status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },
@@ -685,8 +696,8 @@ async function main() {
 
   // SCENARIO 5: Applications for listings WITH DRAFT custom lease (✅ VISIBLE)
   const draftCustomLeaseApps = [
-    { tenant: tenants[3], listing: listings[7], status: "APPROVED" },  // Alex (no active lease) - Ready to send draft
-    { tenant: null, listing: listings[9], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[7], status: "APPROVED" },  // Placeholder applicant - Ready to send draft
+    { applicant: null, listing: listings[9], status: "PENDING" },
   ];
 
   for (let i = 0; i < draftCustomLeaseApps.length; i++) {
@@ -697,15 +708,15 @@ async function main() {
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: data.tenant?.id || null,
+        tenantId: null, // No tenant assigned until lease is signed
         landlordId: data.listing.landlordId,
         listingId: data.listing.id,
-        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
-        email: data.tenant ? data.tenant.email : "N/A",
-        phone: data.tenant ? data.tenant.phone : "N/A",
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
         moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Maple St` : "N/A",
-        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} Maple St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
         status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },
@@ -715,12 +726,12 @@ async function main() {
 
   // Additional random applications for variety
   // These use listings without leases (16-19)
-  // Only use tenants WITHOUT active leases
+  // Applications don't have tenantId assigned until lease is signed
   const extraApps = [
-    { tenant: tenants[3], listing: listings[16], status: "NEW" },      // Alex
-    { tenant: null, listing: listings[17], status: "PENDING" },
-    { tenant: tenants[4], listing: listings[18], status: "APPROVED" }, // Sophia
-    { tenant: null, listing: listings[19], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[16], status: "NEW" },      // Placeholder applicant
+    { applicant: null, listing: listings[17], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[18], status: "APPROVED" }, // Placeholder applicant
+    { applicant: null, listing: listings[19], status: "PENDING" },
   ];
 
   for (let i = 0; i < extraApps.length; i++) {
@@ -731,15 +742,15 @@ async function main() {
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
-        tenantId: data.tenant?.id || null,
+        tenantId: null, // No tenant assigned until lease is signed
         landlordId: data.listing.landlordId,
         listingId: data.listing.id,
-        fullName: data.tenant ? `${data.tenant.firstName} ${data.tenant.lastName}` : "N/A",
-        email: data.tenant ? data.tenant.email : "N/A",
-        phone: data.tenant ? data.tenant.phone : "N/A",
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
         moveInDate: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000),
-        currentAddress: data.tenant ? `${Math.floor(Math.random() * 9999)} Cedar St` : "N/A",
-        monthlyIncome: data.tenant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} Cedar St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
         status: data.status,
         createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       },

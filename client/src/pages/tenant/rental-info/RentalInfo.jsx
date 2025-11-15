@@ -19,14 +19,10 @@ import { format, differenceInCalendarDays, isPast } from "date-fns";
 import { toast } from "sonner";
 import PropertyImage from "@/components/shared/PropertyImage";
 import { Skeleton } from "@/components/ui/skeleton";
+import PageHeader from "@/components/shared/PageHeader";
 
 const RentalInfoSkeleton = () => (
   <div className="space-y-8">
-    <div>
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-4 w-72 mt-3" />
-    </div>
-
     {/* Current rental skeleton */}
     <div>
       <Skeleton className="h-6 w-44 mb-4" />
@@ -273,7 +269,14 @@ const RentalInfo = () => {
   if (isLoading) {
     return (
       <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-        <RentalInfoSkeleton />
+        <PageHeader
+          title="Rental Information"
+          subtitle="View your current and past rental details"
+          total={leases.length}
+        />
+        <div className="flex-1 overflow-y-auto">
+          <RentalInfoSkeleton />
+        </div>
       </div>
     );
   }
@@ -281,11 +284,11 @@ const RentalInfo = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
       <div className="flex-1 overflow-y-auto">
-        {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rental Information</h1>
-          <p className="text-gray-600 mt-1">View your current and past rental details</p>
-        </div>
+        <PageHeader
+          title="Rental Information"
+          subtitle="View your current and past rental details"
+          total={leases.length}
+        />
 
         {/* Current Rental Section */}
         {currentLease ? (

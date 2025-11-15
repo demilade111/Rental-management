@@ -4,6 +4,7 @@ import { Search, Filter, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getAllInsurances } from "@/services/insuranceService";
 import { format } from "date-fns";
 import InsuranceDetailsModal from "./InsuranceDetailsModal";
@@ -14,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PageHeader from "@/components/shared/PageHeader";
 
 const LandlordInsurance = () => {
   const [insurances, setInsurances] = useState([]);
@@ -103,19 +105,14 @@ const LandlordInsurance = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Renter's Insurance</h1>
-            <p className="text-gray-600 mt-1">
-              Manage and track your tenants' insurance status
-            </p>
-          </div>
-        </div>
+    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+        <PageHeader
+          title="Renter's Insurance"
+          subtitle="Manage and track your tenants' insurance status"
+          total={filteredInsurances.length}
+        />
 
-        {/* Filters */}
+      <div className="pb-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -157,13 +154,27 @@ const LandlordInsurance = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading insurance records...</p>
-            </div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, idx) => (
+              <div
+                key={`insurance-skeleton-${idx}`}
+                className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_120px] gap-4 border border-gray-200 rounded-2xl p-4 items-center bg-white"
+              >
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40 rounded-lg" />
+                  <Skeleton className="h-3 w-24 rounded-md" />
+                </div>
+                <Skeleton className="h-4 w-32 rounded-lg" />
+                <Skeleton className="h-4 w-28 rounded-lg" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-4 w-24 rounded-lg" />
+                <div className="flex justify-end gap-2">
+                  <Skeleton className="h-9 w-24 rounded-xl" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredInsurances.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">

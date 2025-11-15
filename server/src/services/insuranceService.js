@@ -134,46 +134,100 @@ export async function getAllInsurances(filters = {}) {
     limit = 50,
   } = filters;
 
-  const where = {};
+  // Build base conditions (these apply to all queries)
+  const baseConditions = {};
 
   if (tenantId) {
-    where.tenantId = tenantId;
+    baseConditions.tenantId = tenantId;
   }
 
   if (status) {
-    where.status = status;
-  }
-
-  if (leaseId) {
-    where.leaseId = leaseId;
-  }
-
-  if (customLeaseId) {
-    where.customLeaseId = customLeaseId;
+    baseConditions.status = status;
   }
 
   if (expiringBefore) {
-    where.expiryDate = {
+    baseConditions.expiryDate = {
       lte: new Date(expiringBefore),
     };
   }
 
+  // Construct the where clause
+  let where = {};
+
   if (landlordId) {
-    where.OR = [
-      {
-        lease: {
-          landlordId: landlordId,
+    // When filtering by landlordId, we need to check if the lease or customLease belongs to this landlord
+    // Do NOT use leaseId/customLeaseId filters when filtering by landlordId
+    const landlordCondition = {
+      OR: [
+        {
+          lease: {
+            landlordId: landlordId,
+          },
         },
-      },
-      {
-        customLease: {
-          landlordId: landlordId,
+        {
+          customLease: {
+            landlordId: landlordId,
+          },
         },
-      },
-    ];
+      ],
+    };
+
+    // Combine base conditions with landlord condition using AND
+    // Prisma requires explicit AND when combining multiple conditions with OR
+    if (Object.keys(baseConditions).length > 0) {
+      where = {
+        AND: [
+          baseConditions,
+          landlordCondition,
+        ],
+      };
+    } else {
+      where = landlordCondition;
+    }
+    
+    console.log(`🔍 getAllInsurances - Filtering by landlordId: ${landlordId}`);
+    console.log(`🔍 getAllInsurances - Where clause:`, JSON.stringify(where, null, 2));
+  } else {
+    // No landlordId filter, can use leaseId/customLeaseId filters
+    if (leaseId) {
+      baseConditions.leaseId = leaseId;
+    }
+
+    if (customLeaseId) {
+      baseConditions.customLeaseId = customLeaseId;
+    }
+
+    where = baseConditions;
   }
 
   const skip = (page - 1) * limit;
+
+  // Debug: First, let's see ALL insurance records in the database
+  const allInsurancesDebug = await prisma.tenantInsurance.findMany({
+    take: 10,
+    include: {
+      lease: {
+        select: {
+          id: true,
+          landlordId: true,
+        },
+      },
+      customLease: {
+        select: {
+          id: true,
+          landlordId: true,
+        },
+      },
+    },
+  });
+  
+  console.log(`📊 DEBUG - Total insurance records in DB: ${allInsurancesDebug.length}`);
+  allInsurancesDebug.forEach((ins, idx) => {
+    console.log(`  [${idx}] Insurance ID: ${ins.id}`);
+    console.log(`      leaseId: ${ins.leaseId || 'null'}, customLeaseId: ${ins.customLeaseId || 'null'}`);
+    console.log(`      lease: ${ins.lease ? `id=${ins.lease.id}, landlordId=${ins.lease.landlordId}` : 'null'}`);
+    console.log(`      customLease: ${ins.customLease ? `id=${ins.customLease.id}, landlordId=${ins.customLease.landlordId}` : 'null'}`);
+  });
 
   const [insurances, total] = await Promise.all([
     prisma.tenantInsurance.findMany({
@@ -222,6 +276,14 @@ export async function getAllInsurances(filters = {}) {
     }),
     prisma.tenantInsurance.count({ where }),
   ]);
+
+  console.log(`📊 getAllInsurances - Query result: ${insurances.length} records (total: ${total})`);
+  if (landlordId) {
+    console.log(`📊 Filtered by landlordId: ${landlordId}`);
+    insurances.forEach((ins, idx) => {
+      console.log(`  [${idx}] Insurance ID: ${ins.id}, leaseId: ${ins.leaseId}, customLeaseId: ${ins.customLeaseId}`);
+    });
+  }
 
   return {
     insurances,

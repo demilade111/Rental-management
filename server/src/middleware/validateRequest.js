@@ -1,12 +1,16 @@
 export const validateRequest = (schema) => {
     return (req, res, next) => {
         try {
-            const shape =
-                typeof schema?._def?.shape === "function" ? schema._def.shape() : null;
+            const rawShape =
+                (typeof schema?.shape === "object" && schema.shape) ||
+                (typeof schema?._def?.shape === "function" && schema._def.shape()) ||
+                null;
 
             const expectsRequestParts =
-                shape &&
-                Object.keys(shape).some((key) => ["body", "query", "params"].includes(key));
+                rawShape &&
+                Object.keys(rawShape).some((key) =>
+                    ["body", "query", "params"].includes(key)
+                );
 
             if (expectsRequestParts) {
                 schema.parse({

@@ -152,9 +152,11 @@ const ensureRentPaymentsForLeaseCollection = async (leases, options = {}) => {
   }
 };
 
-const ensureAutomaticRentPaymentsForLandlord = async (landlordId) => {
-  if (!landlordId) return;
+const landlordAutogenCache = new Map();
+const tenantAutogenCache = new Map();
+const AUTO_GENERATION_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+const runAutomaticRentPaymentsForLandlord = async (landlordId) => {
   const standardLeases = await prisma.lease.findMany({
     where: {
       landlordId,
@@ -177,9 +179,16 @@ const ensureAutomaticRentPaymentsForLandlord = async (landlordId) => {
   await ensureRentPaymentsForLeaseCollection(customLeases, { isCustom: true });
 };
 
-const ensureAutomaticRentPaymentsForTenant = async (tenantId) => {
-  if (!tenantId) return;
+const ensureAutomaticRentPaymentsForLandlord = async (landlordId) => {
+  if (!landlordId) return;
+  const lastRun = landlordAutogenCache.get(landlordId);
+  const now = Date.now();
+  if (lastRun && now - lastRun < AUTO_GENERATION_TTL_MS) return;
+  await runAutomaticRentPaymentsForLandlord(landlordId);
+  landlordAutogenCache.set(landlordId, Date.now());
+};
 
+const runAutomaticRentPaymentsForTenant = async (tenantId) => {
   const standardLeases = await prisma.lease.findMany({
     where: {
       tenantId,
@@ -198,6 +207,15 @@ const ensureAutomaticRentPaymentsForTenant = async (tenantId) => {
 
   await ensureRentPaymentsForLeaseCollection(standardLeases, { isCustom: false });
   await ensureRentPaymentsForLeaseCollection(customLeases, { isCustom: true });
+};
+
+const ensureAutomaticRentPaymentsForTenant = async (tenantId) => {
+  if (!tenantId) return;
+  const lastRun = tenantAutogenCache.get(tenantId);
+  const now = Date.now();
+  if (lastRun && now - lastRun < AUTO_GENERATION_TTL_MS) return;
+  await runAutomaticRentPaymentsForTenant(tenantId);
+  tenantAutogenCache.set(tenantId, Date.now());
 };
 
 /**
