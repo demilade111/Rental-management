@@ -5,14 +5,69 @@ import { Plus, FileText, Calendar, DollarSign, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { getAllInsurances } from "@/services/insuranceService";
-import { format } from "date-fns";
+import { format, isPast } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/authStore";
+import api from "@/lib/axios";
+import API_ENDPOINTS from "@/lib/apiEndpoints";
 import UploadInsurance from "./UploadInsurance";
+import { Skeleton } from "@/components/ui/skeleton";
+import PageHeader from "@/components/shared/PageHeader";
 
 const TenantInsurance = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [insurances, setInsurances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
+
+  // Fetch tenant's active leases
+  const { data: allLeases = [] } = useQuery({
+    queryKey: ['tenant-all-leases'],
+    queryFn: async () => {
+      // Fetch standard leases
+      const standardResponse = await api.get(API_ENDPOINTS.TENANT_LEASES.BASE);
+      const standardData = standardResponse.data;
+      const standardLeases = Array.isArray(standardData) ? standardData : 
+                            standardData.data || standardData.leases || [];
+      
+      // Fetch custom leases
+      const customResponse = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+      const customData = customResponse.data;
+      const customLeases = Array.isArray(customData) ? customData :
+                          customData.data || customData.leases || [];
+      
+      // Filter custom leases for tenant
+      const tenantCustomLeases = customLeases.filter(lease => 
+        lease.tenantId === user?.id
+      );
+      
+      // Combine and add type identifier
+      return [
+        ...standardLeases.map(l => ({ ...l, leaseType: 'STANDARD' })),
+        ...tenantCustomLeases.map(l => ({ ...l, leaseType: 'CUSTOM' })),
+      ];
+    },
+    enabled: !!user,
+  });
+
+  // Find current active lease
+  const activeLeases = allLeases.filter(lease => {
+    const isActive = lease.leaseStatus === 'ACTIVE';
+    const hasValidEndDate = !lease.endDate || !isPast(new Date(lease.endDate));
+    return isActive && hasValidEndDate;
+  });
+
+  const draftLeases = allLeases.filter(lease => lease.leaseStatus === 'DRAFT');
+  
+  // Prioritize ACTIVE lease, fallback to most recent DRAFT
+  const currentLease = activeLeases.length > 0 
+    ? activeLeases[0] 
+    : (draftLeases.length > 0 ? draftLeases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] : null);
+
+  // Extract leaseId and customLeaseId
+  const leaseId = currentLease?.leaseType === 'STANDARD' ? currentLease?.id : null;
+  const customLeaseId = currentLease?.leaseType === 'CUSTOM' ? currentLease?.id : null;
 
   const fetchInsurances = async () => {
     try {
@@ -60,37 +115,53 @@ const TenantInsurance = () => {
             setShowUpload(false);
             fetchInsurances();
           }}
+          leaseId={leaseId}
+          customLeaseId={customLeaseId}
         />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Renter's Insurance</h1>
-            <p className="text-gray-600 mt-1">
-              Manage and track your renter's insurance policies
-            </p>
-          </div>
-          <Button onClick={() => setShowUpload(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Upload Insurance
-          </Button>
-        </div>
+    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+        <PageHeader
+          title="Renter's Insurance"
+          subtitle="Manage and track your renter's insurance policies"
+          total={insurances.length}
+        />
+      <div className="mb-4">
+        <Button onClick={() => setShowUpload(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Upload Insurance
+        </Button>
       </div>
-
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading insurance records...</p>
-            </div>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, idx) => (
+              <div
+                key={`tenant-insurance-skeleton-${idx}`}
+                className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-48 rounded-lg" />
+                    <Skeleton className="h-4 w-32 rounded-md" />
+                  </div>
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((col) => (
+                    <div key={col} className="space-y-2">
+                      <Skeleton className="h-3 w-24 rounded" />
+                      <Skeleton className="h-4 w-32 rounded" />
+                    </div>
+                  ))}
+                </div>
+                <Skeleton className="h-3 w-full rounded" />
+              </div>
+            ))}
           </div>
         ) : insurances.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">

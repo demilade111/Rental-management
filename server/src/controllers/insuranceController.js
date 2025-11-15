@@ -147,7 +147,7 @@ export async function getAllInsurancesController(req, res) {
 
     if (userRole === "TENANT") {
       filters.tenantId = userId;
-    } else if (userRole === "ADMIN") {
+    } else if (userRole === "ADMIN" || userRole === "LANDLORD") {
       filters.landlordId = userId;
     }
 
@@ -199,11 +199,15 @@ export async function verifyInsuranceController(req, res) {
       verifiedInsurance.tenantId
     );
 
-    await sendInsuranceVerifiedEmail(
+    // Send email asynchronously - don't fail verification if email fails
+    sendInsuranceVerifiedEmail(
       verifiedInsurance,
       verifiedInsurance.tenant.email,
       tenantName
-    );
+    ).catch((error) => {
+      console.error("Failed to send insurance verified email:", error);
+      // Email failure shouldn't prevent verification
+    });
 
     return SuccessResponse(
       res,
@@ -244,11 +248,15 @@ export async function rejectInsuranceController(req, res) {
       rejectedInsurance.tenantId
     );
 
-    await sendInsuranceRejectedEmail(
+    // Send email asynchronously - don't fail rejection if email fails
+    sendInsuranceRejectedEmail(
       rejectedInsurance,
       rejectedInsurance.tenant.email,
       tenantName
-    );
+    ).catch((error) => {
+      console.error("Failed to send insurance rejected email:", error);
+      // Email failure shouldn't prevent rejection
+    });
 
     return SuccessResponse(
       res,

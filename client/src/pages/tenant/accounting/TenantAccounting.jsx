@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { CalendarIcon, X, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader from '@/components/shared/PageHeader';
 
 const TenantAccounting = () => {
     const { user } = useAuthStore();
@@ -144,11 +145,11 @@ const TenantAccounting = () => {
 
     return (
         <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-            {/* Header */}
-            <div className="mb-6 flex-shrink-0">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Payments</h1>
-                <p className="text-gray-600 mt-1">View your rent payments, deposits, and transaction history</p>
-            </div>
+            <PageHeader
+                title="My Payments"
+                subtitle="View your rent payments, deposits, and transaction history"
+                total={displayTotal}
+            />
 
             {/* Search and Filters - Only show after initial load */}
             {!initialLoad && (

@@ -21,7 +21,6 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import {
   verifyInsurance,
   rejectInsurance,
-  sendInsuranceReminder,
   getDownloadUrl,
 } from "@/services/insuranceService";
 import { format } from "date-fns";
@@ -31,8 +30,6 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
-  const [showNotifyForm, setShowNotifyForm] = useState(false);
-  const [notifyMessage, setNotifyMessage] = useState("");
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
 
   const getPropertyName = () => {
@@ -85,21 +82,6 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
     } catch (error) {
       console.error("Error rejecting insurance:", error);
       toast.error(error.response?.data?.message || "Failed to reject insurance");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendNotification = async () => {
-    try {
-      setLoading(true);
-      await sendInsuranceReminder(insurance.id, notifyMessage);
-      toast.success("Notification sent to tenant");
-      setShowNotifyForm(false);
-      setNotifyMessage("");
-    } catch (error) {
-      console.error("Error sending notification:", error);
-      toast.error("Failed to send notification");
     } finally {
       setLoading(false);
     }
@@ -306,36 +288,9 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
 
             {/* Action Buttons */}
             <div className="border-t border-gray-200 pt-6">
-              {showNotifyForm ? (
+              {showRejectForm ? (
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="notifyMessage">Message to Tenant (Optional)</Label>
-                    <Textarea
-                      id="notifyMessage"
-                      value={notifyMessage}
-                      onChange={(e) => setNotifyMessage(e.target.value)}
-                      placeholder="Enter a custom message or leave blank for default notification"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowNotifyForm(false);
-                        setNotifyMessage("");
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSendNotification} disabled={loading}>
-                      Send Notification
-                    </Button>
-                  </div>
-                </div>
-              ) : showRejectForm ? (
-                <div className="space-y-4">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="rejectionReason">Rejection Reason *</Label>
                     <Textarea
                       id="rejectionReason"
@@ -383,14 +338,6 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
                       </Button>
                     </>
                   )}
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowNotifyForm(true)}
-                    disabled={loading}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Notify Tenant
-                  </Button>
                 </div>
               )}
             </div>

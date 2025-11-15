@@ -209,18 +209,22 @@ const NotificationDropdown = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative p-0 hover:bg-transparent"
+          className="relative w-10 h-10 p-0 hover:bg-gray-100 rounded-full transition-colors"
           onClick={() => setOpen(!open)}
         >
-          <div className="relative">
-            <BellRing className="h-9 w-9 text-gray-700 hover:text-gray-900 transition-colors" strokeWidth={2} />
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Notification Icon */}
+            <BellRing 
+              className="w-6 h-6 text-gray-700 hover:text-gray-900 transition-colors" 
+              strokeWidth={2}
+            />
+            {/* Badge Indicator */}
             {unreadCount > 0 && (
-              <Badge
-                variant="destructive"
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-semibold"
+              <span
+                className="absolute top-0 right-0 h-5 w-5 min-w-[20px] bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm"
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
-              </Badge>
+              </span>
             )}
           </div>
         </Button>

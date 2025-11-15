@@ -79,6 +79,9 @@ const Accounting = () => {
       const response = await api.get(`${API_ENDPOINTS.PAYMENTS.BASE}?${params.toString()}`);
       return response.data.data;
     },
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    keepPreviousData: true,
   });
 
   // Fetch properties/listings for filter
