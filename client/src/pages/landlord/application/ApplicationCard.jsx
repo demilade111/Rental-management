@@ -1,11 +1,22 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Eye, Send, Trash2, X } from "lucide-react";
+import { Check, Eye, Send, Trash2, X, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const getStatusColor = (status) => {
     switch (status) {
@@ -32,6 +43,11 @@ const ApplicationCard = ({
 }) => {
     const navigate = useNavigate();
     const [isSending, setIsSending] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null); // "APPROVE" | "REJECT" | "DELETE"
+
+    const isPlaceholderApp = app.fullName === "N/A" && app.email === "na@example.com" && !app.tenantId;
+    const canDeleteApplication = app.status === "REJECTED" || (app.status === "NEW" && isPlaceholderApp);
 
     const handleSendLeaseClick = async (e) => {
         e.stopPropagation();
@@ -49,8 +65,8 @@ const ApplicationCard = ({
     };
 
     return (
-        <Card className="border border-gray-300 hover:shadow-md cursor-pointer transition-shadow mb-3 p-3">
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr] gap-4 items-center">
+        <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-3 p-3">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
                 {/* Checkbox for bulk selection */}
                 <div className="flex items-center justify-center">
                     <Checkbox
@@ -64,48 +80,79 @@ const ApplicationCard = ({
                 </div>
                 
                 {/* Column 1: Applicant Info */}
-                <div className="text-[16px] text-gray-700 truncate">
+                <div className="text-sm sm:text-base text-gray-700 truncate">
                     {app.fullName}
                     {app.createdAt && (
-                        <div className="text-sm font-normal text-gray-600 text-wrap">
+                        <div className="text-xs sm:text-sm font-normal text-gray-600 text-wrap">
                             Submitted {formatDistanceToNow(new Date(app.createdAt), { addSuffix: true })}
                         </div>
                     )}
                 </div>
 
                 {/* Column 2: Listing Info */}
-                <div className="text-[16px] font-semibold text-gray-900 truncate border-l border-gray-300 pl-4">
+                <div className="text-sm sm:text-base font-semibold text-gray-900 truncate border-l border-gray-300 pl-4">
                     {app.listing.title}
                     {app.listing.streetAddress && (
-                        <div className="text-sm font-normal text-wrap text-gray-600">
+                        <div className="text-xs sm:text-sm font-normal text-wrap text-gray-600">
                             {app.listing.streetAddress}
                         </div>
                     )}
                 </div>
 
-                {/* Column 3: Status */}
+                {/* Column 3: Created */}
+                <div className="text-sm sm:text-base text-gray-700 border-l border-gray-300 pl-4">
+                    {app.createdAt ? (
+                        <>
+                            <div>{format(new Date(app.createdAt), "MMM d, yyyy")}</div>
+                            <div className="text-xs text-gray-500">
+                                {format(new Date(app.createdAt), "h:mm a")}
+                            </div>
+                        </>
+                    ) : (
+                        <span className="text-gray-400">—</span>
+                    )}
+                </div>
+
+                {/* Column 4: Status */}
                 <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
-                    <Badge className={`${getStatusColor(app.status)} whitespace-nowrap text-sm px-3 py-1 text-gray-900 border-0`}>
+                    <Badge className={`${getStatusColor(app.status)} whitespace-nowrap text-[11px] px-2.5 py-0.5 text-gray-900 border-0`}>
                         {app.status}
                     </Badge>
                 </div>
 
-                {/* Column 4: Actions */}
+                {/* Column 5: Actions */}
                 <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4">
                     <div className="flex gap-3 justify-center">
-                        {["PENDING", "NEW"].includes(app.status) && (
-                            <Button
-                                onClick={handleViewClick}
-                                className="flex items-center gap-2 sm:w-28 rounded-xl bg-gray-900"
-                            >
-                                <Eye /> View
-                            </Button>
+                        {["PENDING", "NEW", "APPROVED"].includes(app.status) && (
+                            <>
+                                <Button
+                                    onClick={handleViewClick}
+                                    className="flex items-center gap-2 sm:w-28 rounded-xl bg-gray-900"
+                                >
+                                    <Eye /> View
+                                </Button>
+                                {app.publicId && app.status === "PENDING" && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="flex items-center gap-2 sm:w-32 rounded-xl border-gray-300"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigator.clipboard.writeText(`${window.location.origin}/apply/${app.publicId}`);
+                                            toast.success("Application link copied");
+                                        }}
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                        Copy Link
+                                    </Button>
+                                )}
+                            </>
                         )}
 
                         {app.status === "APPROVED" && (
                             <Button
                                 onClick={handleSendLeaseClick}
-                                className="flex items-center gap-2 sm:w-28 rounded-xl bg-gray-900"
+                                className="flex items-center gap-2 sm:w-32 rounded-xl bg-gray-900"
                                 disabled={isSending}
                             >
                                 <Send />
@@ -113,12 +160,16 @@ const ApplicationCard = ({
                             </Button>
                         )}
 
-                        {app.status === "REJECTED" && (
+                        {canDeleteApplication && (
                             <Button
-                                onClick={() => onDelete?.(app.id)}
-                                className="flex items-center gap-2 bg-red-500 hover:bg-red-500 sm:w-28 rounded-xl"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPendingAction({ type: "DELETE", id: app.id });
+                                }}
+                                className="flex items-center gap-2 bg-red-500 hover:bg-red-500 sm:w-32 rounded-xl disabled:opacity-70"
+                                disabled={isConfirming}
                             >
-                                <Trash2 /> Delete
+                                <Trash2 /> {isPlaceholderApp ? "Remove Link" : "Delete"}
                             </Button>
                         )}
 
@@ -127,9 +178,10 @@ const ApplicationCard = ({
                                 <Button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onApprove?.(app.id);
+                                        setPendingAction({ type: "APPROVE", id: app.id });
                                     }}
-                                    className="text-white bg-gray-900 rounded-2xl px-6 transition"
+                                    className="text-white bg-gray-900 rounded-2xl px-6 transition disabled:opacity-70"
+                                    disabled={isConfirming}
                                     title="Approve"
                                 >
                                     <Check className="w-6 h-6" />
@@ -138,9 +190,10 @@ const ApplicationCard = ({
                                 <Button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onReject?.(app.id);
+                                        setPendingAction({ type: "REJECT", id: app.id });
                                     }}
-                                    className="text-white rounded-2xl px-6 transition bg-red-500 hover:bg-red-500"
+                                    className="text-white rounded-2xl px-6 transition bg-red-500 hover:bg-red-500 disabled:opacity-70"
+                                    disabled={isConfirming}
                                     title="Reject"
                                 >
                                     <X className="w-6 h-6" />
@@ -150,6 +203,57 @@ const ApplicationCard = ({
                     </div>
                 </div>
             </div>
+
+            <AlertDialog open={!!pendingAction} onOpenChange={(open) => !open && !isConfirming && setPendingAction(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {pendingAction?.type === "APPROVE"
+                                ? "Approve Application"
+                                : pendingAction?.type === "DELETE"
+                                ? isPlaceholderApp ? "Remove Application Link" : "Delete Application"
+                                : "Reject Application"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {pendingAction?.type === "DELETE"
+                                ? isPlaceholderApp
+                                    ? "This will remove the generated application link so you can create a new one."
+                                    : `Are you sure you want to delete ${app.fullName}'s application? This action cannot be undone.`
+                                : `Are you sure you want to ${
+                                      pendingAction?.type === "APPROVE" ? "approve" : "reject"
+                                  } ${app.fullName}'s application for ${app.listing.title}?`}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isConfirming} className="rounded-2xl">
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={isConfirming}
+                            className={`rounded-2xl ${
+                                pendingAction?.type === "APPROVE" ? "bg-gray-900" : "bg-red-600 hover:bg-red-600"
+                            }`}
+                            onClick={() => {
+                                if (!pendingAction) return;
+                                setIsConfirming(true);
+                                const action =
+                                    pendingAction.type === "APPROVE"
+                                        ? onApprove
+                                        : pendingAction.type === "REJECT"
+                                        ? onReject
+                                        : onDelete;
+                                Promise.resolve(action?.(pendingAction.id))
+                                    .finally(() => {
+                                        setIsConfirming(false);
+                                        setPendingAction(null);
+                                    });
+                            }}
+                        >
+                            {isConfirming ? "Processing..." : "Confirm"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 };

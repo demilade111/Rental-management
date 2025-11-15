@@ -4,7 +4,6 @@ import { useAuthStore } from '../../../store/authStore';
 import PropertyTabs from './PropertyTabs';
 import PropertySearchBar from './PropertySearchBar';
 import PropertyList from './PropertyList';
-import LoadingState from '../../../components/shared/LoadingState';
 import ErrorState from '../../../components/shared/ErrorState';
 import EmptyState from '../../../components/shared/EmptyState';
 import NewListingModal from './NewListingModal';
@@ -116,7 +115,30 @@ const PropertyPortfolio = () => {
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {isLoading && <LoadingState message="Loading properties..." />}
+        {isLoading && (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={`portfolio-skeleton-${idx}`} className="flex items-center gap-3">
+                <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
+                <div className="flex-1">
+                  <div className="border border-gray-200 rounded-2xl p-4 animate-pulse">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
+                      <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                    </div>
+                    <div className="h-5 w-1/2 bg-gray-100 rounded-full mb-3" />
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="h-3 w-3/4 bg-gray-100 rounded-full" />
+                      <div className="h-3 w-1/2 bg-gray-100 rounded-full" />
+                      <div className="h-3 w-2/3 bg-gray-100 rounded-full" />
+                      <div className="h-3 w-1/3 bg-gray-100 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {isError && <ErrorState message={error.message} />}
         {!isLoading && !isError && filteredProperties.length === 0 && (
           <EmptyState message="No properties available" />

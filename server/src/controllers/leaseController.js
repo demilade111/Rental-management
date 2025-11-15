@@ -39,6 +39,7 @@ export const getAllLeasesController = async (req, res) => {
       startDate: req.query.startDate,
       endDate: req.query.endDate,
       search: req.query.search,
+      listingId: req.query.listingId,
       page: parseInt(req.query.page) || 1,
       limit: parseInt(req.query.limit) || 10,
     };

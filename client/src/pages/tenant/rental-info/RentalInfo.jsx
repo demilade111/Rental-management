@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import api from "@/lib/axios";
@@ -16,10 +15,87 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
-import { format, differenceInDays, isPast } from "date-fns";
+import { format, differenceInCalendarDays, isPast } from "date-fns";
 import { toast } from "sonner";
-import LoadingState from "@/components/shared/LoadingState";
 import PropertyImage from "@/components/shared/PropertyImage";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const RentalInfoSkeleton = () => (
+  <div className="space-y-8">
+    <div>
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-4 w-72 mt-3" />
+    </div>
+
+    {/* Current rental skeleton */}
+    <div>
+      <Skeleton className="h-6 w-44 mb-4" />
+      <Card className="border border-gray-300 p-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-48 flex-shrink-0 space-y-3">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Skeleton key={idx} className="w-full h-32 rounded-xl" />
+            ))}
+          </div>
+          <div className="flex-1 space-y-6">
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-56" />
+              <Skeleton className="h-4 w-72" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="space-y-2">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <Skeleton className="h-10 w-44 rounded-2xl" />
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    {/* Rental history skeleton */}
+    <div>
+      <Skeleton className="h-6 w-40 mb-4" />
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <Card key={idx} className="border border-gray-300 p-5">
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="w-full md:w-40 flex-shrink-0 space-y-3">
+                {Array.from({ length: 2 }).map((__, imgIdx) => (
+                  <Skeleton key={imgIdx} className="w-full h-24 rounded-lg" />
+                ))}
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-48" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {Array.from({ length: 4 }).map((__, infoIdx) => (
+                    <div key={infoIdx} className="space-y-2">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
+                </div>
+                <Skeleton className="h-4 w-56" />
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 const RentalInfo = () => {
   const { user } = useAuthStore();
@@ -130,9 +206,18 @@ const RentalInfo = () => {
     }
   };
 
-  const calculateDaysRemaining = (endDate) => {
-    const days = differenceInDays(new Date(endDate), new Date());
-    return days > 0 ? days : 0;
+  const calculateDaysRemaining = (endDate, startDate) => {
+    const now = new Date();
+    const start = startDate ? new Date(startDate) : null;
+    const end = new Date(endDate);
+
+    if (start && now < start) {
+      const daysUntilStart = differenceInCalendarDays(start, now);
+      return Math.max(daysUntilStart, 0);
+    }
+
+    const days = differenceInCalendarDays(end, now);
+    return Math.max(days, 0);
   };
 
   const handleViewContract = async (lease) => {
@@ -188,7 +273,7 @@ const RentalInfo = () => {
   if (isLoading) {
     return (
       <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-        <LoadingState message="Loading rental information..." />
+        <RentalInfoSkeleton />
       </div>
     );
   }
@@ -247,7 +332,9 @@ const RentalInfo = () => {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Clock className="h-4 w-4" />
-                    <span>{calculateDaysRemaining(currentLease.endDate)} days remaining</span>
+                    <span>
+                      {calculateDaysRemaining(currentLease.endDate, currentLease.startDate)} days remaining
+                    </span>
                   </div>
                 </div>
 

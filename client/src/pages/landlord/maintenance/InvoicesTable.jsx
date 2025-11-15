@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Trash2, Share2, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
     AlertDialog,
@@ -39,7 +38,9 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
             console.log(`\n📋 INVOICES TABLE - Maintenance ID: ${maintenanceRequestId}`);
             console.log(`  Received ${invoicesData.length} invoices from backend`);
             invoicesData.forEach((inv, idx) => {
-                console.log(`    [${idx}] Amount: $${inv.amount}, Shared: ${inv.sharedWithTenant}`);
+                console.log(
+                    `    [${idx}] Amount: $${inv.amount}, SharedWithTenant: ${inv.sharedWithTenant}, SharedWithLandlord: ${inv.sharedWithLandlord}, Creator: ${inv.createdByRole}`
+                );
             });
             
             setInvoices(invoicesData);
@@ -86,8 +87,29 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
 
     if (initialLoading) {
         return (
-            <div className="text-center py-8 text-sm text-gray-500">
-                Loading invoices...
+            <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, idx) => (
+                    <Card
+                        key={`invoice-skeleton-${idx}`}
+                        className="border border-gray-200 p-3 animate-pulse"
+                    >
+                        <div className="grid grid-cols-[1fr_120px_80px_80px] gap-4 items-center">
+                            <div className="space-y-2">
+                                <div className="h-3 w-32 bg-gray-200 rounded-full" />
+                                <div className="h-3 w-48 bg-gray-100 rounded-full" />
+                            </div>
+                            <div className="border-l border-gray-200 pl-4">
+                                <div className="h-4 w-16 bg-gray-200 rounded-full" />
+                            </div>
+                            <div className="border-l border-gray-200 pl-4 flex justify-center">
+                                <div className="h-4 w-4 bg-gray-200 rounded-full" />
+                            </div>
+                            <div className="border-l border-gray-200 pl-4 flex justify-center">
+                                <div className="h-8 w-8 bg-gray-100 rounded-xl" />
+                            </div>
+                        </div>
+                    </Card>
+                ))}
             </div>
         );
     }
@@ -104,8 +126,7 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
         <>
             <div>
                 {/* Table Header - Rounded Black Header like Applications */}
-                <div className="grid grid-cols-[auto_1fr_120px_80px_80px] gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
-                    <div className="w-8">#</div>
+                <div className="grid grid-cols-[1fr_120px_80px_80px] gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
                     <div>Description</div>
                     <div className="border-l border-gray-600 pl-4">Amount</div>
                     <div className="border-l border-gray-600 pl-4 text-center">Shared</div>
@@ -119,9 +140,7 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
                             key={invoice.id}
                             className="border border-gray-300 hover:shadow-md transition-shadow p-3"
                         >
-                            <div className="grid grid-cols-[auto_1fr_120px_80px_80px] gap-4 items-center">
-                                <div className="w-8 text-gray-500 font-medium">{index + 1}</div>
-                                
+                            <div className="grid grid-cols-[1fr_120px_80px_80px] gap-4 items-center">
                                 <div className="text-gray-900">
                                     <p className="text-sm line-clamp-2">{invoice.description}</p>
                                 </div>
@@ -133,15 +152,24 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
                                 </div>
                                 
                                 <div className="border-l border-gray-300 pl-4 flex justify-center">
-                                    {invoice.sharedWithTenant ? (
-                                        <div className="flex items-center gap-1 text-gray-900" title="Shared with tenant">
-                                            <Share2 className="h-4 w-4" />
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-1 text-gray-400" title="Not shared with tenant">
-                                            <EyeOff className="h-4 w-4" />
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const createdByTenant = invoice.createdByRole === "TENANT";
+                                        const isShared = createdByTenant
+                                            ? invoice.sharedWithLandlord !== false
+                                            : invoice.sharedWithTenant;
+                                        const sharedLabel = createdByTenant ? "Shared with landlord" : "Shared with tenant";
+                                        const hiddenLabel = createdByTenant ? "Hidden from landlord" : "Hidden from tenant";
+
+                                        return isShared ? (
+                                            <div className="flex items-center gap-1 text-gray-900" title={sharedLabel}>
+                                                <Share2 className="h-4 w-4" />
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1 text-gray-400" title={hiddenLabel}>
+                                                <EyeOff className="h-4 w-4" />
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                                 
                                 <div className="border-l border-gray-300 pl-4 flex justify-center">

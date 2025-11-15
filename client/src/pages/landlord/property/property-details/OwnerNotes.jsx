@@ -6,7 +6,7 @@ import { Wrench } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import api from '@/lib/axios';
 import API_ENDPOINTS from '@/lib/apiEndpoints';
-import LoadingState from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/shared/Pagination';
 
 const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaintenance = false }) => {
@@ -127,7 +127,20 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
                 <h3 className="text-xl font-semibold mb-4">Maintenance History</h3>
                 
                 {loadingMaintenance ? (
-                    <LoadingState message="Loading maintenance requests..." />
+                    <div className="space-y-3">
+                        {[...Array(4)].map((_, idx) => (
+                            <Card key={`maintenance-skeleton-${idx}`} className="border border-gray-200 p-3">
+                                <div className="grid grid-cols-6 gap-4 items-center animate-pulse">
+                                    <Skeleton className="h-3 w-24 rounded-lg" />
+                                    <Skeleton className="h-3 w-36 rounded-lg" />
+                                    <Skeleton className="h-4 w-16 rounded-md" />
+                                    <Skeleton className="h-4 w-16 rounded-md" />
+                                    <Skeleton className="h-3 w-20 rounded-lg justify-self-end" />
+                                    <Skeleton className="h-3 w-24 rounded-lg justify-self-center" />
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
                 ) : maintenanceRequests.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 bg-white border border-gray-300 rounded-lg">
                         <Wrench className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -242,7 +255,20 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
                     <h3 className="text-xl font-semibold mb-4">Maintenance History</h3>
                     
                     {loadingMaintenance ? (
-                        <LoadingState message="Loading maintenance requests..." />
+                        <div className="space-y-3">
+                            {[...Array(4)].map((_, idx) => (
+                                <Card key={`maintenance-skeleton-${idx}`} className="border border-gray-200 p-3">
+                                    <div className="grid grid-cols-6 gap-4 items-center animate-pulse">
+                                        <Skeleton className="h-3 w-24 rounded-lg" />
+                                        <Skeleton className="h-3 w-36 rounded-lg" />
+                                        <Skeleton className="h-4 w-16 rounded-md" />
+                                        <Skeleton className="h-4 w-16 rounded-md" />
+                                        <Skeleton className="h-3 w-20 rounded-lg justify-self-end" />
+                                        <Skeleton className="h-3 w-24 rounded-lg justify-self-center" />
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
                     ) : maintenanceRequests.length === 0 ? (
                         <div className="text-center py-12 text-gray-500 bg-white border border-gray-300 rounded-lg">
                             <Wrench className="h-16 w-16 text-gray-300 mx-auto mb-4" />

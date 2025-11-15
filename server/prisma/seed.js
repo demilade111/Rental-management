@@ -487,7 +487,7 @@ async function main() {
   console.log("📋 Creating applications for different test scenarios...");
 
   const applications = [];
-  
+
   /*
   ==========================================
   📋 APPLICATION SCENARIOS FOR TESTING
@@ -550,20 +550,20 @@ async function main() {
   
   ==========================================
   */
-  
+
   // SCENARIO 1: Applications for listings WITHOUT any lease (✅ VISIBLE)
   const noLeaseApplications = [
     // NEW - Registered tenant WITHOUT active lease applied
     { tenant: tenants[3], listing: listings[6], status: "NEW" },    // Alex (no active lease)
-    
+
     // PENDING - No tenant info (application link sent but not submitted)
     { tenant: null, listing: listings[11], status: "PENDING" },
     { tenant: null, listing: listings[12], status: "PENDING" },
-    
+
     // APPROVED - Tenants WITHOUT active leases, ready to create and send lease
     { tenant: tenants[4], listing: listings[13], status: "APPROVED" },  // Sophia (no active lease)
     { tenant: tenants[3], listing: listings[15], status: "APPROVED" },  // Alex (no active lease)
-    
+
     // REJECTED - Application declined
     { tenant: tenants[4], listing: listings[14], status: "REJECTED" },  // Sophia
   ];
@@ -572,7 +572,7 @@ async function main() {
     const data = noLeaseApplications[i];
     const daysAgo = Math.floor(Math.random() * 30) + 1;
     const publicId = `APP-NOLEASE-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
@@ -603,7 +603,7 @@ async function main() {
     const data = activeStandardLeaseApps[i];
     const daysAgo = Math.floor(Math.random() * 30) + 1;
     const publicId = `APP-ACTIVE-STD-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
@@ -633,7 +633,7 @@ async function main() {
     const data = draftStandardLeaseApps[i];
     const daysAgo = Math.floor(Math.random() * 15) + 1;
     const publicId = `APP-DRAFT-STD-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
@@ -663,7 +663,7 @@ async function main() {
     const data = activeCustomLeaseApps[i];
     const daysAgo = Math.floor(Math.random() * 25) + 1;
     const publicId = `APP-ACTIVE-CUST-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
@@ -693,7 +693,7 @@ async function main() {
     const data = draftCustomLeaseApps[i];
     const daysAgo = Math.floor(Math.random() * 10) + 1;
     const publicId = `APP-DRAFT-CUST-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
@@ -727,7 +727,7 @@ async function main() {
     const data = extraApps[i];
     const daysAgo = Math.floor(Math.random() * 40) + 1;
     const publicId = `APP-EXTRA-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const app = await prisma.requestApplication.create({
       data: {
         publicId: publicId,
@@ -801,7 +801,7 @@ async function main() {
     // ✅ ACTIVE STANDARD LEASES (Tenant assigned after signing)
     { tenant: tenants[0], listing: listings[0], status: "ACTIVE", startDays: -180, endDays: 180 },  // Jane signed
     { tenant: tenants[1], listing: listings[3], status: "ACTIVE", startDays: -90, endDays: 270 },   // Mike signed
-    
+
     // 📝 DRAFT STANDARD LEASES (No tenant assigned yet - will assign when sent)
     { tenant: null, listing: listings[8], status: "DRAFT", startDays: 15, endDays: 380 },   // Not assigned
     { tenant: null, listing: listings[10], status: "DRAFT", startDays: 20, endDays: 385 },  // Not assigned
@@ -810,10 +810,10 @@ async function main() {
   for (const data of leaseData) {
     const startDate = new Date(Date.now() + data.startDays * 24 * 60 * 60 * 1000);
     const endDate = new Date(Date.now() + data.endDays * 24 * 60 * 60 * 1000);
-    
+
     // Get landlord info
     const landlord = await prisma.user.findUnique({ where: { id: data.listing.landlordId } });
-    
+
     const lease = await prisma.lease.create({
       data: {
         listing: { connect: { id: data.listing.id } },
@@ -858,7 +858,7 @@ async function main() {
       },
     });
     leases.push(lease);
-    
+
     // Update listing status to RENTED for ACTIVE leases
     if (data.status === "ACTIVE") {
       await prisma.listing.update({
@@ -923,7 +923,7 @@ async function main() {
   const customLeaseData = [
     // ✅ ACTIVE CUSTOM LEASE (Tenant assigned after signing)
     { tenant: tenants[2], listing: listings[2], status: "ACTIVE", startDays: -90, months: 12, rent: 4800 }, // Emma signed
-    
+
     // 📝 DRAFT CUSTOM LEASES (No tenant assigned yet)
     { tenant: null, listing: listings[1], status: "DRAFT", startDays: 30, months: 12, rent: 4200 },
     { tenant: null, listing: listings[4], status: "DRAFT", startDays: 45, months: 24, rent: 2200 },
@@ -934,7 +934,7 @@ async function main() {
   for (const data of customLeaseData) {
     const startDate = new Date(Date.now() + data.startDays * 24 * 60 * 60 * 1000);
     const endDate = new Date(startDate.getTime() + data.months * 30 * 24 * 60 * 60 * 1000);
-    
+
     const customLease = await prisma.customLease.create({
       data: {
         listing: { connect: { id: data.listing.id } },
@@ -954,7 +954,7 @@ async function main() {
       },
     });
     customLeases.push(customLease);
-    
+
     // Update listing status to RENTED for ACTIVE custom leases
     if (data.status === "ACTIVE") {
       await prisma.listing.update({
@@ -967,24 +967,24 @@ async function main() {
   console.log("💰 Creating 40+ payments...");
 
   const payments = [];
-  
+
   // Create payments for active leases
   for (let i = 0; i < leases.length; i++) {
     const lease = leases[i];
     if (lease.leaseStatus !== "ACTIVE") continue;
-    
+
     // Find the listing to get landlordId
     const listing = listings.find(l => l.id === lease.listingId);
     if (!listing) continue;
-    
+
     const monthsSinceStart = Math.floor((Date.now() - lease.startDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
-    
+
     // Create past payments (paid)
     for (let month = 0; month < Math.min(monthsSinceStart, 6); month++) {
       const dueDate = new Date(lease.startDate.getTime() + month * 30 * 24 * 60 * 60 * 1000);
       const paidDate = new Date(dueDate.getTime() + Math.random() * 10 * 24 * 60 * 60 * 1000);
       const monthName = dueDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-      
+
       await prisma.payment.create({
         data: {
           leaseId: lease.id,
@@ -1000,12 +1000,12 @@ async function main() {
         },
       });
     }
-    
+
     // Current month payment (pending or overdue)
     const currentDueDate = new Date(lease.startDate.getTime() + monthsSinceStart * 30 * 24 * 60 * 60 * 1000);
     const isPastDue = currentDueDate < new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
     const currentMonthName = currentDueDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-    
+
     if (monthsSinceStart >= 0) {
       await prisma.payment.create({
         data: {
@@ -1020,7 +1020,7 @@ async function main() {
         },
       });
     }
-    
+
     // Security deposit payment
     if (lease.securityDeposit > 0) {
       await prisma.payment.create({
@@ -1047,7 +1047,7 @@ async function main() {
     const isPaid = Math.random() > 0.3;
     const dueDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
     const isOverdue = !isPaid && dueDate < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
+
     await prisma.payment.create({
       data: {
         landlordId: listing.landlordId,
@@ -1093,7 +1093,7 @@ async function main() {
   ];
 
   const maintenanceStatuses = ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
-  
+
   // Create 3 maintenance requests specifically for DEMO TENANT (tenants[0] - tenant@test.com)
   // These will show in tenant's dashboard and maintenance view
   const demoTenantMaintenance = [
@@ -1104,7 +1104,7 @@ async function main() {
 
   // Find the demo tenant's lease listing (listings[2])
   const demoListing = listings[2];
-  
+
   for (const issue of demoTenantMaintenance) {
     const createdDate = new Date(Date.now() - issue.daysAgo * 24 * 60 * 60 * 1000);
     await prisma.maintenanceRequest.create({
@@ -1121,7 +1121,7 @@ async function main() {
       },
     });
   }
-  
+
   // Create remaining maintenance requests (for other listings)
   for (let i = 0; i < 22; i++) {
     const issue = maintenanceIssues[i];
@@ -1129,7 +1129,7 @@ async function main() {
     const status = maintenanceStatuses[Math.floor(Math.random() * maintenanceStatuses.length)];
     const daysAgo = Math.floor(Math.random() * 120) + 1;
     const createdDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-    
+
     await prisma.maintenanceRequest.create({
       data: {
         listingId: listing.id,
@@ -1149,7 +1149,7 @@ async function main() {
   // INVOICES (Auto-creates Payments)
   // ========================================
   console.log("\n🧾 Creating invoices for maintenance requests...");
-  
+
   // Get all maintenance requests to create invoices for some
   const allMaintenanceRequests = await prisma.maintenanceRequest.findMany({
     include: {
@@ -1181,14 +1181,14 @@ async function main() {
   ];
 
   let invoiceCount = 0;
-  
+
   // Create invoices for maintenance requests based on status
   for (const request of allMaintenanceRequests) {
     // Determine if this request should have an invoice
     let shouldCreateInvoice = false;
     let invoiceStatus = "PENDING";
     let sharedWithTenant = true;
-    
+
     if (request.status === "COMPLETED") {
       // ALL completed requests should have invoices (80% paid, 20% pending)
       shouldCreateInvoice = true;
@@ -1213,11 +1213,11 @@ async function main() {
       invoiceStatus = "CANCELLED";
       sharedWithTenant = false;
     }
-    
+
     if (!shouldCreateInvoice) {
       continue; // Skip to next maintenance request
     }
-    
+
     const template = invoiceTemplates[invoiceCount % invoiceTemplates.length];
 
     // Get tenant from active lease
@@ -1229,7 +1229,7 @@ async function main() {
     // Determine payment status
     let paymentStatus = "PENDING";
     let paidDate = null;
-    
+
     if (invoiceStatus === "PAID") {
       paymentStatus = "PAID";
       // Set paid date to a few days after maintenance completion
@@ -1262,6 +1262,9 @@ async function main() {
         amount: template.amount,
         status: invoiceStatus,
         sharedWithTenant: sharedWithTenant,
+        sharedWithLandlord: true,
+        createdById: request.listing.landlordId,
+        createdByRole: "LANDLORD",
         paymentId: payment.id,
         createdAt: new Date(request.createdAt.getTime() + 2 * 24 * 60 * 60 * 1000), // Created 2 days after request
       },

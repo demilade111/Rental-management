@@ -3,11 +3,47 @@ import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Eye, FileText } from 'lucide-react';
-import LoadingState from '@/components/shared/LoadingState';
 import InvoiceDetailsModal from '@/components/shared/InvoiceDetailsModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const TenantPaymentSkeleton = () => (
+  <div className="space-y-3">
+    {Array.from({ length: 5 }).map((_, index) => (
+      <Card
+        key={index}
+        className="border border-gray-300 rounded-2xl p-4 shadow-sm"
+      >
+        <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 items-center">
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 space-y-2">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 pr-4">
+            <Skeleton className="h-4 w-24 ml-auto" />
+          </div>
+          <div className="border-l border-gray-200 pl-4">
+            <Skeleton className="h-6 w-24 rounded-full" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 flex items-center gap-2">
+            <Skeleton className="h-8 w-28 rounded-xl" />
+            <Skeleton className="h-8 w-28 rounded-xl" />
+          </div>
+        </div>
+      </Card>
+    ))}
+  </div>
+);
 
 const getStatusBadgeClass = (status, dueDate, hasReceipt) => {
   const baseClasses = 'px-3 py-1 rounded-md text-[14px] font-medium';
@@ -150,7 +186,7 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
             {/* Table Content */}
             <div className="flex-1 overflow-y-auto min-h-0">
                 {isLoading ? (
-                    <LoadingState message="Loading payments..." compact={true} />
+                    <TenantPaymentSkeleton />
                 ) : paymentList.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                         <p className="text-lg">No payment records found</p>

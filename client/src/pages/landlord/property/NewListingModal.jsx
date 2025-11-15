@@ -26,8 +26,66 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, X } from "lucide-react";
 
+const CANADA_CODE = "CA";
+const DEFAULT_STATE = "BC";
+const DEFAULT_CITY = "Vancouver";
+const DEFAULT_POSTAL_CODE = "V5K 0A1";
+
+const CANADIAN_LOCATIONS = [
+  { street: "1288 Richards St", city: "Vancouver", state: "BC", postal: "V6B 1S2" },
+  { street: "325 Front St W", city: "Toronto", state: "ON", postal: "M5V 2Y1" },
+  { street: "1100 Rue de la Montagne", city: "Montréal", state: "QC", postal: "H3G 0A2" },
+  { street: "707 5 Ave SW", city: "Calgary", state: "AB", postal: "T2P 0Y3" },
+];
+
+const DEMO_PROPERTY_PRESETS = [
+  {
+    title: "Yaletown Waterfront Condo",
+    type: "CONDO",
+    bedrooms: "2",
+    bathrooms: "2",
+    sqft: "1050",
+    yearBuilt: "2015",
+    rent: "4200",
+    description: "Modern 2-bed waterfront condo with floor-to-ceiling windows, concierge, and gym access.",
+  },
+  {
+    title: "Downtown Toronto Executive Suite",
+    type: "APARTMENT",
+    bedrooms: "1",
+    bathrooms: "1",
+    sqft: "820",
+    yearBuilt: "2018",
+    rent: "3600",
+    description: "High-floor suite with CN Tower views, premium appliances, and parking included.",
+  },
+  {
+    title: "Kitsilano Family Home",
+    type: "SINGLE_FAMILY",
+    bedrooms: "3",
+    bathrooms: "2",
+    sqft: "1850",
+    yearBuilt: "2008",
+    rent: "5200",
+    description: "Bright 3-bed home with private yard, EV-ready garage, and walkable schools.",
+  },
+  {
+    title: "Coal Harbour Luxury Studio",
+    type: "STUDIO",
+    bedrooms: "1",
+    bathrooms: "1",
+    sqft: "640",
+    yearBuilt: "2020",
+    rent: "3100",
+    description: "Boutique studio with Bosch appliances, concierge, and direct seawall access.",
+  },
+];
+
+const randomFromArray = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
 const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = null }) => {
   const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
   const [fieldErrors, setFieldErrors] = useState({});
   const queryClient = useQueryClient();
   const isEditMode = Boolean(propertyId && initialData);
@@ -43,14 +101,31 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
   }, []);
 
   // Preselect all amenities when modal opens (create mode only)
+  const getOwnerName = () => {
+    const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim();
+    return fullName || user?.companyName || user?.email || "";
+  };
+
   useEffect(() => {
     if (isOpen && !isEditMode) {
+      const ownerName = getOwnerName();
+      const canadianStates = State.getStatesOfCountry(CANADA_CODE);
+      setStates(canadianStates);
+      const defaultCities = City.getCitiesOfState(CANADA_CODE, DEFAULT_STATE);
+      setCities(defaultCities);
+
       setFormData((prev) => ({
         ...prev,
         amenities: [...PREDEFINED_AMENITIES],
+        propertyOwner: ownerName,
+        contactName: ownerName,
+        country: CANADA_CODE,
+        state: DEFAULT_STATE,
+        city: DEFAULT_CITY,
+        zipCode: prev.zipCode || DEFAULT_POSTAL_CODE,
       }));
     }
-  }, [isOpen, isEditMode]);
+  }, [isOpen, isEditMode, user]);
 
   // Populate form with initial data in edit mode
   useEffect(() => {
@@ -115,11 +190,11 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
     bathrooms: "",
     totalSquareFeet: "",
     yearBuilt: "",
-    country: "",
-    state: "",
-    city: "",
+    country: CANADA_CODE,
+    state: DEFAULT_STATE,
+    city: DEFAULT_CITY,
     streetAddress: "",
-    zipCode: "",
+    zipCode: DEFAULT_POSTAL_CODE,
     rentCycle: "",
     rentAmount: "",
     securityDeposit: "",
@@ -307,25 +382,31 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
   });
 
   const resetForm = () => {
+    const ownerName = getOwnerName();
+    const canadianStates = State.getStatesOfCountry(CANADA_CODE);
+    setStates(canadianStates);
+    const defaultCities = City.getCitiesOfState(CANADA_CODE, DEFAULT_STATE);
+    setCities(defaultCities);
+
     setFormData({
       title: "",
       propertyType: "",
-      propertyOwner: "",
+      propertyOwner: ownerName,
       bedrooms: "",
       bathrooms: "",
       totalSquareFeet: "",
       yearBuilt: "",
-      country: "",
-      state: "",
-      city: "",
+      country: CANADA_CODE,
+      state: DEFAULT_STATE,
+      city: DEFAULT_CITY,
       streetAddress: "",
-      zipCode: "",
+      zipCode: DEFAULT_POSTAL_CODE,
       rentCycle: "",
       rentAmount: "",
       securityDeposit: "",
       availableDate: null,
       description: "",
-      contactName: "",
+      contactName: ownerName,
       phoneNumber: "",
       email: "",
       notes: "",
@@ -335,6 +416,45 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
     setFieldErrors({});
     setShowAddAmenityInput(false);
     setNewAmenity("");
+  };
+
+  const handleDemoPrefill = () => {
+    const ownerName = getOwnerName();
+    const preset = randomFromArray(DEMO_PROPERTY_PRESETS);
+    const location = randomFromArray(CANADIAN_LOCATIONS);
+
+    const rentValue = Number(preset.rent);
+    const depositValue = Math.round(rentValue * 0.5);
+
+    setStates(State.getStatesOfCountry(CANADA_CODE));
+    setCities(City.getCitiesOfState(CANADA_CODE, location.state));
+
+    setFormData((prev) => ({
+      ...prev,
+      title: preset.title,
+      propertyType: preset.type,
+      propertyOwner: ownerName,
+      bedrooms: preset.bedrooms,
+      bathrooms: preset.bathrooms,
+      totalSquareFeet: preset.sqft,
+      yearBuilt: preset.yearBuilt,
+      country: CANADA_CODE,
+      state: location.state,
+      city: location.city,
+      streetAddress: location.street,
+      zipCode: location.postal,
+      rentCycle: "MONTHLY",
+      rentAmount: preset.rent,
+      securityDeposit: depositValue.toString(),
+      availableDate: new Date(),
+      description: preset.description,
+      contactName: ownerName,
+      phoneNumber: prev.phoneNumber || "(604) 555-0134",
+      email: user?.email || prev.email,
+      notes: "Demo notes for landlord reference.",
+      amenities: [...PREDEFINED_AMENITIES],
+      images: [],
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -462,10 +582,20 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
         className="max-w-2xl max-h-[90vh] flex flex-col p-0"
       >
         <DialogHeader className="p-6 pb-4 border-b">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <DialogTitle className="text-xl font-semibold">
               {isEditMode ? 'Edit Property' : 'New Listing'}
             </DialogTitle>
+            {!isEditMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
+                onClick={handleDemoPrefill}
+              >
+                Demo Autofill
+              </Button>
+            )}
           </div>
         </DialogHeader>
 
@@ -649,14 +779,6 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               </Button>
             </div>
             <div className="space-x-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="border-gray-300 rounded-2xl"
-                disabled={isPending}
-              >
-                Save Draft
-              </Button>
               <Button
                 type="submit"
                 onClick={handleSubmit}

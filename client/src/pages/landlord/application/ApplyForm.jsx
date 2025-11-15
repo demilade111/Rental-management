@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { Upload, CheckCircle, XCircle } from "lucide-react";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
-import LoadingState from "@/components/shared/LoadingState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useValidator } from "@/utils/useValidator";
 import DocumentPreview from "@/components/shared/DocumentPreview";
@@ -219,8 +219,30 @@ const ApplyForm = () => {
   if (!publicId) return <Navigate to="/" replace />;
 
   if (isLoading) {
-    // show header + loading body
-    return <LoadingState message="Loading application..." />;
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-48 rounded-lg" />
+            <Skeleton className="h-4 w-64 rounded" />
+          </div>
+          <Skeleton className="h-14 w-full rounded-2xl" />
+          <div className="flex items-center gap-4">
+            {[1, 2, 3, 4].map((step) => (
+              <Skeleton key={step} className="h-8 w-32 rounded-full" />
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <Skeleton className="h-8 w-32 rounded-full" />
+          </div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, idx) => (
+              <Skeleton key={`section-${idx}`} className="h-32 w-full rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (isError || !applicationMeta) {
@@ -661,12 +683,11 @@ const ApplyForm = () => {
         <div className="flex justify-center mb-4">
           <Button
             type="button"
-            variant="outline"
             size="sm"
             onClick={fillDemoData}
-            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+            className="rounded-full px-5 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
           >
-            🎲 Fill Demo Data
+            Demo Autofill
           </Button>
         </div>
 

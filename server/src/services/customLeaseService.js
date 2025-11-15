@@ -37,8 +37,8 @@ export const createCustomLease = async (landlordId, data) => {
     });
 };
 
-export const getAllCustomLeases = async (userId, role) => {
-    console.log('getAllCustomLeases called - userId:', userId, 'role:', role);
+export const getAllCustomLeases = async (userId, role, filters = {}) => {
+    console.log('getAllCustomLeases called - userId:', userId, 'role:', role, 'filters:', filters);
     
     const include = {
         listing: {
@@ -71,34 +71,28 @@ export const getAllCustomLeases = async (userId, role) => {
         },
     };
 
+    const where = {};
+
     if (role === "LANDLORD" || role === "ADMIN") {
-        const leases = await prisma.customLease.findMany({
-            where: { landlordId: userId },
-            include,
-            orderBy: { createdAt: "desc" },
-        });
-        console.log('Custom leases for landlord:', leases.length);
-        return leases;
+        where.landlordId = userId;
+    } else if (role === "TENANT") {
+        where.tenantId = userId;
     }
 
-    if (role === "TENANT") {
-        const leases = await prisma.customLease.findMany({
-            where: { tenantId: userId },
-            include,
-            orderBy: { createdAt: "desc" },
-        });
-        console.log('Custom leases for tenant:', leases.length);
-        if (leases.length > 0) {
-            console.log('Tenant custom lease statuses:', leases.map(l => ({ id: l.id, status: l.leaseStatus, tenantId: l.tenantId })));
-        }
-        return leases;
+    if (filters.listingId) {
+        where.listingId = filters.listingId;
     }
 
     const leases = await prisma.customLease.findMany({
+        where,
         include,
         orderBy: { createdAt: "desc" },
     });
-    console.log('All custom leases:', leases.length);
+
+    console.log('Custom leases fetched:', leases.length);
+    if (leases.length > 0) {
+        console.log('Lease statuses snapshot:', leases.slice(0, 3).map(l => ({ id: l.id, status: l.leaseStatus, listingId: l.listingId })));
+    }
     return leases;
 };
 
@@ -161,10 +155,26 @@ export const updateCustomLeaseById = async (id, userId, data) => {
     if (lease.landlordId !== userId)
         throw Object.assign(new Error("Unauthorized"), { status: 403 });
 
-    return prisma.customLease.update({
+    const updatedLease = await prisma.customLease.update({
         where: { id },
         data,
     });
+
+    if (data.leaseStatus === "TERMINATED" && lease.listingId) {
+        try {
+            await prisma.listing.update({
+                where: { id: lease.listingId },
+                data: { status: "ACTIVE" },
+            });
+        } catch (listingError) {
+            console.error(
+                `Failed to reset listing ${lease.listingId} to ACTIVE after terminating custom lease ${id}:`,
+                listingError
+            );
+        }
+    }
+
+    return updatedLease;
 };
 
 export const deleteCustomLeaseById = async (id, userId) => {

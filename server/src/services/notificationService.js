@@ -16,7 +16,7 @@ async function createNotification(data) {
       metadata: metadata || {},
     },
     include: {
-      users: {
+      user: {
         select: {
           id: true,
           firstName: true,
@@ -48,7 +48,7 @@ async function getUserNotifications(userId, options = {}) {
       take: limit,
       skip: offset,
       include: {
-        users: {
+        user: {
           select: {
             id: true,
             firstName: true,

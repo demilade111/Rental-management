@@ -58,7 +58,7 @@ const CustomLeaseCard = ({
     };
 
     return (
-        <Card className="border border-gray-300 hover:shadow-md cursor-pointer transition-shadow mb-3 p-3">
+        <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-3 p-3">
             <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
                 {/* Checkbox for bulk selection */}
                 <div className="flex items-center justify-center">

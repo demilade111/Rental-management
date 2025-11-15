@@ -13,8 +13,8 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { maintenanceApi } from "@/lib/maintenanceApi";
 import { SendIcon } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import LoadingState from "@/components/shared/LoadingState";
 import InvoicesModal from "./InvoicesModal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Move outside to prevent recreation on every render
 const ImageWithShimmer = React.memo(function ImageWithShimmer({ src, alt }) {
@@ -35,6 +35,17 @@ const ImageWithShimmer = React.memo(function ImageWithShimmer({ src, alt }) {
         </div>
     );
 });
+
+const MessagesSkeleton = () => (
+    <div className="space-y-3 px-2">
+        <Skeleton className="h-4 w-32" />
+        {Array.from({ length: 2 }).map((_, idx) => (
+            <div key={idx} className="flex">
+                <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+        ))}
+    </div>
+);
 
 const MaintenanceDetailsModal = ({ request, open, onClose }) => {
     const { user } = useAuthStore();
@@ -260,7 +271,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                             <p className="text-[14px]  text-semibold mb-2">Messages</p>
                             <div className="max-h-56 w-full">
                                 {loadingMessages ? (
-                                    <LoadingState message="" compact={true} />
+                                    <MessagesSkeleton />
                                 ) : messages.length === 0 ? (
                                     <p className="text-xs text-muted-foreground p-2">No messages yet.</p>
                                 ) : (

@@ -26,7 +26,10 @@ export const createCustomLeaseController = async (req, res) => {
 
 export const getAllCustomLeasesController = async (req, res) => {
     try {
-        const leases = await getAllCustomLeases(req.user.id, req.user.role);
+        const filters = {
+            listingId: req.query.listingId,
+        };
+        const leases = await getAllCustomLeases(req.user.id, req.user.role, filters);
         return SuccessResponse(res, 200, "Retrieved", leases);
     } catch (err) {
         return HandleError(res, err);

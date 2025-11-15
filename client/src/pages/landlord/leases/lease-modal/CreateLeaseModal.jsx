@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +129,84 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
     const { user } = useAuthStore();
 
     const handleFile = (e) => setFile(e.target.files[0]);
+
+    const demoRentRanges = [
+        { min: 1800, max: 2600 },
+        { min: 2600, max: 3200 },
+        { min: 3200, max: 4200 },
+        { min: 4200, max: 5200 },
+    ];
+
+    const demoLeaseNames = [
+        "Downtown Executive Suite Lease",
+        "Family Home Rental Agreement",
+        "Modern Loft Tenancy Contract",
+        "Garden-Level Apartment Lease",
+        "Luxury Condo Rental Agreement",
+        "Urban Studio Lease Package",
+    ];
+
+    const demoPaymentMethods = ["Bank Transfer", "E-transfer"];
+
+    const randomFromArray = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    const handleDemoFill = () => {
+        if (!listings || listings.length === 0) {
+            toast.error("No available listings to demo");
+            return;
+        }
+
+        const listingToUse =
+            listings.find((l) => l.id === selectedListing) || randomFromArray(listings);
+
+        if (listingToUse && listingToUse.id !== selectedListing) {
+            setSelectedListing(listingToUse.id);
+        }
+
+        const today = new Date();
+        today.setDate(today.getDate() + 1);
+        const startDate = format(today, "yyyy-MM-dd");
+        const endDateDate = new Date(today);
+        endDateDate.setFullYear(endDateDate.getFullYear() + 1);
+        endDateDate.setDate(endDateDate.getDate() - 1);
+        const endDate = format(endDateDate, "yyyy-MM-dd");
+
+        const rentPreset = randomFromArray(demoRentRanges);
+        const rentAmount = listingToUse?.rentAmount
+            ? listingToUse.rentAmount
+            : Math.floor(Math.random() * (rentPreset.max - rentPreset.min) + rentPreset.min);
+
+        const securityDepositAmount =
+            listingToUse?.securityDeposit ??
+            Math.round((rentAmount * 0.5) / 50) * 50;
+
+        const leaseNameChoice = `${randomFromArray(demoLeaseNames)} • ${
+            listingToUse?.title || "Residence"
+        }`;
+
+        setCustomLeaseAccounting((prev) => ({
+            ...prev,
+            startDate,
+            endDate,
+            rentAmount: rentAmount.toString(),
+            paymentFrequency: "MONTHLY",
+            paymentDay: (Math.floor(Math.random() * 5) + 1).toString(),
+            paymentMethod: randomFromArray(demoPaymentMethods),
+            securityDeposit: securityDepositAmount.toString(),
+            depositAmount: securityDepositAmount.toString(),
+        }));
+
+        setLeaseName(leaseNameChoice);
+    };
+
+    const yearDropdownOptions = useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        return {
+            captionLayout: "dropdown",
+            fromYear: currentYear - 20,
+            toYear: currentYear + 10,
+        };
+    }, []);
 
     const handleClose = () => {
         onClose();
@@ -287,6 +366,61 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
         if (!selectedListing) return "";
         const listing = listings.find((l) => l.id === selectedListing);
         return listing ? `${listing.title} — ${listing.streetAddress}` : "";
+    }, [selectedListing, listings]);
+
+    useEffect(() => {
+        if (!selectedListing) return;
+        const listing = listings.find((l) => l.id === selectedListing);
+        if (!listing) return;
+
+        if (listing.propertyType) {
+            const categoryEntry = Object.entries(PROPERTY_OPTIONS).find(([_, options]) =>
+                options.some((opt) => opt.value === listing.propertyType)
+            );
+
+            if (categoryEntry) {
+                const [matchedCategory] = categoryEntry;
+                if (category !== matchedCategory) {
+                    setCategory(matchedCategory);
+                }
+                if (type !== listing.propertyType) {
+                    setType(listing.propertyType);
+                }
+            }
+        }
+
+        setCustomLeaseAccounting((prev) => {
+            const rentValue =
+                typeof listing.rentAmount === "number" ? listing.rentAmount.toString() : prev.rentAmount;
+            const depositSource =
+                typeof listing.securityDeposit === "number"
+                    ? listing.securityDeposit
+                    : typeof listing.depositAmount === "number"
+                        ? listing.depositAmount
+                        : undefined;
+            const depositValue = typeof depositSource === "number" ? depositSource.toString() : "";
+
+            const nextState = { ...prev };
+            let hasChanges = false;
+
+            if (rentValue && rentValue !== prev.rentAmount) {
+                nextState.rentAmount = rentValue;
+                hasChanges = true;
+            }
+
+            if (depositValue) {
+                if (depositValue !== prev.securityDeposit) {
+                    nextState.securityDeposit = depositValue;
+                    hasChanges = true;
+                }
+                if (depositValue !== prev.depositAmount) {
+                    nextState.depositAmount = depositValue;
+                    hasChanges = true;
+                }
+            }
+
+            return hasChanges ? nextState : prev;
+        });
     }, [selectedListing, listings]);
 
     // Upload PDF to S3
@@ -569,6 +703,16 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                 Custom Lease Details
                             </DialogTitle>
                         </DialogHeader>
+                        <div className="flex justify-center mb-4">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="rounded-full px-5 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
+                                onClick={handleDemoFill}
+                            >
+                                Demo Autofill
+                            </Button>
+                        </div>
 
                         <div className="max-h-[60vh] overflow-y-auto pr-2">
                             <div className="space-y-6">
@@ -742,6 +886,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                             value={customLeaseAccounting.startDate}
                                             onChange={(date) => setCustomLeaseAccounting({...customLeaseAccounting, startDate: date})}
                                             placeholder="Select start date"
+                                    calendarProps={yearDropdownOptions}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -750,6 +895,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                             value={customLeaseAccounting.endDate}
                                             onChange={(date) => setCustomLeaseAccounting({...customLeaseAccounting, endDate: date})}
                                             placeholder="Select end date"
+                                    calendarProps={yearDropdownOptions}
                                         />
                                     </div>
                                 </div>

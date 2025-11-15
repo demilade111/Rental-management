@@ -472,6 +472,21 @@ export const updateLeaseById = async (leaseId, userId, data) => {
     },
   });
 
+  // When a lease transitions to TERMINATED, reopen the underlying listing for future leases/applications
+  if (updateData.leaseStatus === "TERMINATED" && lease.listingId) {
+    try {
+      await prisma.listing.update({
+        where: { id: lease.listingId },
+        data: { status: "ACTIVE" },
+      });
+    } catch (listingError) {
+      console.error(
+        `Failed to reset listing ${lease.listingId} to ACTIVE after terminating lease ${leaseId}:`,
+        listingError
+      );
+    }
+  }
+
   return updatedLease;
 };
 

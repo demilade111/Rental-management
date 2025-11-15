@@ -4,16 +4,52 @@ import api from '@/lib/axios';
 import { API_ENDPOINTS } from '@/lib/apiEndpoints';
 import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
-import LoadingState from '@/components/shared/LoadingState';
 import Pagination from '@/components/shared/Pagination';
 import AccountingSearchBar from './AccountingSearchBar';
 import SummaryCards from './SummaryCards';
 import TransactionTable from './TransactionTable';
 import FilterDialog from './FilterDialog';
 import ReceiptReviewModal from './ReceiptReviewModal';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const PaymentTableSkeleton = () => (
+  <div className="space-y-3">
+    {Array.from({ length: 5 }).map((_, index) => (
+      <div key={index} className="bg-white border border-gray-300 rounded-2xl p-4">
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 space-y-2">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 pr-4">
+            <Skeleton className="h-4 w-24 ml-auto" />
+          </div>
+          <div className="border-l border-gray-200 pl-4 space-y-1">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          <div className="border-l border-gray-200 pl-4">
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="border-l border-gray-200 pl-4">
+            <Skeleton className="h-8 w-24 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const Accounting = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     status: 'ALL',
     type: 'ALL',
@@ -27,17 +63,16 @@ const Accounting = () => {
   const [limit] = useState(10);
   const queryClient = useQueryClient();
 
-  // Reset page when search query or filters change
+  // Reset page when search term or filters change
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, filters]);
+  }, [searchTerm, filters]);
 
   // Fetch payments with filters
   const { data, isLoading, error } = useQuery({
-    queryKey: ['payments', filters, searchQuery],
+    queryKey: ['payments', filters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchQuery) params.append('search', searchQuery);
       if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
       if (filters.type && filters.type !== 'ALL') params.append('type', filters.type);
 
@@ -149,6 +184,36 @@ const Accounting = () => {
   const filteredPayments = useMemo(() => {
     let filtered = data?.payments || [];
 
+    const searchValue = searchTerm.trim().toLowerCase();
+    if (searchValue) {
+      filtered = filtered.filter((payment) => {
+        const tenantName = payment.tenant
+          ? `${payment.tenant.firstName || ''} ${payment.tenant.lastName || ''}`.toLowerCase()
+          : '';
+        const listing = payment.lease?.listing || payment.customLease?.listing;
+        const propertyTitle = listing?.title?.toLowerCase() || '';
+        const propertyAddress = listing
+          ? `${listing.streetAddress || ''} ${listing.city || ''} ${listing.state || ''}`.toLowerCase()
+          : '';
+        const paymentType = payment.type?.toLowerCase() || '';
+        const paymentStatus = payment.status?.toLowerCase() || '';
+        const paymentReference = payment.reference?.toLowerCase() || '';
+        const paymentNotes = payment.notes?.toLowerCase() || '';
+        const amountString = payment.amount ? payment.amount.toString() : '';
+
+        return (
+          tenantName.includes(searchValue) ||
+          propertyTitle.includes(searchValue) ||
+          propertyAddress.includes(searchValue) ||
+          paymentType.includes(searchValue) ||
+          paymentStatus.includes(searchValue) ||
+          paymentReference.includes(searchValue) ||
+          paymentNotes.includes(searchValue) ||
+          amountString.includes(searchValue)
+        );
+      });
+    }
+
     // Filter by tenant
     if (filters.tenantId && filters.tenantId !== 'ALL') {
       filtered = filtered.filter((payment) => payment.tenantId === filters.tenantId);
@@ -168,7 +233,7 @@ const Accounting = () => {
     }
 
     return filtered;
-  }, [data?.payments, filters.tenantId, filters.listingId]);
+  }, [data?.payments, filters.tenantId, filters.listingId, searchTerm]);
 
   // Calculate summary from filtered payments
   const filteredSummary = useMemo(() => {
@@ -233,8 +298,8 @@ const Accounting = () => {
         />
 
         <AccountingSearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          searchQuery={searchTerm}
+          setSearchQuery={setSearchTerm}
           onFilter={() => setShowFilterDialog(true)}
           filters={filters}
           tenants={uniqueTenants}
@@ -280,7 +345,7 @@ const Accounting = () => {
           {/* Table Body */}
           <div className="flex-1 min-h-0 overflow-y-auto">
             {isLoading ? (
-              <LoadingState message="Loading payments..." compact />
+              <PaymentTableSkeleton />
             ) : error ? (
               <div className="text-center py-12">
                 <p className="text-red-600">Failed to load payments</p>

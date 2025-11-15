@@ -58,7 +58,7 @@ export async function createApplication(landlordId, data) {
           : undefined,
     },
     include: {
-      Listing: {
+      listing: {
         select: {
           id: true,
           title: true,
@@ -68,8 +68,8 @@ export async function createApplication(landlordId, data) {
           rentAmount: true,
         },
       },
-      EmploymentInfo: true,
-      users_RequestApplication_tenantIdTousers: {
+      employmentInfo: true,
+      tenant: {
         select: {
           id: true,
           firstName: true,
@@ -113,7 +113,7 @@ export async function getAllApplicationsByLandlord(
   const applications = await prisma.RequestApplication.findMany({
     where: whereClause,
     include: {
-      Listing: {
+      listing: {
         select: {
           id: true,
           title: true,
@@ -124,8 +124,8 @@ export async function getAllApplicationsByLandlord(
           rentAmount: true,
         },
       },
-      EmploymentInfo: true,
-      users_RequestApplication_tenantIdTousers: {
+      employmentInfo: true,
+      tenant: {
         select: {
           id: true,
           firstName: true,
@@ -134,7 +134,7 @@ export async function getAllApplicationsByLandlord(
           phone: true,
         },
       },
-      Lease: {
+      lease: {
         select: {
           id: true,
           startDate: true,
@@ -164,7 +164,7 @@ export async function getApplicationByPublicId(publicId) {
     const application = await prisma.RequestApplication.findUnique({
       where: { publicId },
       include: {
-        Listing: {
+        listing: {
           select: {
             id: true,
             title: true,
@@ -181,8 +181,8 @@ export async function getApplicationByPublicId(publicId) {
             },
           },
         },
-        EmploymentInfo: true,
-        users_RequestApplication_landlordIdTousers: {
+        employmentInfo: true,
+        landlord: {
           select: {
             id: true,
             firstName: true,
@@ -267,7 +267,7 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
         decisionNotes: data.decisionNotes || null,
       },
       include: {
-        Listing: {
+        listing: {
           select: {
             id: true,
             title: true,
@@ -277,8 +277,8 @@ export async function updateApplicationStatus(applicationId, landlordId, data) {
             rentAmount: true,
           },
         },
-        EmploymentInfo: true,
-        users_RequestApplication_tenantIdTousers: {
+        employmentInfo: true,
+        tenant: {
           select: {
             id: true,
             firstName: true,

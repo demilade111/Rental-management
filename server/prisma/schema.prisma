@@ -100,6 +100,7 @@ enum ListingStatus {
 // User & Roles
 enum UserRole {
   ADMIN
+  LANDLORD
   TENANT
 }
 
@@ -213,6 +214,7 @@ model User {
   notifications        Notification[]       @relation("UserNotifications")
   tenantInsurances     TenantInsurance[]    @relation("TenantInsurances")
   verifiedInsurances   TenantInsurance[]    @relation("VerifiedInsurances")
+  createdInvoices      Invoice[]            @relation("InvoiceCreator")
 
   @@map("users")
 }
@@ -623,11 +625,16 @@ model Invoice {
   amount                Float
   status                InvoiceStatus       @default(PENDING)
   sharedWithTenant      Boolean             @default(true)
+  sharedWithLandlord    Boolean             @default(true)
+  createdById           String?
+  createdBy             User?               @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByRole         UserRole?
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
 
   @@index([maintenanceRequestId])
   @@index([paymentId])
+  @@index([createdById])
   @@map("invoices")
 }
 
