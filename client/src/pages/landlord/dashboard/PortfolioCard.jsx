@@ -42,37 +42,43 @@ const PortfolioCard = () => {
 
     if (isLoading) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
+            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
                 <Skeleton className="h-7 w-32 mb-2" />
                 
                 {/* Category Labels Skeleton */}
                 <div className="relative mb-1">
                     <div className="flex justify-between">
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-4 w-24" />
+                        <div className="flex items-center">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="w-2.5 h-2.5 ml-1.5" />
+                        </div>
+                        <div className="flex items-center">
+                            <Skeleton className="w-2.5 h-2.5 mr-1.5" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Stacked Bar Chart Skeleton */}
-                <div className="h-10 mb-1 flex items-center">
+                <div className="h-10 my-3 flex items-center">
                     <Skeleton className="w-full h-8 rounded-full" />
                 </div>
 
                 {/* Legend Skeleton */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm my-2.5">
                     <div>
-                        <div className="flex items-center gap-1.5 mb-0.5">
+                        <div className="flex items-center gap-1.5">
                             <Skeleton className="w-3 h-3 rounded" />
                             <Skeleton className="h-4 w-24" />
                         </div>
-                        <Skeleton className="h-3 w-32 ml-4.5" />
+                        <Skeleton className="h-3 w-32 ml-4.5 mt-0" />
                     </div>
                     <div>
-                        <div className="flex items-center gap-1.5 mb-0.5">
+                        <div className="flex items-center gap-1.5">
                             <Skeleton className="w-3 h-3 rounded" />
                             <Skeleton className="h-4 w-28" />
                         </div>
-                        <Skeleton className="h-3 w-36 ml-4.5" />
+                        <Skeleton className="h-3 w-36 ml-4.5 mt-0" />
                     </div>
                 </div>
             </div>
@@ -81,7 +87,7 @@ const PortfolioCard = () => {
 
     if (!hasData) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
+            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
                 <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
                 <div className="text-center py-4 text-gray-500">
                     No properties in portfolio
@@ -91,7 +97,7 @@ const PortfolioCard = () => {
     }
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6">
+        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
             <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
             
             {/* Category Labels with Markers */}

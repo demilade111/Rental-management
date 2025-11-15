@@ -71,9 +71,11 @@ const AccountingCard = () => {
         <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full overflow-hidden flex flex-col min-h-[350px]">
             <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 flex-shrink-0">Accounting</h3>
             {showLoading ? (
-                <LoadingState message="Loading accounting data..." compact={true} />
+                <div className="flex-1 flex items-center justify-center min-h-[280px]">
+                    <LoadingState message="Loading accounting data..." compact={true} />
+                </div>
             ) : accountingData.length === 0 || accountingData.every(d => d.value === 0) ? (
-                <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center">
+                <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center min-h-[280px]">
                     {isLoading ? (
                         <div className="animate-pulse">
                             <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>

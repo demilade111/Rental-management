@@ -157,13 +157,15 @@ const Dashboard = () => {
                 View All
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto min-h-0 pr-4">
+            <div className="flex-1 overflow-y-auto min-h-0 pr-4 flex items-start">
               {loadingApplications && applicationsFetched ? (
-                <LoadingState message="Loading applications..." compact={true} />
+                <div className="w-full flex items-center justify-center min-h-[200px]">
+                  <LoadingState message="Loading applications..." compact={true} />
+                </div>
               ) : applications.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">
+                <div className="text-center py-4 text-sm text-gray-500 w-full flex items-center justify-center min-h-[200px]">
                   {loadingApplications && !applicationsFetched ? (
-                    <div className="animate-pulse space-y-2">
+                    <div className="animate-pulse space-y-2 w-full">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="h-8 bg-gray-200 rounded"></div>
                       ))}
