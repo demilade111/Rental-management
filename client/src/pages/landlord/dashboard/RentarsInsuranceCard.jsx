@@ -95,28 +95,46 @@ const RentersInsuranceCard = () => {
         1 // Ensure at least 1 so chart displays properly
     );
 
-    // Chart data - ensure all values are included even if 0
-    // Use a minimum value of 0.05 for bars that are 0 to ensure they're visible in the chart
-    // This is a visual workaround - the actual counts shown in labels remain accurate
-    const chartData = [
-        {
-            category: "insurance",
-            expiringInThirty: stats.expiringInThirty > 0 ? stats.expiringInThirty : 0.05,
-            notExpiring: stats.notExpiring,
-            notNotified: stats.notNotified > 0 ? stats.notNotified : 0.05,
-            notified: stats.notified > 0 ? stats.notified : 0.05
-        }
-    ];
-    
-    // Adjust maxValue to account for minimum bar sizes
-    const adjustedMaxValue = Math.max(
-        maxValue,
-        (stats.expiringInThirty > 0 ? stats.expiringInThirty : 0.05) +
-        stats.notExpiring +
-        (stats.notNotified > 0 ? stats.notNotified : 0.05) +
-        (stats.notified > 0 ? stats.notified : 0.05),
-        1
-    );
+    // Chart data handling
+    // When all buckets are zero, show equal segments purely for visual balance
+    const allZero =
+        stats.expiringInThirty === 0 &&
+        stats.notExpiring === 0 &&
+        stats.notNotified === 0 &&
+        stats.notified === 0;
+
+    const chartData = allZero
+        ? [
+            {
+                category: "insurance",
+                expiringInThirty: 1,
+                notExpiring: 1,
+                notNotified: 1,
+                notified: 1,
+            },
+          ]
+        : [
+            {
+                category: "insurance",
+                // Use small minimums only for zero values so the bar remains visible
+                expiringInThirty: stats.expiringInThirty > 0 ? stats.expiringInThirty : 0.05,
+                notExpiring: stats.notExpiring > 0 ? stats.notExpiring : 0.05,
+                notNotified: stats.notNotified > 0 ? stats.notNotified : 0.05,
+                notified: stats.notified > 0 ? stats.notified : 0.05,
+            },
+          ];
+
+    // Adjust maxValue to account for chartData values
+    const adjustedMaxValue = allZero
+        ? 4 // 1 + 1 + 1 + 1
+        : Math.max(
+            maxValue,
+            (stats.expiringInThirty > 0 ? stats.expiringInThirty : 0.05) +
+                (stats.notExpiring > 0 ? stats.notExpiring : 0.05) +
+                (stats.notNotified > 0 ? stats.notNotified : 0.05) +
+                (stats.notified > 0 ? stats.notified : 0.05),
+            1
+          );
 
     if (loading) {
         return (

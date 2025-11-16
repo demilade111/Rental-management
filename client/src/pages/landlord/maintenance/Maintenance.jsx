@@ -57,6 +57,8 @@ function Maintenance() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [requestToDelete, setRequestToDelete] = useState(null);
+  const [hasTerminatedLease, setHasTerminatedLease] = useState(false);
+  const [checkingLeaseStatus, setCheckingLeaseStatus] = useState(true); // Start as true to prevent flash
 
   const token = useAuthStore((state) => state.token);
   const { user } = useAuthStore();
@@ -82,6 +84,59 @@ function Maintenance() {
     if (!token) return;
     loadListings();
   }, [token, loadListings]);
+
+  // Check if tenant has terminated lease
+  const checkTerminatedLease = useCallback(async () => {
+    if (!token || !user?.id || user?.role !== "TENANT") {
+      setHasTerminatedLease(false);
+      setCheckingLeaseStatus(false);
+      return;
+    }
+
+    setCheckingLeaseStatus(true);
+    try {
+      // Fetch standard leases
+      const standardResponse = await axios.get(API_ENDPOINTS.TENANT_LEASES.BASE);
+      const standardData = standardResponse.data;
+      const standardLeases = Array.isArray(standardData) 
+        ? standardData 
+        : (standardData?.data || standardData?.leases || []);
+      
+      // Fetch custom leases
+      const customResponse = await axios.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+      const customData = customResponse.data;
+      const allCustomLeases = Array.isArray(customData) 
+        ? customData 
+        : (customData?.data || customData?.leases || []);
+      
+      // Filter custom leases for this tenant
+      const tenantCustomLeases = allCustomLeases.filter(
+        lease => lease.tenantId === user.id
+      );
+      
+      // Combine all leases
+      const allLeases = [...standardLeases, ...tenantCustomLeases];
+      
+      // Check if any lease has TERMINATED status
+      const hasTerminated = allLeases.some(lease => lease.leaseStatus === "TERMINATED");
+      
+      setHasTerminatedLease(hasTerminated);
+    } catch (err) {
+      console.error("Error checking terminated lease:", err);
+      setHasTerminatedLease(false);
+    } finally {
+      setCheckingLeaseStatus(false);
+    }
+  }, [token, user?.id, user?.role]);
+
+  useEffect(() => {
+    if (user?.role === "TENANT") {
+      checkTerminatedLease();
+    } else {
+      // For non-tenants, we don't need to check, so set checking to false
+      setCheckingLeaseStatus(false);
+    }
+  }, [user?.role, checkTerminatedLease]);
 
   const loadMaintenanceRequests = useCallback(async () => {
       if (!token) return;
@@ -370,6 +425,9 @@ function Maintenance() {
         chips={chips}
         removeChip={(label) => setChips((prev) => prev.filter((c) => c !== label))}
         currentFilters={filters}
+        showCreateButton={user?.role === "TENANT" 
+          ? (!checkingLeaseStatus && !hasTerminatedLease)
+          : true}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

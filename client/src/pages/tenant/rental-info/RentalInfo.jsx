@@ -444,18 +444,16 @@ const RentalInfo = () => {
               {pastLeases.map((lease) => (
                 <Card key={lease.id} className="border border-gray-300 p-6 hover:shadow-md transition-shadow">
                   <div className="flex flex-col md:flex-row gap-6">
-                    {/* Left: Property Images Stacked */}
+                    {/* Left: Single Property Image */}
                     {lease.listing?.images && lease.listing.images.length > 0 && (
-                      <div className="w-full md:w-48 flex-shrink-0 space-y-3">
-                        {lease.listing.images.map((img, idx) => (
-                          <div key={idx} className="w-full h-32 rounded-lg overflow-hidden">
-                            <PropertyImage
-                              image={img}
-                              alt={`${lease.listing?.title || 'Property'} - Image ${idx + 1}`}
-                              className="w-full h-full"
-                            />
-                          </div>
-                        ))}
+                      <div className="w-full md:w-48 flex-shrink-0">
+                        <div className="w-full h-32 rounded-lg overflow-hidden">
+                          <PropertyImage
+                            image={lease.listing.images[0]}
+                            alt={`${lease.listing?.title || 'Property'} - Image 1`}
+                            className="w-full h-full"
+                          />
+                        </div>
                       </div>
                     )}
 

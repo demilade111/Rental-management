@@ -15,6 +15,7 @@ import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import TenantMaintenanceForm from "./TenantMaintenanceForm";
 import { MaintenanceColumn } from "@/pages/landlord/maintenance";
+import { isPast } from "date-fns";
 
 function Maintenance() {
   const [search, setSearch] = useState("");
@@ -41,13 +42,22 @@ function Maintenance() {
   });
 
   const [updatingActions, setUpdatingActions] = useState({}); // { [requestId]: action }
-  const [isLeaseTerminated, setIsLeaseTerminated] = useState(false);
+  const [hasActiveRental, setHasActiveRental] = useState(false);
 
   const token = useAuthStore((state) => state.token);
   const { user } = useAuthStore();
 
-  // Fetch properties and check lease status
+  // Fetch properties and check for active rental (same logic as RentalInfo page)
   useEffect(() => {
+    console.log('🔍 TENANT MAINTENANCE useEffect - START');
+    console.log('Token:', !!token, 'User ID:', user?.id, 'Role:', user?.role);
+    
+    if (!token || !user?.id || user?.role !== 'TENANT') {
+      console.log('⚠️ Not a tenant or missing data - hiding button');
+      setHasActiveRental(false);
+      return;
+    }
+
     const fetchListings = async () => {
       try {
         const response = await api.get(API_ENDPOINTS.LISTINGS.GET_ALL);
@@ -56,74 +66,62 @@ function Maintenance() {
         setProperties(listings);
       } catch (err) {
         console.error("Error fetching listings:", err);
-        toast.error("Failed to fetch properties.");
+        setProperties([]);
       }
     };
 
-    const checkLeaseStatus = async () => {
-      if (!user?.id) return;
+    const checkActiveRental = async () => {
+      console.log('🔍 Checking active rental for tenant:', user.id);
+      setHasActiveRental(false); // Start with hidden
       
       try {
-        // Fetch tenant's leases
+        // Fetch standard leases
         const standardResponse = await api.get(API_ENDPOINTS.TENANT_LEASES.BASE);
         const standardData = standardResponse.data;
-        const standardLeases = Array.isArray(standardData) ? standardData : 
-                              standardData.data || standardData.leases || [];
+        const standardLeases = Array.isArray(standardData) 
+          ? standardData 
+          : (standardData?.data || standardData?.leases || []);
         
         // Fetch custom leases
         const customResponse = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
         const customData = customResponse.data;
-        const customLeases = Array.isArray(customData) ? customData :
-                            customData.data || customData.leases || [];
+        const allCustomLeases = Array.isArray(customData) 
+          ? customData 
+          : (customData?.data || customData?.leases || []);
         
-        // Filter custom leases for tenant
-        const tenantCustomLeases = customLeases.filter(lease => 
-          lease.tenantId === user?.id
+        // Filter custom leases for this tenant
+        const tenantCustomLeases = allCustomLeases.filter(
+          lease => lease.tenantId === user.id
         );
         
         // Combine all leases
-        const allLeases = [
-          ...standardLeases,
-          ...tenantCustomLeases,
-        ];
+        const allLeases = [...standardLeases, ...tenantCustomLeases];
         
-        console.log('All leases:', allLeases);
+        console.log('📋 Total leases found:', allLeases.length);
+        console.log('📋 Lease statuses:', allLeases.map(l => ({ id: l.id?.substring(0, 8), status: l.leaseStatus, endDate: l.endDate })));
         
-        // Check if tenant has an active lease
-        const activeLeases = allLeases.filter(lease => 
-          lease.leaseStatus === 'ACTIVE'
-        );
+        // Check for ACTIVE leases with valid end date (same logic as RentalInfo page)
+        const activeLeases = allLeases.filter(lease => {
+          const isActive = lease.leaseStatus === 'ACTIVE';
+          const hasValidEndDate = !lease.endDate || !isPast(new Date(lease.endDate));
+          return isActive && hasValidEndDate;
+        });
         
-        const hasActiveLease = activeLeases.length > 0;
+        const hasActive = activeLeases.length > 0;
         
-        // Check if there are any terminated leases
-        const terminatedLeases = allLeases.filter(lease => 
-          lease.leaseStatus === 'TERMINATED'
-        );
+        console.log('✅ Active leases found:', activeLeases.length);
+        console.log('✅ Has active rental:', hasActive);
         
-        console.log('Active leases:', activeLeases.length, 'Terminated leases:', terminatedLeases.length);
-        
-        // If no active lease AND there are terminated leases, disable the button
-        // This means the tenant's current listing/lease was terminated
-        if (!hasActiveLease && terminatedLeases.length > 0) {
-          console.log('Lease is terminated - disabling button');
-          setIsLeaseTerminated(true);
-        } else {
-          console.log('Lease is active or no terminated leases - enabling button');
-          setIsLeaseTerminated(false);
-        }
+        setHasActiveRental(hasActive);
       } catch (err) {
-        console.error("Error checking lease status:", err);
-        // Don't show error toast, just assume lease is not terminated
-        setIsLeaseTerminated(false);
+        console.error("❌ Error checking active rental:", err);
+        setHasActiveRental(false);
       }
     };
 
-    if (token) {
-      fetchListings();
-      checkLeaseStatus();
-    }
-  }, [token, user?.id]);
+    fetchListings();
+    checkActiveRental();
+  }, [token, user?.id, user?.role]);
 
 
   // Fetch maintenance requests
@@ -295,17 +293,17 @@ function Maintenance() {
         search={search}
         setSearch={setSearch}
         onFilter={() => console.log("Filter clicked")}
-        onNewRequest={() => {
-          if (!isLeaseTerminated) {
-            setShowModal(true);
-          } else {
-            toast.error("Your lease has been terminated. Maintenance requests are no longer available.");
-          }
-        }}
+        onNewRequest={() => setShowModal(true)}
         chips={chips}
         removeChip={(label) => setChips((prev) => prev.filter((c) => c !== label))}
-        disabled={isLeaseTerminated}
+        showCreateButton={hasActiveRental}
       />
+      
+      {/* Debug logging */}
+      {(() => {
+        console.log('🎨 RENDER - hasActiveRental:', hasActiveRental, 'showCreateButton:', hasActiveRental);
+        return null;
+      })()}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {columns.map((col) => {
