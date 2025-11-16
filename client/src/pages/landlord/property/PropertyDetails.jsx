@@ -80,7 +80,7 @@ const PropertyDetails = () => {
     console.log('Fetched property:', property);
 
     return (
-        <div className="h-full overflow-y-auto bg-white">
+        <div className="h-full overflow-y-auto bg-background">
 
             {isLoading && (
                 <div className="px-4 md:px-8 py-4 space-y-5">
@@ -201,7 +201,7 @@ const PropertyDetails = () => {
 
                         {/* Owner Notes Section */}
                         <div className="mt-8 p-6">
-                            <h2 className="text-[32px] font-bold mb-2">Owner Notes (Private Section)</h2>
+                            <h2 className="text-[32px] font-bold mb-2 text-primary">Owner Notes (Private Section)</h2>
                             {property.notes && (
                                 <>
                                     <p className="text-[16px] text-gray-600 mb-6">{property.notes}</p>
@@ -215,14 +215,12 @@ const PropertyDetails = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div
                                     onClick={() => setActiveCard('listing')}
-                                    className={`rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
-                                        activeCard === 'listing'
-                                            ? 'bg-black text-white'
-                                            : 'bg-white border border-gray-200 hover:border-gray-300'
+                                    className={`rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer ${
+                                        activeCard === 'listing' ? 'bg-primary text-primary-foreground' : 'bg-card'
                                     }`}
                                 >
-                                    <h3 className="text-[28px] font-bold mb-1">Listing Details</h3>
-                                    <p className={`text-[16px] mb-3 ${activeCard === 'listing' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <h3 className={`text-[28px] font-bold mb-1 ${activeCard === 'listing' ? 'text-primary-foreground' : 'text-primary'}`}>Listing Details</h3>
+                                    <p className={`text-[16px] mb-3 ${activeCard === 'listing' ? 'text-primary-foreground' : 'text-primary'}`}>
                                         Per Property
                                     </p>
                                     <p className={`text-[13px] ${activeCard === 'listing' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -231,14 +229,12 @@ const PropertyDetails = () => {
                                 </div>
                                 <div
                                     onClick={() => setActiveCard('maintenance')}
-                                    className={`rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
-                                        activeCard === 'maintenance'
-                                            ? 'bg-black text-white'
-                                            : 'bg-white border border-gray-200 hover:border-gray-300'
+                                    className={`rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer ${
+                                        activeCard === 'maintenance' ? 'bg-primary text-primary-foreground' : 'bg-card'
                                     }`}
                                 >
-                                    <h3 className="text-[28px] font-bold mb-1">Maintenance Info</h3>
-                                    <p className={`text-[16px] mb-3 ${activeCard === 'maintenance' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <h3 className={`text-[28px] font-bold mb-1 ${activeCard === 'maintenance' ? 'text-primary-foreground' : 'text-primary'}`}>Maintenance Info</h3>
+                                    <p className={`text-[16px] mb-3 ${activeCard === 'maintenance' ? 'text-primary-foreground' : 'text-primary'}`}>
                                         Per Property
                                     </p>
                                     <p className={`text-[13px] ${activeCard === 'maintenance' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -247,14 +243,12 @@ const PropertyDetails = () => {
                                 </div>
                                 <div
                                     onClick={() => setActiveCard('tenancy')}
-                                    className={`rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
-                                        activeCard === 'tenancy'
-                                            ? 'bg-black text-white'
-                                            : 'bg-white border border-gray-200 hover:border-gray-300'
+                                    className={`rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer ${
+                                        activeCard === 'tenancy' ? 'bg-primary text-primary-foreground' : 'bg-card'
                                     }`}
                                 >
-                                    <h3 className="text-[28px] font-bold mb-1">Tenancy Info</h3>
-                                    <p className={`text-[16px] mb-3 ${activeCard === 'tenancy' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <h3 className={`text-[28px] font-bold mb-1 ${activeCard === 'tenancy' ? 'text-primary-foreground' : 'text-primary'}`}>Tenancy Info</h3>
+                                    <p className={`text-[16px] mb-3 ${activeCard === 'tenancy' ? 'text-primary-foreground' : 'text-primary'}`}>
                                         Per Property
                                     </p>
                                     <p className={`text-[13px] ${activeCard === 'tenancy' ? 'text-gray-300' : 'text-gray-600'}`}>

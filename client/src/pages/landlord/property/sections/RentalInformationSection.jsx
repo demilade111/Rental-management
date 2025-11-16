@@ -97,7 +97,7 @@ export const RentalInformationSection = ({
               type="button"
               variant="outline"
               className={cn(
-                "w-1/2 justify-start text-left font-normal border-gray-300 hover:bg-gray-50",
+                "w-1/2 justify-start text-left font-normal border-gray-300 hover:bg-gray-50 bg-card",
                 !formData.availableDate && "text-gray-600"
               )}
               disabled={isPending}

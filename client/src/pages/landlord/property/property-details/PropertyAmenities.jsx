@@ -17,9 +17,9 @@ const PropertyAmenities = ({ amenities = [] }) => {
     
     return (
         <>
-            <div className="bg-white border border-gray-400 rounded-lg p-6 h-full flex flex-col">
+            <div className="bg-card rounded-2xl p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-[24px] font-bold">Amenities</h2>
+                    <h2 className="text-[24px] font-bold text-primary">Amenities</h2>
                     {hasMore && (
                         <button 
                             onClick={() => setShowAllDialog(true)}
@@ -34,7 +34,7 @@ const PropertyAmenities = ({ amenities = [] }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 content-start">
                         {displayedAmenities.map((amenity) => (
                             <div key={amenity.id} className="flex items-center gap-2">
-                                <Check className="w-5 h-5 text-white bg-black rounded-full" />
+                                <Check className="w-5 h-5 text-primary-foreground bg-primary rounded-full" />
                                 <span className="capitalize text-black">{amenity.name}</span>
                             </div>
                         ))}
@@ -54,7 +54,7 @@ const PropertyAmenities = ({ amenities = [] }) => {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {amenities.map((amenity) => (
                                 <div key={amenity.id} className="flex items-center gap-2">
-                                    <Check className="w-5 h-5 text-white bg-black rounded-full flex-shrink-0" />
+                                    <Check className="w-5 h-5 text-primary-foreground bg-primary rounded-full flex-shrink-0" />
                                     <span className="capitalize text-black">{amenity.name}</span>
                                 </div>
                             ))}

@@ -130,18 +130,44 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
   // Populate form with initial data in edit mode
   useEffect(() => {
     if (isOpen && isEditMode && initialData) {
-      const countryCode = initialData.country || '';
-      const stateCode = initialData.state || '';
-      
-      // Load states and cities based on initial data
-      if (countryCode) {
-        const countryStates = State.getStatesOfCountry(countryCode);
+      // Normalize country/state to ISO codes expected by Selects
+      const allCountries = Country.getAllCountries();
+      let normalizedCountry = initialData.country || '';
+      // If not a 2-letter ISO code, try to resolve by name
+      if (normalizedCountry && normalizedCountry.length !== 2) {
+        const match = allCountries.find(
+          (c) =>
+            c.isoCode === normalizedCountry ||
+            c.name?.toLowerCase() === String(normalizedCountry).toLowerCase()
+        );
+        if (match) normalizedCountry = match.isoCode;
+      }
+
+      // Load states for the country and normalize state value
+      let countryStates = [];
+      if (normalizedCountry) {
+        countryStates = State.getStatesOfCountry(normalizedCountry);
         setStates(countryStates);
-        
-        if (stateCode) {
-          const stateCities = City.getCitiesOfState(countryCode, stateCode);
-          setCities(stateCities);
+      }
+
+      let normalizedState = initialData.state || '';
+      if (normalizedState) {
+        // If not ISO code, resolve by name within country states
+        if (normalizedState.length !== 2) {
+          const sMatch =
+            countryStates.find(
+              (s) =>
+                s.isoCode === normalizedState ||
+                s.name?.toLowerCase() === String(normalizedState).toLowerCase()
+            ) || {};
+          normalizedState = sMatch.isoCode || normalizedState;
         }
+      }
+
+      // Load cities for the state
+      if (normalizedCountry && normalizedState) {
+        const stateCities = City.getCitiesOfState(normalizedCountry, normalizedState);
+        setCities(stateCities);
       }
 
       // Extract amenity names
@@ -162,8 +188,8 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
         bathrooms: initialData.bathrooms?.toString() || '',
         totalSquareFeet: initialData.totalSquareFeet?.toString() || '',
         yearBuilt: initialData.yearBuilt?.toString() || '',
-        country: countryCode,
-        state: stateCode,
+        country: normalizedCountry || '',
+        state: normalizedState || '',
         city: initialData.city || '',
         streetAddress: initialData.streetAddress || '',
         zipCode: initialData.zipCode || '',
@@ -782,7 +808,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               <Button
                 type="submit"
                 onClick={handleSubmit}
-                className="bg-black text-white hover:bg-gray-800 rounded-2xl"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
                 disabled={isPending}
               >
                 {isPending 

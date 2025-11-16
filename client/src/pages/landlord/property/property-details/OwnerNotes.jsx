@@ -124,7 +124,7 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
     if (showOnlyMaintenance) {
         return (
             <div className="max-h-[500px]">
-                <h3 className="text-xl font-semibold mb-4">Maintenance History</h3>
+                <h3 className="text-xl font-semibold mb-4 text-primary">Maintenance History</h3>
                 
                 {loadingMaintenance ? (
                     <div className="space-y-3">
@@ -149,22 +149,22 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
                 ) : (
                     <>
                         {/* Table Header */}
-                        <div className="grid grid-cols-6 gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
+                        <div className="grid grid-cols-6 gap-4 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl mb-3">
                             <div>Title</div>
-                            <div className="border-l border-gray-600 pl-4">Description</div>
-                            <div className="border-l border-gray-600 pl-4">Priority</div>
-                            <div className="border-l border-gray-600 pl-4">Status</div>
-                            <div className="border-l border-gray-600 pl-4 text-right">Cost</div>
-                            <div className="border-l border-gray-600 pl-4 text-center">Date</div>
+                            <div className="border-l border-primary-foreground/20 pl-4">Description</div>
+                            <div className="border-l border-primary-foreground/20 pl-4">Priority</div>
+                            <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+                            <div className="border-l border-primary-foreground/20 pl-4 text-right">Cost</div>
+                            <div className="border-l border-primary-foreground/20 pl-4 text-center">Date</div>
                         </div>
 
                         {/* Table Rows - Scrollable Container with fixed height */}
-                        <div className="space-y-3 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
+                        <div className="space-y-3 h-[350px] overflow-y-auto pr-2 rounded-2xl p-2 bg-card">
                             {paginatedMaintenance.map((request) => (
-                                <Card key={request.id} className="border border-gray-300 hover:shadow-md transition-shadow p-3">
+                                <Card key={request.id} className="bg-card rounded-2xl hover:shadow-md transition-shadow p-3">
                                     <div className="grid grid-cols-6 gap-4 items-center">
                                         {/* Title */}
-                                        <div className="font-semibold text-gray-900 truncate" title={request.title}>
+                                        <div className="font-semibold text-primary truncate" title={request.title}>
                                             {request.title}
                                         </div>
 
@@ -347,8 +347,8 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
 
             {/* Tenancy Info - Placeholder */}
             {activeCard === 'tenancy' && (
-                <div className="text-center py-12 text-gray-500 bg-white border border-gray-300 rounded-lg">
-                    <p>Tenancy information will be displayed here.</p>
+                <div className="text-center py-12 text-gray-500 bg-card rounded-2xl">
+                    <p>No tenancy records available for this property yet.</p>
                 </div>
             )}
         </div>

@@ -26,8 +26,8 @@ const PropertyDescription = ({ description }) => {
 
     return (
         <>
-            <div className="bg-white rounded-lg p-6">
-                <h2 className="text-[24px] font-bold mb-4">Description</h2>
+            <div className="bg-card rounded-2xl p-6">
+                <h2 className="text-[24px] font-bold mb-4 text-primary">Description</h2>
                 <div className="relative">
                     <p 
                         ref={descriptionRef}
