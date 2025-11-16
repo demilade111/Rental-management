@@ -3,8 +3,8 @@ import { Phone, Mail } from 'lucide-react';
 
 const ContactInfo = ({ ownerName, ownerPhone, ownerEmail }) => {
     return (
-        <div className="bg-white rounded-lg p-6">
-            <h2 className="text-[24px] font-bold mb-4">Contact Info</h2>
+        <div className="bg-card rounded-2xl p-6">
+            <h2 className="text-[24px] font-bold mb-4 text-primary">Contact Info</h2>
             <div className="space-y-1">
                 <div className="text-[16px]">
                     <p>{ownerName}</p>

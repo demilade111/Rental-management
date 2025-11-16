@@ -141,9 +141,9 @@ const TenancyInfo = ({ listingId }) => {
                         </div>
                     </div>
                 </Card>
-                <div className="grid grid-cols-7 gap-4 bg-gray-900/80 p-3 text-white font-semibold rounded-2xl opacity-70">
+                <div className="grid grid-cols-7 gap-4 bg-gray-900/20 p-3 text-white font-semibold rounded-2xl opacity-70">
                     {Array.from({ length: 7 }).map((_, idx) => (
-                        <div key={`tenancy-head-skeleton-${idx}`} className="h-4 bg-gray-700 rounded" />
+                        <div key={`tenancy-head-skeleton-${idx}`} className="h-4 bg-gray-900/20 rounded" />
                     ))}
                 </div>
                 <div className="space-y-3 h-[320px] overflow-hidden">
@@ -176,7 +176,7 @@ const TenancyInfo = ({ listingId }) => {
 
     if (!tenancyRecords.length) {
         return (
-            <div className="text-center py-12 text-gray-500 bg-white border border-gray-300 rounded-lg">
+            <div className="text-center py-12 text-gray-500 bg-card rounded-2xl">
                 <p>No tenancy records available for this property yet.</p>
             </div>
         );
@@ -226,87 +226,86 @@ const TenancyInfo = ({ listingId }) => {
                         </div>
                     )}
                 </div>
-                </Card>
+            </Card>
 
-                {/* Tenancy History */}
-                <div>
-                    <div className="grid grid-cols-7 gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
-                        <div>Tenant</div>
-                        <div className="border-l border-gray-600 pl-4">Lease</div>
-                        <div className="border-l border-gray-600 pl-4">Status</div>
-                        <div className="border-l border-gray-600 pl-4 text-right">Rent</div>
-                        <div className="border-l border-gray-600 pl-4">Term</div>
-                        <div className="border-l border-gray-600 pl-4">Duration</div>
-                        <div className="border-l border-gray-600 pl-4 text-center">Updated</div>
-                    </div>
-
-                    <div className="space-y-3 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
-                        {tenancyRecords.map((record) => (
-                            <Card
-                                key={record.id}
-                                className={`border border-gray-300 hover:shadow-md transition-shadow p-3 ${
-                                    record.status === 'ACTIVE' ? 'ring-2 ring-gray-900' : ''
-                                }`}
-                            >
-                                <div className="grid grid-cols-7 gap-4 items-center">
-                                    <div className="truncate">
-                                        <p className="font-semibold text-gray-900" title={record.tenantName}>
-                                            {record.tenantName}
-                                        </p>
-                                        <p className="text-xs text-gray-500 truncate">
-                                            {record.tenantEmail}
-                                        </p>
-                                    </div>
-
-                                    <div className="border-l border-gray-100 pl-4">
-                                        <p className="font-semibold text-gray-900">
-                                            {record.typeLabel}
-                                        </p>
-                                        <p className="text-xs text-gray-500 truncate">
-                                            {record.leaseName || '—'}
-                                        </p>
-                                    </div>
-
-                                    <div className="border-l border-gray-100 pl-4">
-                                        <Badge
-                                            className={`text-xs px-2 py-1 ${statusColors[record.status] || 'bg-gray-100 text-gray-800'}`}
-                                        >
-                                            {record.status}
-                                        </Badge>
-                                    </div>
-
-                                    <div className="border-l border-gray-100 pl-4 text-right">
-                                        <p className="text-sm font-semibold text-gray-900">
-                                            {formatRent(record.rentAmount, record.paymentFrequency)}
-                                        </p>
-                                    </div>
-
-                                    <div className="border-l border-gray-100 pl-4">
-                                        <p className="text-sm text-gray-900">
-                                            {formatTerm(record.startDate, record.endDate)}
-                                        </p>
-                                    </div>
-
-                                    <div className="border-l border-gray-100 pl-4">
-                                        <p className="text-sm text-gray-900">
-                                            {formatDuration(record.startDate, record.endDate)}
-                                        </p>
-                                    </div>
-
-                                    <div className="border-l border-gray-100 pl-4 text-center">
-                                        <p className="text-xs text-gray-600">
-                                            {record.updatedAt
-                                                ? formatDistanceToNow(new Date(record.updatedAt), {
-                                                      addSuffix: true,
-                                                  })
-                                                : '—'}
-                                        </p>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
+            {/* Tenancy History */}
+            <div>
+                <div className="grid grid-cols-7 gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
+                    <div>Tenant</div>
+                    <div className="border-l border-gray-600 pl-4">Lease</div>
+                    <div className="border-l border-gray-600 pl-4">Status</div>
+                    <div className="border-l border-gray-600 pl-4 text-right">Rent</div>
+                    <div className="border-l border-gray-600 pl-4">Term</div>
+                    <div className="border-l border-gray-600 pl-4">Duration</div>
+                    <div className="border-l border-gray-600 pl-4 text-center">Updated</div>
                 </div>
+
+                <div className="space-y-3 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
+                    {tenancyRecords.map((record) => (
+                        <Card
+                            key={record.id}
+                            className={`border border-gray-300 hover:shadow-md transition-shadow p-3 ${record.status === 'ACTIVE' ? 'ring-2 ring-gray-900' : ''
+                                }`}
+                        >
+                            <div className="grid grid-cols-7 gap-4 items-center">
+                                <div className="truncate">
+                                    <p className="font-semibold text-gray-900" title={record.tenantName}>
+                                        {record.tenantName}
+                                    </p>
+                                    <p className="text-xs text-gray-500 truncate">
+                                        {record.tenantEmail}
+                                    </p>
+                                </div>
+
+                                <div className="border-l border-gray-100 pl-4">
+                                    <p className="font-semibold text-gray-900">
+                                        {record.typeLabel}
+                                    </p>
+                                    <p className="text-xs text-gray-500 truncate">
+                                        {record.leaseName || '—'}
+                                    </p>
+                                </div>
+
+                                <div className="border-l border-gray-100 pl-4">
+                                    <Badge
+                                        className={`text-xs px-2 py-1 ${statusColors[record.status] || 'bg-gray-100 text-gray-800'}`}
+                                    >
+                                        {record.status}
+                                    </Badge>
+                                </div>
+
+                                <div className="border-l border-gray-100 pl-4 text-right">
+                                    <p className="text-sm font-semibold text-gray-900">
+                                        {formatRent(record.rentAmount, record.paymentFrequency)}
+                                    </p>
+                                </div>
+
+                                <div className="border-l border-gray-100 pl-4">
+                                    <p className="text-sm text-gray-900">
+                                        {formatTerm(record.startDate, record.endDate)}
+                                    </p>
+                                </div>
+
+                                <div className="border-l border-gray-100 pl-4">
+                                    <p className="text-sm text-gray-900">
+                                        {formatDuration(record.startDate, record.endDate)}
+                                    </p>
+                                </div>
+
+                                <div className="border-l border-gray-100 pl-4 text-center">
+                                    <p className="text-xs text-gray-600">
+                                        {record.updatedAt
+                                            ? formatDistanceToNow(new Date(record.updatedAt), {
+                                                addSuffix: true,
+                                            })
+                                            : '—'}
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

@@ -63,14 +63,14 @@ const AddressCard = ({ fullAddress, zipCode, onAddressGenerated }) => {
   }, [renderMap]);
 
   return (
-    <div className="bg-white border border-gray-400 rounded-lg p-6">
+    <div className="bg-card rounded-2xl p-6">
       {/* Header */}
       <div className="flex flex-row items-center mb-6">
         <div className="mr-3 flex items-center">
           <MapPin className="w-10 h-10 text-gray-700" />
         </div>
         <div className="flex flex-col justify-center flex-1">
-          <h2 className="text-xl font-bold">Address</h2>
+          <h2 className="text-xl font-bold text-primary">Address</h2>
           <p className="text-sm text-gray-700 break-words">
             {displayAddress || (zipCode ? `ZIP Code: ${zipCode}` : "No address provided")}
           </p>

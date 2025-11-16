@@ -79,7 +79,7 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
             {previewUrls.length === 0 && (
                 <label
                     htmlFor="property-photo-input"
-                    className="border-2 border-dashed border-gray-400 rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="border-2 border-dashed border-gray-400 rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-gray-50 transition-colors bg-card"
                 >
                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                     <span className="text-sm text-gray-600">Click to upload photos</span>
@@ -95,7 +95,7 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
                             type="button"
                             variant="outline"
                             size="icon"
-                            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-white shadow-md"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-primary-foreground shadow-md"
                             onClick={scrollLeft}
                             disabled={disabled}
                         >
@@ -150,7 +150,7 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
                             type="button"
                             variant="outline"
                             size="icon"
-                            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-white shadow-md"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-primary-foreground text-primary shadow-md"
                             onClick={scrollRight}
                             disabled={disabled}
                         >
@@ -165,7 +165,7 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
                             variant="outline"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={disabled}
-                            className="w-full"
+                            className="w-full bg-card"
                         >
                             <Upload className="w-4 h-4 mr-2" />
                             Add More Photos

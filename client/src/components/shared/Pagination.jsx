@@ -9,7 +9,7 @@ const Pagination = ({ page, totalPages, totalItems, onPageChange }) => {
             </div>
             <div className="flex gap-2">
                 <Button
-                    className="px-3 py-1 rounded-2xl disabled:opacity-50"
+                    className={`px-3 py-1 rounded-2xl disabled:opacity-50 ${page > 1 ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
                     disabled={page <= 1}
                     onClick={() => onPageChange(page - 1)}
                 >
@@ -21,7 +21,7 @@ const Pagination = ({ page, totalPages, totalItems, onPageChange }) => {
                 </span>
 
                 <Button
-                    className="px-3 py-1 rounded-2xl disabled:opacity-50"
+                    className={`px-3 py-1 rounded-2xl disabled:opacity-50 ${page < totalPages ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
                     disabled={page >= totalPages}
                     onClick={() => onPageChange(page + 1)}
                 >

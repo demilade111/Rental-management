@@ -102,9 +102,18 @@ const PropertyPortfolio = () => {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4 bg-background">
       <div className="flex-shrink-0">
-        <PageHeader title="Portfolio" subtitle="Per Property" total={displayTotal} />
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-[32px] sm:text-3xl md:text-4xl font-extrabold text-primary mb-1">
+              Portfolio {displayTotal !== undefined && (
+                <span className="text-primary font-semibold text-[28px]">({displayTotal})</span>
+              )}
+            </h1>
+            <p className="text-sm sm:text-base text-primary">Per Property</p>
+          </div>
+        </div>
 
         <PropertyTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         <PropertySearchBar
