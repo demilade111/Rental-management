@@ -28,8 +28,13 @@ export default function MaintenanceSearchBar({
     chips = [],
     removeChip,
     currentFilters = {},
-    disabled = false
+    disabled = false,
+    showCreateButton = true
 }) {
+    // Debug logging
+    console.log('MaintenanceSearchBar - showCreateButton prop:', showCreateButton);
+    console.log('MaintenanceSearchBar - will render button?', showCreateButton);
+    
     // local modal state (lightweight, instant open)
     const [open, setOpen] = useState(false);
     const [priority, setPriority] = useState("");
@@ -132,18 +137,20 @@ export default function MaintenanceSearchBar({
                 </div>
 
                 {/* Right side button */}
-                <div className="flex gap-2 w-full md:w-auto justify-end">
-                    <Button
-                        variant="outline"
-                        className="rounded-2xl border border-gray-900"
-                        onClick={onNewRequest}
-                        disabled={disabled}
-                        title={disabled ? "Your lease has been terminated. Maintenance requests are no longer available." : ""}
-                    >
-                        <Plus className="w-4 h-4 mr-2 rounded-full bg-gray-900 text-white" />
-                        New Request
-                    </Button>
-                </div>
+                {showCreateButton && (
+                    <div className="flex gap-2 w-full md:w-auto justify-end">
+                        <Button
+                            variant="outline"
+                            className="rounded-2xl border border-gray-900"
+                            onClick={onNewRequest}
+                            disabled={disabled}
+                            title={disabled ? "Your lease has been terminated. Maintenance requests are no longer available." : ""}
+                        >
+                            <Plus className="w-4 h-4 mr-2 rounded-full bg-gray-900 text-white" />
+                            New Request
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
         {/* Filter Modal (simple, no loading) */}

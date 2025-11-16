@@ -38,6 +38,38 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
+  // Fetch tenant's leases to detect terminated status
+  const { data: allLeases = [], isLoading: loadingLeases } = useQuery({
+    queryKey: ['tenant-all-leases-dashboard'],
+    queryFn: async () => {
+      // Standard leases
+      const standardResponse = await api.get(API_ENDPOINTS.TENANT_LEASES.BASE);
+      const standardData = standardResponse.data;
+      const standardLeases = Array.isArray(standardData)
+        ? standardData
+        : (standardData?.data || standardData?.leases || []);
+
+      // Custom leases
+      const customResponse = await api.get(API_ENDPOINTS.CUSTOM_LEASES.BASE);
+      const customData = customResponse.data;
+      const customLeases = Array.isArray(customData)
+        ? customData
+        : (customData?.data || customData?.leases || []);
+
+      // Filter custom leases for this tenant (backend should already filter, but double-check)
+      const tenantCustomLeases = customLeases.filter(
+        (lease) => lease.tenantId === user?.id
+      );
+
+      return [...standardLeases, ...tenantCustomLeases];
+    },
+    enabled: !!user,
+  });
+
+  const hasTerminatedLease = allLeases.some(
+    (lease) => lease.leaseStatus === 'TERMINATED'
+  );
+
   // Find current month's rent payment
   const currentMonthRent = (() => {
     const now = new Date();
@@ -236,10 +268,17 @@ const Dashboard = () => {
 
         {/* Outstanding Balance Card */}
         <div className="bg-white rounded-2xl border border-gray-300 p-6 md:p-8 mb-6 md:mb-8">
-          {loadingPayments ? (
+          {loadingPayments || loadingLeases ? (
             <div className="animate-pulse">
               <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
               <div className="h-12 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          ) : hasTerminatedLease ? (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-lg font-medium">No outstanding balance</p>
+              <p className="text-sm mt-2">
+                Your lease has been terminated, so outstanding balance is no longer shown.
+              </p>
             </div>
           ) : currentMonthRent ? (
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -249,30 +288,30 @@ const Dashboard = () => {
                   ${Number(currentMonthRent.amount).toFixed(2)}
                 </p>
               </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <Check size={14} className="text-white" />
-                    </div>
-                    <span className="text-sm font-medium">In transit</span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
+                  <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
+                    <Check size={14} className="text-white" />
                   </div>
-                  <input
-                    type="file"
-                    id="rent-receipt-upload"
-                    className="hidden"
-                    accept="image/*,application/pdf"
-                    onChange={handleFileSelect}
-                    disabled={uploadingReceipt}
-                  />
-                  <Button 
-                    className="bg-black text-white hover:bg-gray-800 px-6 py-2 rounded-2xl"
-                    onClick={() => document.getElementById('rent-receipt-upload').click()}
-                    disabled={uploadingReceipt || currentMonthRent.proofUrl || !currentMonthRent}
-                  >
-                    <Upload size={16} className="mr-2" />
-                    {uploadingReceipt ? 'Uploading...' : 'Upload Payment Proof'}
-                  </Button>
+                  <span className="text-sm font-medium">In transit</span>
                 </div>
+                <input
+                  type="file"
+                  id="rent-receipt-upload"
+                  className="hidden"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileSelect}
+                  disabled={uploadingReceipt}
+                />
+                <Button
+                  className="bg-black text-white hover:bg-gray-800 px-6 py-2 rounded-2xl"
+                  onClick={() => document.getElementById('rent-receipt-upload').click()}
+                  disabled={uploadingReceipt || currentMonthRent.proofUrl || !currentMonthRent}
+                >
+                  <Upload size={16} className="mr-2" />
+                  {uploadingReceipt ? 'Uploading...' : 'Upload Payment Proof'}
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
