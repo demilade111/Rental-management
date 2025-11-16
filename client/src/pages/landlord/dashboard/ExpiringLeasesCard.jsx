@@ -24,7 +24,7 @@ const chartConfig = {
         color: "var(--chart-2)",
     },
     expiring_soon: {
-        label: "Expiring Soon",
+        label: "Expiring Leases",
         color: "var(--chart-3)",
     },
 };
@@ -134,10 +134,12 @@ const ExpiringLeasesCard = () => {
             return daysUntilExpiry <= 30 && status === 'ACTIVE';
         }).length;
 
+        // Use a minimal render value for zero counts to keep bars visible
+        const toRenderValue = (value) => (value > 0 ? value : 0.05);
         return [
-            { browser: "draft", expiring_leases: draft, fill: "var(--color-draft)" },
-            { browser: "active", expiring_leases: active, fill: "var(--color-active)" },
-            { browser: "expiring_soon", expiring_leases: expiringSoon, fill: "var(--color-expiring_soon)" },
+            { browser: "draft", expiring_leases: draft, render_value: toRenderValue(draft), fill: "var(--color-draft)" },
+            { browser: "active", expiring_leases: active, render_value: toRenderValue(active), fill: "var(--color-active)" },
+            { browser: "expiring_soon", expiring_leases: expiringSoon, render_value: toRenderValue(expiringSoon), fill: "var(--color-expiring_soon)" },
         ];
     }, [leases, activeFilter]);
 
@@ -145,8 +147,8 @@ const ExpiringLeasesCard = () => {
     const showLoading = isLoading && isFetched;
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
-            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-6">Expiring Leases</h3>
+        <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
+            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-6 text-primary">Expiring Leases</h3>
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-3 justify-start flex-shrink-0">
                 {filters.map((filter) => (
@@ -154,7 +156,7 @@ const ExpiringLeasesCard = () => {
                         key={filter.id}
                         onClick={() => setActiveFilter(filter.id)}
                         className={`px-2 sm:px-3 py-1 rounded-full text-xs font-bold transition-colors ${activeFilter === filter.id
-                            ? 'bg-gray-800 text-white'
+                            ? (filter.id === 'all' ? 'bg-primary text-white' : 'bg-gray-800 text-white')
                             : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
                             }`}
                     >
@@ -167,7 +169,7 @@ const ExpiringLeasesCard = () => {
                 <div className="flex-1 flex items-center justify-center min-h-[220px]">
                     <LoadingState message="Loading leases..." compact={true} />
                 </div>
-            ) : chartData.length === 0 || chartData.every(d => d.expiring_leases === 0) ? (
+            ) : chartData.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center min-h-[220px]">
                     {isLoading && !isFetched ? (
                         <div className="animate-pulse w-full space-y-3">
@@ -180,27 +182,27 @@ const ExpiringLeasesCard = () => {
                     )}
                 </div>
             ) : (
-                <div className="flex-1 min-h-[220px] max-h-[220px] overflow-hidden">
+                <div className="flex-1 min-h-[220px] max-h-[220px] overflow-hidden fade-in">
                     <ChartContainer config={chartConfig} className="h-full">
                         <BarChart
                             accessibilityLayer
                             data={chartData}
                             layout="vertical"
                             barCategoryGap="5%"
-                            margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
+                            margin={{ top: 10, right: 0, bottom: 10, left: 50 }}
                         >
                             <YAxis
                                 dataKey="browser"
                                 type="category"
                                 tickLine={false}
-                                tickMargin={70}
+                                tickMargin={150}
                                 axisLine={true}
-                                width={80}
+                                width={140}
                                 tickFormatter={(value) => chartConfig[value]?.label}
-                                tick={{ fontSize: 12, textAnchor: 'start' }}
+                                tick={{ fontSize: 16, textAnchor: 'start' }}
                                 style={{ fill: '#000' }}
                             />
-                            <XAxis dataKey="expiring_leases" type="number" hide />
+                            <XAxis dataKey="render_value" type="number" hide />
                             <ChartTooltip
                                 cursor={false}
                                 content={<ChartTooltipContent
@@ -214,13 +216,13 @@ const ExpiringLeasesCard = () => {
                                                     className="w-3 h-3 rounded"
                                                     style={{ backgroundColor: color }}
                                                 />
-                                                <span>{label}: {value}</span>
+                                                <span>{label}: {item.payload.expiring_leases}</span>
                                             </div>
                                         ];
                                     }}
                                 />}
                             />
-                            <Bar dataKey="expiring_leases" layout="vertical" radius={[0, 16, 16, 0]} barSize={20} />
+                            <Bar dataKey="render_value" layout="vertical" radius={[0, 16, 16, 0]} barSize={28} />
                         </BarChart>
                     </ChartContainer>
                 </div>

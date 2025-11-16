@@ -138,12 +138,12 @@ const RentersInsuranceCard = () => {
 
     if (loading) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
-                <Skeleton className="h-7 md:h-8 lg:h-[32px] w-48 mb-2" />
+            <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
+                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Renters Insurance</h2>
                 
                 <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px]">
                     {/* Chart Skeleton */}
-                    <div className="w-20 sm:w-24 lg:w-32 h-56 flex-shrink-0 -ml-2">
+                    <div className="w-20 sm:w-24 lg:w-32 h-64 flex-shrink-0 -ml-2">
                         <Skeleton className="w-full h-full rounded-lg" />
                     </div>
 
@@ -185,13 +185,13 @@ const RentersInsuranceCard = () => {
     }
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
-            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Renters Insurance</h2>
+        <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
+            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Renters Insurance</h2>
             
-            <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px]">
+            <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px] fade-in">
                 {/* Chart Container */}
                 <div 
-                    className="w-20 sm:w-24 lg:w-32 h-56 flex-shrink-0 p-0 -ml-2 rounded-lg overflow-hidden"
+                    className="w-20 sm:w-24 lg:w-32 h-64 flex-shrink-0 p-0 -ml-2 rounded-lg overflow-hidden pt-3"
                     style={{ clipPath: 'inset(0 round 0.5rem)' }}
                 >
                     <ResponsiveContainer width="100%" height="100%">
@@ -199,41 +199,41 @@ const RentersInsuranceCard = () => {
                             <XAxis type="category" dataKey="category" hide />
                             <YAxis type="number" hide domain={[0, adjustedMaxValue]} />
                             <defs>
-                                {/* Light gray pattern */}
-                                <pattern id="patternLight" patternUnits="userSpaceOnUse" width="8" height="8">
-                                    <rect width="8" height="8" fill="#d1d5db" />
-                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="#b8bcc4" strokeWidth="1.5" />
+                                {/* Accent (insured) diagonal stripe pattern */}
+                                <pattern id="patternAccent" patternUnits="userSpaceOnUse" width="8" height="8">
+                                    <rect width="8" height="8" fill="var(--chart-1)" />
+                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="white" strokeWidth="1.5" strokeOpacity="0.35" />
                                 </pattern>
-                                {/* Dark gray pattern */}
-                                <pattern id="patternDark" patternUnits="userSpaceOnUse" width="8" height="8">
-                                    <rect width="8" height="8" fill="#6b7280" />
-                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="#505559" strokeWidth="1.5" />
+                                {/* Secondary-foreground (uninsured) diagonal stripe pattern */}
+                                <pattern id="patternSecondary" patternUnits="userSpaceOnUse" width="8" height="8">
+                                    <rect width="8" height="8" fill="var(--chart-3)" />
+                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="white" strokeWidth="1.5" strokeOpacity="0.2" />
                                 </pattern>
                             </defs>
                             <Bar 
                                 dataKey="notified" 
                                 stackId="a" 
                                 radius={[0, 0, 10, 10]} 
-                                fill="#6b7280"
+                                fill="var(--chart-3)"
                                 minPointSize={2}
                             />
                             <Bar 
                                 dataKey="notNotified" 
                                 stackId="a" 
-                                fill="url(#patternDark)"
+                                fill="url(#patternSecondary)"
                                 minPointSize={2}
                             />
                             <Bar 
                                 dataKey="notExpiring" 
                                 stackId="a" 
-                                fill="#d1d5db"
+                                fill="var(--chart-1)"
                                 minPointSize={0}
                             />
                             <Bar 
                                 dataKey="expiringInThirty" 
                                 stackId="a" 
                                 radius={[10, 10, 0, 0]} 
-                                fill="url(#patternLight)"
+                                fill="url(#patternAccent)"
                                 minPointSize={2}
                             />
                         </BarChart>
@@ -252,17 +252,17 @@ const RentersInsuranceCard = () => {
                                     style={{
                                         background: `repeating-linear-gradient(
                                             45deg,
-                                            #d1d5db,
-                                            #d1d5db 4px,
-                                            #b8bcc4 4px,
-                                            #b8bcc4 5px
+                                            var(--chart-1),
+                                            var(--chart-1) 4.5px,
+                                            rgba(255,255,255,0.35) 4px,
+                                            rgba(255,255,255,0.35) 5px
                                         )`
                                     }} 
                                 />
                                 <span className="text-[17px]">Expiring in 30 days ({stats.expiringInThirty})</span>
                             </div>
                             <div className="flex items-center gap-3.5 ml-3">
-                                <div className="w-8 h-8 rounded-lg flex-shrink-0 bg-gray-300" />
+                                <div className="w-8 h-8 rounded-lg flex-shrink-0" style={{ background: 'var(--chart-1)' }} />
                                 <span className="text-[17px]">Not expiring soon ({stats.notExpiring})</span>
                             </div>
                         </div>
@@ -278,17 +278,17 @@ const RentersInsuranceCard = () => {
                                     style={{
                                         background: `repeating-linear-gradient(
                                             45deg,
-                                            #6b7280,
-                                            #6b7280 4px,
-                                            #505559 4px,
-                                            #505559 5px
+                                            var(--chart-3),
+                                            var(--chart-3) 4.5px,
+                                            rgba(255,255,255,0.2) 4px,
+                                            rgba(255,255,255,0.2) 5px
                                         )`
                                     }} 
                                 />
                                 <span className="text-[17px]">Pending ({stats.notNotified})</span>
                             </div>
                             <div className="flex items-center gap-3.5 ml-3">
-                                <div className="w-8 h-8 rounded-lg flex-shrink-0 bg-gray-500" />
+                                <div className="w-8 h-8 rounded-lg flex-shrink-0" style={{ background: 'var(--chart-3)' }} />
                                 <span className="text-[17px]">Rejected ({stats.notified})</span>
                             </div>
                         </div>

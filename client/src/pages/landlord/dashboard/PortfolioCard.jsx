@@ -42,8 +42,8 @@ const PortfolioCard = () => {
 
     if (isLoading) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
-                <Skeleton className="h-7 w-32 mb-2" />
+            <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
+                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Portfolio</h2>
                 
                 {/* Category Labels Skeleton */}
                 <div className="relative mb-1">
@@ -87,8 +87,8 @@ const PortfolioCard = () => {
 
     if (!hasData) {
         return (
-            <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
-                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
+            <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
+                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Portfolio</h2>
                 <div className="text-center py-4 text-gray-500">
                     No properties in portfolio
                 </div>
@@ -97,14 +97,14 @@ const PortfolioCard = () => {
     }
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
-            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2">Portfolio</h2>
+        <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start fade-in">
+            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Portfolio</h2>
             
             {/* Category Labels with Markers */}
             <div className="relative mb-1 overflow-visible">
                 <div className="flex justify-between items-center w-full">
-                    <div className="flex items-center flex-shrink-0"><span className="text-sm font-semibold">Listed</span><span className="text-sm font-semibold ml-1">({totalListed})</span><svg className="ml-1.5" width="10" height="10" viewBox="0 0 12 12"><polygon points="6,0 12,12 0,12" fill="#374151" /></svg></div>
-                    <div className="flex items-center flex-shrink-0 ml-auto"><svg className="mr-1.5" width="10" height="10" viewBox="0 0 12 12"><polygon points="6,0 12,12 0,12" fill="#374151" /></svg><span className="text-sm font-semibold">Occupied</span><span className="text-sm font-semibold ml-1">({totalOccupied})</span></div>
+                    <div className="flex items-center flex-shrink-0"><span className="text-sm font-semibold">Listed</span><span className="text-sm font-semibold ml-1">({totalListed})</span><svg className="ml-1.5" width="10" height="10" viewBox="0 0 12 12"><polygon points="6,0 12,12 0,12" fill="var(--chart-1)" /></svg></div>
+                    <div className="flex items-center flex-shrink-0 ml-auto"><svg className="mr-1.5" width="10" height="10" viewBox="0 0 12 12"><polygon points="6,0 12,12 0,12" fill="var(--chart-3)" /></svg><span className="text-sm font-semibold">Occupied</span><span className="text-sm font-semibold ml-1">({totalOccupied})</span></div>
                 </div>
             </div>
 
@@ -114,8 +114,21 @@ const PortfolioCard = () => {
                     {/* Listed (Vacant) */}
                     {chartData.listed > 0 && (
                         <div 
-                            className="bg-gray-600 h-full flex items-center justify-center text-white text-xs font-semibold transition-all"
-                            style={{ width: `${(chartData.listed / totalProperties) * 100}%` }}
+                            className="h-full flex items-center justify-center text-white text-xs font-semibold transition-all"
+                            // Accent base
+                            role="presentation"
+                            aria-hidden="true"
+                            // Inline style for color to leverage CSS variables
+                            // eslint-disable-next-line react/no-unknown-property
+                            data-color="chart-1"
+                            /* Use CSS var for background to match Insured range */
+                            // @ts-ignore
+                            // React accepts style prop below
+                            // We intentionally keep it inline to ensure runtime theming
+                            // via CSS variables without extra classes
+                            // prettier-ignore
+                            // eslint-disable-next-line react/style-prop-object
+                            style={{ width: `${(chartData.listed / totalProperties) * 100}%`, background: 'var(--chart-1)' }}
                             title={`Listed: ${chartData.listed}`}
                         >
                             {chartData.listed}
@@ -125,8 +138,8 @@ const PortfolioCard = () => {
                     {/* Occupied (Rented) */}
                     {chartData.occupied > 0 && (
                         <div 
-                            className="bg-gray-300 h-full flex items-center justify-center text-gray-700 text-xs font-semibold transition-all"
-                            style={{ width: `${(chartData.occupied / totalProperties) * 100}%` }}
+                            className="h-full flex items-center justify-center text-white text-xs font-semibold transition-all"
+                            style={{ width: `${(chartData.occupied / totalProperties) * 100}%`, background: 'var(--chart-3)' }}
                             title={`Occupied: ${chartData.occupied}`}
                         >
                             {chartData.occupied}
@@ -136,11 +149,11 @@ const PortfolioCard = () => {
             </div>
 
             {/* Legend */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm mb-2.5">
                 {/* Listed Section */}
                 <div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 bg-gray-600 rounded"></div>
+                        <div className="w-3 h-3 rounded" style={{ background: 'var(--chart-1)' }}></div>
                         <span className="font-semibold text-sm">Listed ({chartData.listed})</span>
                     </div>
                     <p className="text-xs text-gray-500 ml-4.5">Available listings</p>
@@ -149,7 +162,7 @@ const PortfolioCard = () => {
                 {/* Occupied Section */}
                 <div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 bg-gray-300 rounded"></div>
+                        <div className="w-3 h-3 rounded" style={{ background: 'var(--chart-3)' }}></div>
                         <span className="font-semibold text-sm">Occupied ({chartData.occupied})</span>
                     </div>
                     <p className="text-xs text-gray-500 ml-4.5">Rented properties</p>

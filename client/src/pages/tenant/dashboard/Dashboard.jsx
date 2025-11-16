@@ -267,7 +267,7 @@ const Dashboard = () => {
         </h1>
 
         {/* Outstanding Balance Card */}
-        <div className="bg-white rounded-2xl border border-gray-300 p-6 md:p-8 mb-6 md:mb-8">
+        <div className="bg-white rounded-2xl p-6 md:p-8 mb-6 md:mb-8">
           {loadingPayments || loadingLeases ? (
             <div className="animate-pulse">
               <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
@@ -324,7 +324,7 @@ const Dashboard = () => {
         {/* Two Column Section - Notice & Maintenance */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8">
           {/* Notice Card */}
-          <div className="bg-white rounded-2xl border border-gray-300 p-6">
+          <div className="bg-white rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl md:text-3xl font-semibold">Notice</h2>
               <Bell size={24} className="text-black fill-black" />
@@ -362,7 +362,7 @@ const Dashboard = () => {
           </div>
 
           {/* Maintenance Card */}
-          <div className="bg-white rounded-2xl border border-gray-300 p-6">
+          <div className="bg-white rounded-2xl p-6">
             <h2 className="text-2xl md:text-3xl font-semibold mb-6">Maintenance</h2>
             <div className="flex flex-col gap-6">
               {loadingMaintenance ? (
@@ -410,7 +410,7 @@ const Dashboard = () => {
         </div>
 
         {/* Insurance Section */}
-        <div className="bg-white rounded-2xl border border-gray-300 p-6">
+        <div className="bg-white rounded-2xl p-6">
           <h2 className="text-xl md:text-2xl font-semibold mb-6">Insurance</h2>
 
           {loadingInsurance ? (

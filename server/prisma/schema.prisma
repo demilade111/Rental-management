@@ -244,20 +244,20 @@ model Listing {
   zipCode       String?
 
   // Rental Information
-  rentCycle           RentCycle
-  rentAmount          Float
-  securityDeposit     Float?
-  petDeposit          Float?
-  availableDate       DateTime
-  status              ListingStatus        @default(ACTIVE)
-  description         String?
-  contactName         String?
-  phoneNumber         String?
-  email               String?
-  notes               String?
-  
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  rentCycle       RentCycle
+  rentAmount      Float
+  securityDeposit Float?
+  petDeposit      Float?
+  availableDate   DateTime
+  status          ListingStatus @default(ACTIVE)
+  description     String?
+  contactName     String?
+  phoneNumber     String?
+  email           String?
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   landlord            User                 @relation("LandlordListings", fields: [landlordId], references: [id], onDelete: Cascade)
@@ -360,28 +360,28 @@ model Lease {
   tenantOtherEmail  String?
   additionalTenants Json?
 
-  unitNumber        String?
+  unitNumber String?
 
   allowsOccupants   Boolean @default(false)
   occupants         Json?
   numberOfOccupants Int?
 
   // Standard Lease Form Fields
-  periodicBasis       String?
-  periodicOther       String?
-  fixedEndCondition   String?
-  vacateReason        String?
-  petDeposit          Float?
-  petDepositDueDate   DateTime?
+  periodicBasis          String?
+  periodicOther          String?
+  fixedEndCondition      String?
+  vacateReason           String?
+  petDeposit             Float?
+  petDepositDueDate      DateTime?
   securityDepositDueDate DateTime?
-  includedServices    Json?
-  parkingSpaces       Int?
+  includedServices       Json?
+  parkingSpaces          Int?
 
   // Termination tracking
-  terminationDate     DateTime?
-  terminationReason   String?
-  terminationNotes    String?
-  terminatedBy        String?
+  terminationDate   DateTime?
+  terminationReason String?
+  terminationNotes  String?
+  terminatedBy      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -421,11 +421,11 @@ model CustomLease {
   depositAmount    Float?
   paymentDay       Int?
   paymentMethod    String?
-  
-  accountingNotes  String?
 
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  accountingNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   listing             Listing?             @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -440,32 +440,32 @@ model CustomLease {
 }
 
 model Payment {
-  id            String        @id @default(cuid())
+  id            String  @id @default(cuid())
   leaseId       String?
   customLeaseId String?
   landlordId    String
   tenantId      String?
-  
-  type          PaymentType
-  amount        Float
-  status        PaymentStatus @default(PENDING)
-  dueDate       DateTime?
-  paidDate      DateTime?
-  
+
+  type     PaymentType
+  amount   Float
+  status   PaymentStatus @default(PENDING)
+  dueDate  DateTime?
+  paidDate DateTime?
+
   paymentMethod String?
   reference     String?
   notes         String?
   proofUrl      String?
-  
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  lease         Lease?        @relation(fields: [leaseId], references: [id], onDelete: Cascade)
-  customLease   CustomLease?  @relation(fields: [customLeaseId], references: [id], onDelete: Cascade)
-  landlord      User          @relation("LandlordPayments", fields: [landlordId], references: [id])
-  tenant        User?         @relation("TenantPayments", fields: [tenantId], references: [id])
-  invoice       Invoice?
+  lease       Lease?       @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  customLease CustomLease? @relation(fields: [customLeaseId], references: [id], onDelete: Cascade)
+  landlord    User         @relation("LandlordPayments", fields: [landlordId], references: [id])
+  tenant      User?        @relation("TenantPayments", fields: [tenantId], references: [id])
+  invoice     Invoice?
 
   @@index([leaseId])
   @@index([customLeaseId])
@@ -476,28 +476,28 @@ model Payment {
 }
 
 model MaintenanceRequest {
-  id            String               @id @default(cuid())
+  id            String              @id @default(cuid())
   listingId     String
   userId        String
   description   String
-  status        MaintenanceStatus    @default(OPEN)
-  priority      MaintenancePriority  @default(MEDIUM)
+  status        MaintenanceStatus   @default(OPEN)
+  priority      MaintenancePriority @default(MEDIUM)
   category      MaintenanceCategory
   title         String
   leaseId       String?
   customLeaseId String?
-  
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  listing       Listing              @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  user          User                 @relation(fields: [userId], references: [id])
-  lease         Lease?               @relation(fields: [leaseId], references: [id])
-  customLease   CustomLease?         @relation(fields: [customLeaseId], references: [id])
-  images        MaintenanceImage[]
-  messages      MaintenanceMessage[]
-  invoices      Invoice[]
+  listing     Listing              @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user        User                 @relation(fields: [userId], references: [id])
+  lease       Lease?               @relation(fields: [leaseId], references: [id])
+  customLease CustomLease?         @relation(fields: [customLeaseId], references: [id])
+  images      MaintenanceImage[]
+  messages    MaintenanceMessage[]
+  invoices    Invoice[]
 
   @@index([userId, createdAt])
   @@index([listingId, createdAt])
@@ -553,15 +553,15 @@ model RequestApplication {
   decisionNotes  String?
   leaseId        String?
   expirationDate DateTime?
-  
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  listing        Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  landlord       User              @relation("LandlordApplications", fields: [landlordId], references: [id])
-  tenant         User?             @relation("TenantApplications", fields: [tenantId], references: [id])
-  lease          Lease?            @relation(fields: [leaseId], references: [id])
+  listing        Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  landlord       User             @relation("LandlordApplications", fields: [landlordId], references: [id])
+  tenant         User?            @relation("TenantApplications", fields: [tenantId], references: [id])
+  lease          Lease?           @relation(fields: [leaseId], references: [id])
   employmentInfo EmploymentInfo[]
 
   @@index([listingId])
@@ -620,21 +620,21 @@ model Notification {
 }
 
 model Invoice {
-  id                    String              @id @default(cuid())
-  maintenanceRequestId  String
-  maintenanceRequest    MaintenanceRequest  @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
-  paymentId             String?             @unique
-  payment               Payment?            @relation(fields: [paymentId], references: [id], onDelete: SetNull)
-  description           String
-  amount                Float
-  status                InvoiceStatus       @default(PENDING)
-  sharedWithTenant      Boolean             @default(true)
-  sharedWithLandlord    Boolean             @default(true)
-  createdById           String?
-  createdBy             User?               @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  createdByRole         UserRole?
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  id                   String             @id @default(cuid())
+  maintenanceRequestId String
+  maintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
+  paymentId            String?            @unique
+  payment              Payment?           @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  description          String
+  amount               Float
+  status               InvoiceStatus      @default(PENDING)
+  sharedWithTenant     Boolean            @default(true)
+  sharedWithLandlord   Boolean            @default(true)
+  createdById          String?
+  createdBy            User?              @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByRole        UserRole?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
   @@index([maintenanceRequestId])
   @@index([paymentId])
@@ -643,32 +643,32 @@ model Invoice {
 }
 
 model TenantInsurance {
-  id               String          @id @default(cuid())
-  tenantId         String
-  leaseId          String?
-  customLeaseId    String?
-  providerName     String
-  policyNumber     String
-  coverageType     String
-  coverageAmount   Float?
-  monthlyCost      Float?
-  startDate        DateTime
-  expiryDate       DateTime
-  documentUrl      String
-  documentKey      String
-  status           InsuranceStatus @default(PENDING)
-  verifiedBy       String?
-  verifiedAt       DateTime?
-  rejectionReason  String?
-  notes            String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  tenantId        String
+  leaseId         String?
+  customLeaseId   String?
+  providerName    String
+  policyNumber    String
+  coverageType    String
+  coverageAmount  Float?
+  monthlyCost     Float?
+  startDate       DateTime
+  expiryDate      DateTime
+  documentUrl     String
+  documentKey     String
+  status          InsuranceStatus @default(PENDING)
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  rejectionReason String?
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   // Relations
-  tenant       User         @relation("TenantInsurances", fields: [tenantId], references: [id], onDelete: Cascade)
-  lease        Lease?       @relation(fields: [leaseId], references: [id], onDelete: SetNull)
-  customLease  CustomLease? @relation(fields: [customLeaseId], references: [id], onDelete: SetNull)
-  verifier     User?        @relation("VerifiedInsurances", fields: [verifiedBy], references: [id], onDelete: SetNull)
+  tenant      User         @relation("TenantInsurances", fields: [tenantId], references: [id], onDelete: Cascade)
+  lease       Lease?       @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+  customLease CustomLease? @relation(fields: [customLeaseId], references: [id], onDelete: SetNull)
+  verifier    User?        @relation("VerifiedInsurances", fields: [verifiedBy], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([leaseId])

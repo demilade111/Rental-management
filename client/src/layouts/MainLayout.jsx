@@ -83,14 +83,14 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         navItems={navItems}
         activeNav={activeNav}
         setActiveNav={handleNavChange}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 flex flex-col overflow-hidden bg-background dark:bg-gray-900">
         <Header user={user} isLandlord={isLandlord} />
 
         <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">

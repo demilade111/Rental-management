@@ -1075,18 +1075,6 @@ async function main() {
 
   console.log("🔧 Creating 25+ maintenance requests...");
 
-  // Universally accessible placeholder images for maintenance (avoid S3 dependency)
-  const maintenancePhotos = [
-    "https://picsum.photos/seed/maintenance1/800/600",
-    "https://picsum.photos/seed/maintenance2/800/600",
-    "https://picsum.photos/seed/maintenance3/800/600",
-    "https://picsum.photos/seed/maintenance4/800/600",
-    "https://picsum.photos/seed/maintenance5/800/600",
-    "https://picsum.photos/seed/maintenance6/800/600",
-    "https://picsum.photos/seed/maintenance7/800/600",
-    "https://picsum.photos/seed/maintenance8/800/600",
-  ];
-
   const maintenanceIssues = [
     { title: "Air Conditioning Not Working", desc: "AC unit not cooling properly. Thermostat shows correct temperature but air coming out is warm.", priority: "HIGH", category: "HVAC" },
     { title: "Leaking Faucet in Kitchen", desc: "Kitchen sink faucet has a constant drip that's getting worse.", priority: "MEDIUM", category: "PLUMBING" },
@@ -1144,16 +1132,6 @@ async function main() {
           issue.status === "COMPLETED"
             ? new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000)
             : createdDate,
-        images: {
-          create: [
-            {
-              url:
-                maintenancePhotos[
-                  Math.floor(Math.random() * maintenancePhotos.length)
-                ],
-            },
-          ],
-        },
       },
     });
   }
@@ -1183,16 +1161,6 @@ async function main() {
                   Math.random() * 14 * 24 * 60 * 60 * 1000
               )
             : createdDate,
-        images: {
-          create: [
-            {
-              url:
-                maintenancePhotos[
-                  Math.floor(Math.random() * maintenancePhotos.length)
-                ],
-            },
-          ],
-        },
       },
     });
   }

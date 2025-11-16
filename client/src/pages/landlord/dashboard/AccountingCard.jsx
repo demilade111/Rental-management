@@ -9,6 +9,7 @@ import {
 import api from '@/lib/axios';
 import { API_ENDPOINTS } from '@/lib/apiEndpoints';
 import LoadingState from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Chart config for accounting data
 const accountingChartConfig = {
@@ -21,11 +22,11 @@ const accountingChartConfig = {
     },
     overdue: {
         label: "Overdue",
-        color: "#ef4444",
+        color: "var(--chart-1)",
     },
     paid: {
         label: "Paid (Month)",
-        color: "#64748b",
+        color: "var(--chart-3)",
     },
 };
 
@@ -47,19 +48,19 @@ const AccountingCard = () => {
                 name: 'Outstanding Balances',
                 displayName: ['Outstanding', 'Balances'],
                 value: summary.outstanding.total || 0, 
-                fill: '#8b5cf6' 
+                fill: 'var(--chart-2)' 
             },
             { 
                 name: 'Overdue',
                 displayName: ['Overdue'],
                 value: summary.overdue.total || 0, 
-                fill: '#ef4444' 
+                fill: 'var(--chart-1)' 
             },
             { 
                 name: 'Paid (Month)',
                 displayName: ['Paid (Month)'],
                 value: summary.paid.total || 0, 
-                fill: '#64748b' 
+                fill: 'var(--chart-3)' 
             }
         ];
     }, [summary]);
@@ -68,8 +69,8 @@ const AccountingCard = () => {
     const showLoading = isLoading && isFetched;
 
     return (
-        <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 h-full overflow-hidden flex flex-col min-h-[350px]">
-            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 flex-shrink-0">Accounting</h3>
+        <div className="bg-card rounded-2xl p-5 md:p-6 h-full overflow-hidden flex flex-col min-h-[350px]">
+            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 flex-shrink-0 text-primary">Accounting</h3>
             {showLoading ? (
                 <div className="flex-1 flex items-center justify-center min-h-[280px]">
                     <LoadingState message="Loading accounting data..." compact={true} />
@@ -77,16 +78,48 @@ const AccountingCard = () => {
             ) : accountingData.length === 0 || accountingData.every(d => d.value === 0) ? (
                 <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center min-h-[280px]">
                     {isLoading ? (
-                        <div className="animate-pulse">
-                            <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-24"></div>
+                        <div className="flex flex-col lg:flex-row items-center gap-6 w-full">
+                            {/* Legend skeleton - Left */}
+                            <div className="w-full lg:w-auto order-2 lg:order-1 flex-shrink-0 animate-pulse">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="mb-4 flex">
+                                        <div className="min-w-4 w-4 h-4 rounded-full mr-3 mt-1 bg-gray-200" />
+                                        <div>
+                                            <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
+                                            <div className="h-3 bg-gray-200 rounded w-24" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Donut skeleton - Right */}
+                            <div className="w-full lg:flex-1 order-1 lg:order-2 flex justify-start items-center">
+                                <div className="w-56 h-56 max-w-full relative animate-pulse">
+                                    <div className="w-full h-full rounded-full border-8 border-gray-200" />
+                                    <div className="absolute inset-8 rounded-full bg-card" />
+                                    <div className="absolute inset-0">
+                                        <svg viewBox="0 0 100 100" className="w-full h-full">
+                                            <circle
+                                                cx="50"
+                                                cy="50"
+                                                r="40"
+                                                fill="none"
+                                                stroke="#d1d5db"
+                                                strokeWidth="8"
+                                                strokeDasharray="120 314"
+                                                strokeLinecap="round"
+                                                transform="rotate(-90 50 50)"
+                                            />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         'No payment data available'
                     )}
                 </div>
             ) : (
-                <div className="flex flex-col lg:flex-row items-center gap-6 flex-1 min-h-0">
+                <div className="flex flex-col lg:flex-row items-center gap-6 flex-1 min-h-0 fade-in">
                     {/* Legend - Left Side */}
                     <div className="w-full lg:w-auto order-2 lg:order-1 flex-shrink-0">
                         {accountingData.map((item) => (

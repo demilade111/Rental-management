@@ -43,38 +43,40 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+
+  /* Colors */
+  --background: #F8F7EE;
+  --foreground: #1D3742; /* dark text */
+  --card: #FEFFF8;
+  --card-foreground: #1D3742;
+
+  /* Main brand */
+  --primary: #1D3742;
+  --primary-foreground: #FEFFF8;
+
+  /* Secondary / accent tones (optional) */
+  --secondary: #FFBA53;
+  --secondary-foreground: #1D3742;
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Neutral UI elements */
+  --border: #E6E6E6;
+  --input: #E6E6E6;
+  --ring: #1D3742;
+
+  /* Chart colors */
+  --chart-1: #E57667;
+  --chart-2: #FFBA53;
+  --chart-3: #53848F;
+
+  /* Sidebar (optional) */
+  --sidebar: #FEFFF8;
+  --sidebar-foreground: #1D3742;
+  --sidebar-primary: #1D3742;
+  --sidebar-primary-foreground: #FEFFF8;
 }
+
 
 .dark {
   --background: oklch(0.145 0 0);
@@ -130,79 +132,19 @@
   label {
     font-weight: 500;
   }
-  button {
-    cursor: pointer;
-  }
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+/* Smooth fade-in for data content when it appears */
+.fade-in {
+  animation: fadeIn 900ms ease-in-out;
 }
-
-.shimmer-container {
-  position: relative;
-  overflow: hidden;
-}
-
-.shimmer-bar {
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-  animation: shimmer 1.2s infinite;
-}
-
-/* Print Styles for PDF Export */
-@media print {
-  /* Hide navigation, buttons, and interactive elements */
-  header, nav, aside, 
-  button, svg, input, textarea,
-  [role="button"] {
-    display: none !important;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  /* Ensure content fills the page */
-  body {
-    margin: 0;
-    padding: 20px;
-    background: white;
-    color: black;
-  }
-  
-  /* Remove any overflow hidden that might clip content */
-  * {
-    overflow: visible !important;
-  }
-  
-  /* Optimize layout for printing */
-  .h-full, .h-screen {
-    height: auto !important;
-  }
-  
-  /* Ensure images print properly */
-  img {
-    max-width: 100%;
-    page-break-inside: avoid;
-  }
-  
-  /* Avoid breaking inside important sections */
-  section, article, div[class*="card"] {
-    page-break-inside: avoid;
-  }
-  
-  /* Remove shadows and borders that don't print well */
-  * {
-    box-shadow: none !important;
-  }
-  
-  /* Ensure text is black for better printing */
-  h1, h2, h3, h4, h5, h6, p, span, div {
-    color: black !important;
-  }
-  
-  /* Page breaks */
-  h1, h2, h3 {
-    page-break-after: avoid;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

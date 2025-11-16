@@ -144,10 +144,10 @@ const Dashboard = () => {
           <AccountingCard />
 
           {/* Applicants */}
-          <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 flex flex-col h-full min-h-[350px] overflow-hidden">
+          <div className="bg-card rounded-2xl p-5 md:p-6 flex flex-col h-full min-h-[350px] overflow-hidden">
             <div className="flex items-center justify-between mb-8 flex-shrink-0">
-              <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold">
-                Applicants
+              <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold text-primary">
+                Applications
               </h3>
               <button
                 type="button"
@@ -176,7 +176,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <table className="w-full border-collapse min-w-[400px]">
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-300">
                     {applications.slice(0, 5).map((app) => {
                       const listing = app.listing;
                       const address = listing?.streetAddress 
@@ -188,7 +188,7 @@ const Dashboard = () => {
                       const displayStatus = app.status;
                       
                       return (
-                        <tr key={app.id} className="border-b border-gray-100">
+                        <tr key={app.id} className="border-b border-gray-300">
                           <td className="text-xs sm:text-sm font-semibold text-gray-900 py-3 max-w-[200px] truncate">
                             {address}
                           </td>
@@ -197,7 +197,7 @@ const Dashboard = () => {
                           </td>
                           <td className="text-right py-2.5">
                             <span
-                              className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${getStatusColor(
+                              className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getStatusColor(
                                 displayStatus
                               )}`}
                             >
@@ -224,8 +224,8 @@ const Dashboard = () => {
 
         {/* Maintenance Sidebar */}
         <div className="flex flex-col lg:h-[calc(100vh-120px)]">
-          <div className="bg-card rounded-lg border border-gray-400 p-5 md:p-6 flex flex-col h-full overflow-hidden">
-            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 flex-shrink-0">
+          <div className="bg-card rounded-2xl p-5 md:p-6 flex flex-col h-full overflow-hidden">
+            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 flex-shrink-0 text-primary">
               Maintenance
             </h3>
 
@@ -250,7 +250,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <table className="w-full border-collapse min-w-[300px]">
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-300">
                     {maintenanceRequests.map((request) => {
                       const displayStatus = getStatusForDisplay(request.status);
                       const listing = request.listing;
@@ -270,7 +270,7 @@ const Dashboard = () => {
                             </td>
                             <td className="text-right pt-4">
                               <span
-                                className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${getStatusColor(
+                                className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getStatusColor(
                                   displayStatus
                                 )}`}
                               >
@@ -278,7 +278,7 @@ const Dashboard = () => {
                               </span>
                             </td>
                           </tr>
-                          <tr className="border-b border-gray-100">
+                          <tr className="border-b border-gray-300">
                             <td colSpan="3" className="text-xs text-gray-600 pb-3 max-w-[300px] truncate">
                               {request.title}
                             </td>

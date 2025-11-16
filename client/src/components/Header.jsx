@@ -45,9 +45,8 @@ const Header = ({ user, isLandlord }) => {
   return (
     <div className="px-8 pb-2 pt-4 flex justify-between items-center">
       {showGreeting ? (
-        <h2 className="text-[16px] text-gray-900">
-          Good morning,{" "}
-          <span className="font-semibold">
+        <h2 className="text-[16px] font-medium text-primary">
+          Good morning, <span className="font-bold text-primary">
             {user?.firstName} {user?.lastName}!
           </span>
         </h2>
