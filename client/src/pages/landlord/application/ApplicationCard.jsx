@@ -65,7 +65,7 @@ const ApplicationCard = ({
     };
 
     return (
-        <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-3 p-3">
+        <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-1 p-3">
             <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
                 {/* Checkbox for bulk selection */}
                 <div className="flex items-center justify-center">
@@ -127,7 +127,7 @@ const ApplicationCard = ({
                             <>
                                 <Button
                                     onClick={handleViewClick}
-                                    className="flex items-center gap-2 sm:w-28 rounded-xl bg-gray-900"
+                                    className="flex items-center gap-2 sm:w-28 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                                 >
                                     <Eye /> View
                                 </Button>
@@ -152,7 +152,7 @@ const ApplicationCard = ({
                         {app.status === "APPROVED" && (
                             <Button
                                 onClick={handleSendLeaseClick}
-                                className="flex items-center gap-2 sm:w-32 rounded-xl bg-gray-900"
+                                className="flex items-center gap-2 sm:w-32 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                                 disabled={isSending}
                             >
                                 <Send />
@@ -180,7 +180,7 @@ const ApplicationCard = ({
                                         e.stopPropagation();
                                         setPendingAction({ type: "APPROVE", id: app.id });
                                     }}
-                                    className="text-white bg-gray-900 rounded-2xl px-6 transition disabled:opacity-70"
+                                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-6 transition disabled:opacity-70"
                                     disabled={isConfirming}
                                     title="Approve"
                                 >
@@ -231,7 +231,7 @@ const ApplicationCard = ({
                         <AlertDialogAction
                             disabled={isConfirming}
                             className={`rounded-2xl ${
-                                pendingAction?.type === "APPROVE" ? "bg-gray-900" : "bg-red-600 hover:bg-red-600"
+                                pendingAction?.type === "APPROVE" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-red-600 hover:bg-red-600"
                             }`}
                             onClick={() => {
                                 if (!pendingAction) return;

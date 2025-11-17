@@ -20,7 +20,7 @@ import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { Label } from "@/components/ui/label";
-import { Check, ChevronsUpDown, Search, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Search, Loader2, FileText, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StandardLeaseStep1 from "./StandardLeaseStep1";
 import StandardLeaseStep2 from "./StandardLeaseStep2";
@@ -605,11 +605,11 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent
                 onInteractOutside={(e) => e.preventDefault()}
-                className="max-w-4xl rounded-2xl p-6"
+                className="max-w-4xl max-h-[90vh] flex flex-col p-0 rounded-2xl pt-4"
             >
                 {/* Progress Indicator - Only show for multi-step flows */}
                 {step > 1 && (
-                    <div className="flex items-center justify-center gap-2 mb-6">
+                    <div className="flex items-center justify-center gap-2 pt-8 pb-2 px-10">
                         {Array.from({ length: totalSteps }).map((_, index) => {
                             const stepNum = index + 1;
                             const isActive = stepNum === currentStep;
@@ -618,7 +618,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                             return (
                                 <React.Fragment key={stepNum}>
                                     <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                                             isActive
                                                 ? "bg-gray-900 text-white border-2 border-gray-900"
                                                 : isPast
@@ -629,7 +629,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                         {stepNum}
                                     </div>
                                     {stepNum < totalSteps && (
-                                        <div className={`h-0.5 w-8 ${isPast ? "bg-gray-400" : "bg-gray-200"}`}></div>
+                                        <div className={`h-0.5 w-6 ${isPast ? "bg-gray-400" : "bg-gray-200"}`}></div>
                                     )}
                                 </React.Fragment>
                             );
@@ -637,11 +637,12 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                     </div>
                 )}
 
+                <div className="flex-1 overflow-y-auto px-10 py-6">
                 {/* STEP 1 ------------------------------------ */}
                 {step === 1 && (
                     <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center text-[22px] font-bold p-6">
+                        <DialogHeader className="p-0 pb-4 border-b mb-6">
+                            <DialogTitle className="text-center text-[22px] font-bold text-primary">
                                 How would you like to add your lease?
                             </DialogTitle>
                         </DialogHeader>
@@ -651,9 +652,11 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                 setFile(null); // Reset custom lease file
                                 setStep(3);
                             }}
-                            className="cursor-pointer border border-gray-200 rounded-xl p-6 text-center hover:shadow-md transition mb-6"
+                            className="cursor-pointer border border-gray-200 bg-card rounded-xl p-6 text-center hover:shadow-md transition mb-6"
                         >
-                            <div className="w-10 h-10 bg-gray-200 mx-auto mb-3 rounded" />
+                            <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
+                                <FileText className="w-6 h-6 text-primary" />
+                            </div>
                             <p className="text-lg font-semibold">Create with PropEase</p>
                             <p className="text-sm text-muted-foreground mt-1">
                                 * Recommended for beginners
@@ -664,8 +667,10 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                         </div>
 
                         {/* Upload Custom PDF */}
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
-                            <div className="w-10 h-10 bg-gray-200 mx-auto mb-3 rounded" />
+                        <div className="border-2 border-dashed border-gray-300 bg-card rounded-xl p-6 text-center">
+                            <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
+                                <Upload className="w-6 h-6 text-primary" />
+                            </div>
                             <p className="text-sm text-gray-700">Add your custom-made lease</p>
 
                             <Label className="block mt-3">
@@ -685,21 +690,23 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                             )}
                         </div>
 
-                        <Button
-                            className="mt-6 w-1/2 mx-auto rounded-2xl py-6"
-                            onClick={() => setStep(2)}
-                            disabled={!file || isProcessing}
-                        >
-                            Next
-                        </Button>
+                        <div className="flex justify-center mt-6">
+                            <Button
+                                className="w-1/2 rounded-2xl py-6"
+                                onClick={() => setStep(2)}
+                                disabled={!file || isProcessing}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </>
                 )}
 
                 {/* STEP 2 ------------------------------------ */}
                 {step === 2 && (
                     <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center text-[22px] font-bold p-4">
+                        <DialogHeader className="p-0 pb-4 border-b mb-6">
+                            <DialogTitle className="text-center text-[22px] font-bold text-primary">
                                 Custom Lease Details
                             </DialogTitle>
                         </DialogHeader>
@@ -740,7 +747,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                                                     placeholder="Search listings..."
                                                     value={listingSearchQuery}
                                                     onChange={(e) => setListingSearchQuery(e.target.value)}
-                                                    className="pl-8"
+                                                    className="pl-8 bg-primary-foreground"
                                                 />
                                             </div>
                                         </div>
@@ -843,7 +850,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
 
                             {/* Accounting Information Section */}
                             <div className="border-t pt-6 space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900">Accounting Information (Optional)</h3>
+                                <h3 className="text-lg font-semibold text-primary">Accounting Information (Optional)</h3>
                                 <p className="text-sm text-gray-600">Extract financial terms from your PDF contract and enter them below for payment tracking.</p>
                                 
                                 {/* Rent Amount & Payment Frequency */}
@@ -1039,6 +1046,7 @@ export default function CreateLeaseModal({ open, onClose, tenantId, landlordId, 
                     />
                 )}
 
+                </div>
             </DialogContent>
         </Dialog>
     );

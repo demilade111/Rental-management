@@ -92,7 +92,7 @@ export default function MaintenanceSearchBar({
                             placeholder="Search.."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 bg-gray-50 border-gray-300"
+                            className="pl-10 bg-primary-foreground border-gray-300"
                         />
                     </div>
 
@@ -102,7 +102,7 @@ export default function MaintenanceSearchBar({
                         <Button
                             variant="outline"
                             size="icon"
-                            className="border-gray-200 flex-shrink-0"
+                            className="border-gray-200 bg-primary-foreground flex-shrink-0"
                             onClick={() => {
                                 // Clear any active chips when opening modal
                                 resetChipsToDefault();
@@ -155,7 +155,7 @@ export default function MaintenanceSearchBar({
         </div>
         {/* Filter Modal (simple, no loading) */}
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
+            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl pt-8 px-8 pb-4">
                 <DialogHeader>
                     <DialogTitle>Filters</DialogTitle>
                 </DialogHeader>

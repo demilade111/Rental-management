@@ -30,12 +30,12 @@ export default function LeaseSearchBar({
                             placeholder="Search.."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 bg-gray-50 border-gray-300"
+                            className="pl-10 bg-primary-foreground border-gray-300"
                         />
                     </div>
 
                     {/* Filter button */}
-                    <Button variant="outline" size="icon" onClick={onFilter}>
+                    <Button variant="outline" size="icon" className="bg-primary-foreground" onClick={onFilter}>
                         <SlidersHorizontal className="w-4 h-4" />
                     </Button>
 
@@ -60,8 +60,7 @@ export default function LeaseSearchBar({
                 {/* Right side buttons */}
                 <div className="flex gap-2 w-full md:w-auto justify-end">
                     <Button
-                        variant="secondary"
-                        className="rounded-xl"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
                         onClick={onMyLeases}
                     >
                         <User2 className="mr-2 h-4 w-4" />
@@ -69,7 +68,7 @@ export default function LeaseSearchBar({
                     </Button>
 
                     <Button
-                        className="bg-black text-white hover:bg-gray-800 rounded-xl"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
                         onClick={onNewLease}
                     >
                         <Plus className="w-4 h-4 mr-2" />

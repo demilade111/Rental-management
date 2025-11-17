@@ -313,7 +313,7 @@ const Applications = () => {
 
             <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
                 {/* Table Header */}
-                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -322,10 +322,10 @@ const Applications = () => {
                         />
                     </div>
                     <div className="">Applicant Info</div>
-                    <div className="border-l border-gray-300 pl-4">Listing Info</div>
-                    <div className="border-l border-gray-300 pl-4">Created</div>
-                    <div className="border-l border-gray-300 pl-4">Status</div>
-                    <div className="border-l border-gray-300 pl-4">Actions</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Listing Info</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Created</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Actions</div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0">
@@ -454,7 +454,7 @@ const Applications = () => {
                                 navigator.clipboard.writeText(inviteUrl);
                                 toast.success("Copied!");
                             }}
-                            className="rounded-2xl"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
                         >
                             Copy
                         </Button>

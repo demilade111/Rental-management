@@ -237,7 +237,7 @@ const LeaseDetailPage = () => {
 
     if (isLoading) {
         return (
-            <div className="h-full overflow-y-auto bg-white">
+            <div className="h-full overflow-y-auto bg-background">
                 <div className="px-4 md:px-8 py-4 space-y-4">
                     <Skeleton className="h-6 w-48 rounded-lg" />
                     <Skeleton className="h-10 w-full rounded-2xl" />
@@ -260,7 +260,7 @@ const LeaseDetailPage = () => {
 
     if (error || !lease) {
         return (
-            <div className="h-full overflow-y-auto bg-white">
+            <div className="h-full overflow-y-auto bg-background">
                 <div className="px-4 md:px-8 py-4">
                     <Button
                         variant="ghost"
@@ -314,13 +314,13 @@ const LeaseDetailPage = () => {
     };
 
     return (
-        <div className="h-full overflow-y-auto bg-white">
+        <div className="h-full overflow-y-auto bg-background">
             <div className="px-4 md:px-8 py-4">
                 {/* Header with Back Button */}
                 <div className="mb-4">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                         <div className="flex-1">
-                            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                            <h1 className="text-xl md:text-2xl font-bold text-primary">
                                 {type === "custom" ? lease.leaseName : "Standard Lease"}
                             </h1>
                             <p className="text-sm text-gray-600 mt-0.5">
@@ -336,16 +336,15 @@ const LeaseDetailPage = () => {
                                     variant="destructive"
                                     size="sm"
                                     onClick={() => setTerminateDialogOpen(true)}
-                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                    className="bg-red-600 hover:bg-red-700 text-white rounded-2xl"
                                 >
                                     <XCircle className="w-4 h-4 mr-2" />
                                     Terminate Lease
                                 </Button>
                             )}
                             <Button
-                                variant="ghost"
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm ml-4"
                                 onClick={() => navigate("/landlord/leases")}
-                                className="hover:bg-gray-200"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back to Leases
@@ -359,10 +358,10 @@ const LeaseDetailPage = () => {
                     {/* Left Column - Lease Terms */}
                     <div className="flex flex-col">
                         {/* Lease Terms - Stretch to match right column height */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 h-full flex flex-col">
+                        <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-5 h-full flex flex-col">
                             <div className="flex items-center gap-2 mb-3">
                                 <FileText className="w-5 h-5 text-gray-700" />
-                                <h2 className="text-lg font-semibold text-gray-900">Lease Terms</h2>
+                                <h2 className="text-lg font-semibold text-primary">Lease Terms</h2>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-shrink-0">
                                 <div>
@@ -436,7 +435,7 @@ const LeaseDetailPage = () => {
                                             return (
                                                 <div className="max-w-sm">
                                                     <div className="flex items-baseline gap-2 mb-2">
-                                                        <p className="text-sm font-semibold text-gray-900">Lease Starts In</p>
+                                                        <p className="text-sm font-semibold text-primary">Lease Starts In</p>
                                                         <p className="text-xl font-bold text-blue-600">
                                                             {daysUntilStart === 0 ? "Today" : `${daysUntilStart} Days`}
                                                         </p>
@@ -467,7 +466,7 @@ const LeaseDetailPage = () => {
                                         return (
                                             <div className="max-w-sm">
                                                     <div className="flex items-baseline gap-2 mb-2">
-                                                        <p className="text-sm font-semibold text-gray-900">Lease Expire In</p>
+                                                        <p className="text-sm font-semibold text-primary">Lease Expire In</p>
                                                         <p className="text-xl font-bold text-gray-900">{remainingDays} Days</p>
                                                 </div>
                                                 
@@ -517,21 +516,20 @@ const LeaseDetailPage = () => {
                                                         <span className="text-xs text-gray-500">Loading PDF...</span>
                                                     )}
                                                     <Button
-                                                        variant="outline"
                                                         size="sm"
                                                         onClick={() => regeneratePdfMutation.mutate()}
                                                         disabled={regeneratePdfMutation.isPending}
-                                                        className="w-fit"
+                                                        className="w-fit bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
                                                     >
                                                         {regeneratePdfMutation.isPending ? "Regenerating..." : "Regenerate PDF"}
                                                     </Button>
                                                 </div>
                                             ) : (
                                                 <Button
-                                                    variant="default"
                                                     size="sm"
                                                     onClick={() => regeneratePdfMutation.mutate()}
                                                     disabled={regeneratePdfMutation.isPending}
+                                                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
                                                 >
                                                     {regeneratePdfMutation.isPending ? "Generating..." : "Generate Contract PDF"}
                                                 </Button>
@@ -566,10 +564,10 @@ const LeaseDetailPage = () => {
                     {/* Right Column - Property & Tenant Info Stacked */}
                     <div className="flex flex-col gap-4">
                         {/* Property Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                        <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-5">
                             <div className="flex items-center gap-2 mb-3">
                                 <Home className="w-5 h-5 text-gray-700" />
-                                <h2 className="text-lg font-semibold text-gray-900">Property Information</h2>
+                                <h2 className="text-lg font-semibold text-primary">Property Information</h2>
                             </div>
                             <div className="space-y-3">
                                 {/* Property Thumbnail and Info - Compact */}
@@ -585,7 +583,7 @@ const LeaseDetailPage = () => {
                                     )}
                                     {/* Property Details */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-gray-900 mb-1">
+                                        <p className="font-semibold text-primary mb-1">
                                             {lease.listing?.title || lease.propertyAddress || "N/A"}
                                         </p>
                                         {lease.listing && (
@@ -611,10 +609,10 @@ const LeaseDetailPage = () => {
                         </div>
 
                         {/* Tenant Information - Compact */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col flex-1">
+                        <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col flex-1">
                             <div className="flex items-center gap-2 mb-3">
                                 <User className="w-5 h-5 text-gray-700" />
-                                <h2 className="text-lg font-semibold text-gray-900">Tenant</h2>
+                                <h2 className="text-lg font-semibold text-primary">Tenant</h2>
                             </div>
                             {lease.tenant ? (
                                 <div className="space-y-2.5">

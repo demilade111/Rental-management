@@ -162,7 +162,7 @@ const TenantAccounting = () => {
                         placeholder="Search payments..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 bg-gray-50 border-gray-300"
+                        className="pl-10 bg-primary-foreground border-gray-300"
                     />
                 </div>
 

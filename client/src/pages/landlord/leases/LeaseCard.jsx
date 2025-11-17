@@ -24,7 +24,7 @@ const LeaseCard = ({ data = {} }) => {
         </div>
 
         <div className="flex flex-col">
-          <h3 className="font-semibold text-[15px] text-gray-900 leading-tight">
+          <h3 className="font-semibold text-[15px] text-primary leading-tight">
             {propertyName}
           </h3>
           <p className="text-[13px] text-gray-700 leading-snug mt-0.5">

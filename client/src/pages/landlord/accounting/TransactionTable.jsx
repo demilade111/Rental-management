@@ -45,7 +45,7 @@ const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
   const dateLabel = isPaid ? 'Paid' : 'Due';
 
   return (
-    <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-3 p-3">
+    <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-1 p-3">
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
         {/* Tenant */}
         <div className="text-[16px] text-gray-700 truncate">
@@ -186,19 +186,19 @@ const TransactionTable = ({ payments, onViewProof, isLoading, hideHeader = false
       <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
         {/* Table Header - Conditionally render */}
         {!hideHeader && (
-          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0">
+          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0">
             <div className="">Tenant</div>
-            <div className="border-l border-gray-300 pl-4">Property</div>
-            <div className="border-l border-gray-300 pl-4">Category</div>
-            <div className="border-l border-gray-300 pl-4 pr-4 text-right">Amount</div>
-            <div className="border-l border-gray-300 pl-4">Date</div>
-            <div className="border-l border-gray-300 pl-4">Status</div>
-            <div className="border-l border-gray-300 pl-4">Action</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Property</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Category</div>
+            <div className="border-l border-primary-foreground/20 pl-4 pr-4 text-right">Amount</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Date</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Action</div>
           </div>
         )}
 
         {/* Table Body */}
-        <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
+        <div className="flex-1 overflow-y-auto min-h-0 space-y-1">
           {payments.map((payment) => (
             <TransactionRow
               key={payment.id}

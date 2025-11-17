@@ -58,7 +58,7 @@ const CustomLeaseCard = ({
     };
 
     return (
-        <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-3 p-3">
+        <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-1 p-3">
             <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
                 {/* Checkbox for bulk selection */}
                 <div className="flex items-center justify-center">
@@ -74,7 +74,7 @@ const CustomLeaseCard = ({
 
                 {/* Column 1: Lease Name */}
                 <div className="text-[16px] text-gray-700 truncate">
-                    <div className="font-semibold text-gray-900">{lease.leaseName}</div>
+                    <div className="font-semibold text-primary">{lease.leaseName}</div>
                     {lease.createdAt && (
                         <div className="text-sm font-normal text-gray-600 text-wrap">
                             Created {formatDistanceToNow(new Date(lease.createdAt), { addSuffix: true })}
@@ -114,12 +114,12 @@ const CustomLeaseCard = ({
                                 e.stopPropagation();
                                 onViewDetails?.(lease);
                             }}
-                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-black hover:bg-gray-800 text-white"
+                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                             title="View Details"
                             variant="ghost"
                             size="icon"
                         >
-                            <Eye className="w-5 h-5 text-white" />
+                            <Eye className="w-5 h-5 text-primary-foreground" />
                         </Button>
 
                         <Button

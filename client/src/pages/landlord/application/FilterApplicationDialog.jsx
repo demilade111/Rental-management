@@ -47,8 +47,8 @@ const FilterApplicationDialog = ({ isOpen, onClose, onApply }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-sm space-y-4 p-8">
-                <DialogHeader className="pt-4">
+            <DialogContent className="max-w-sm space-y-4 pt-8 px-8 pb-4 rounded-xl">
+                <DialogHeader>
                     <DialogTitle className="text-[18px]">Filter Applications</DialogTitle>
                 </DialogHeader>
 
@@ -59,7 +59,7 @@ const FilterApplicationDialog = ({ isOpen, onClose, onApply }) => {
                         value={status || "ALL"}
                         onValueChange={(value) => setStatus(value === "ALL" ? "" : value)}
                     >
-                        <SelectTrigger className="w-full border rounded-md">
+                        <SelectTrigger className="w-full border rounded-md bg-primary-foreground">
                             <SelectValue placeholder="All" />
                         </SelectTrigger>
 
@@ -82,14 +82,14 @@ const FilterApplicationDialog = ({ isOpen, onClose, onApply }) => {
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className={`w-full justify-start text-left font-normal ${!startDate ? "text-gray-400" : ""
+                                    className={`w-full justify-start text-left font-normal bg-primary-foreground px-3 ${!startDate ? "text-gray-400" : ""
                                         }`}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     {startDate ? format(startDate, "PPP") : "Pick a date"}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent align="start" className="p-0">
+                            <PopoverContent align="start" className="w-auto p-0">
                                 <Calendar
                                     mode="single"
                                     selected={startDate}
@@ -112,14 +112,14 @@ const FilterApplicationDialog = ({ isOpen, onClose, onApply }) => {
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className={`w-full justify-start text-left font-normal ${!endDate ? "text-gray-400" : ""
+                                    className={`w-full justify-start text-left font-normal bg-primary-foreground px-3 ${!endDate ? "text-gray-400" : ""
                                         }`}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     {endDate ? format(endDate, "PPP") : "Pick a date"}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent align="start" className="p-0">
+                            <PopoverContent align="start" className="w-auto p-0">
                                 <Calendar
                                     mode="single"
                                     selected={endDate}
@@ -144,7 +144,7 @@ const FilterApplicationDialog = ({ isOpen, onClose, onApply }) => {
 
                     <Button
                         onClick={applyFilters}
-                        className="bg-black text-white hover:bg-gray-800 w-1/2 rounded-xl"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 w-1/2 rounded-xl"
                     >
                         Apply
                     </Button>

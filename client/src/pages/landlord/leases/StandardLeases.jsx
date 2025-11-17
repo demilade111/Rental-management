@@ -339,7 +339,7 @@ const StandardLeases = ({ onTotalChange }) => {
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Lease</AlertDialogTitle>
+                        <AlertDialogTitle className="text-primary">Delete Lease</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to delete this lease? This action cannot be undone.
                         </AlertDialogDescription>

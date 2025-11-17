@@ -13,7 +13,7 @@ const PropertySearchBar = ({ searchQuery, setSearchQuery, onNewListing }) => (
                     placeholder="Search.."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 border-gray-300"
+                    className="pl-10 bg-primary-foreground border-gray-300"
                 />
             </div>
             {/* <Button variant="outline" size="icon" className="border-gray-200">

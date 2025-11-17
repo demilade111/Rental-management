@@ -196,8 +196,8 @@ export default function StandardLeaseStep1({
     };
     return (
         <>
-            <DialogHeader>
-                <DialogTitle className="text-center text-[20px] font-bold p-4">
+            <DialogHeader className="p-0 pb-4 border-b mb-6 -mt-6">
+                <DialogTitle className="text-center text-[20px] font-bold text-primary">
                     Parties & Rental Unit (Page 1 of 4)
                 </DialogTitle>
             </DialogHeader>
@@ -206,12 +206,12 @@ export default function StandardLeaseStep1({
             <div className="flex justify-center mb-3">
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={fillDemoData}
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
                 >
-                    🎲 Fill Demo Data
+                    Demo Autofill
                 </Button>
             </div>
 
@@ -224,7 +224,7 @@ export default function StandardLeaseStep1({
                             <Button
                                 variant="outline"
                                 role="combobox"
-                                className="w-full justify-between"
+                                className="w-full justify-between bg-primary-foreground"
                                 disabled={listings.length === 0}
                             >
                                 {selectedListingText || (listings.length === 0 ? "No available listings" : "Choose a listing")}
@@ -239,7 +239,7 @@ export default function StandardLeaseStep1({
                                         placeholder="Search listings..."
                                         value={listingSearchQuery}
                                         onChange={(e) => setListingSearchQuery(e.target.value)}
-                                        className="pl-8"
+                                        className="pl-8 bg-primary-foreground"
                                     />
                                 </div>
                             </div>
@@ -292,7 +292,7 @@ export default function StandardLeaseStep1({
                 </div>
 
                 <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">Landlord Information</h3>
+                    <h3 className="font-semibold text-primary mb-3">Landlord Information</h3>
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
@@ -305,7 +305,7 @@ export default function StandardLeaseStep1({
                                         if (errors.landlordLastName) setErrors(prev => ({ ...prev, landlordLastName: "" }));
                                     }}
                                     onBlur={(e) => validateField("landlordLastName", e.target.value)}
-                                    className={errors.landlordLastName ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.landlordLastName ? "border-red-500" : ""}`}
                                 />
                                 {errors.landlordLastName && <p className="text-xs text-red-600">{errors.landlordLastName}</p>}
                             </div>
@@ -315,6 +315,7 @@ export default function StandardLeaseStep1({
                                     placeholder="First and middle name(s)"
                                     value={standardLeaseData.landlordFirstName}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlordFirstName: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -327,6 +328,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Phone number"
                                     value={standardLeaseData.landlordPhone}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlordPhone: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -336,6 +338,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Email address"
                                     value={standardLeaseData.landlordEmail}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlordEmail: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -347,6 +350,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Last name"
                                     value={standardLeaseData.landlord2LastName}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlord2LastName: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -355,6 +359,7 @@ export default function StandardLeaseStep1({
                                     placeholder="First and middle name(s)"
                                     value={standardLeaseData.landlord2FirstName}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, landlord2FirstName: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -362,7 +367,7 @@ export default function StandardLeaseStep1({
                 </div>
 
                 <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">Tenant Information</h3>
+                    <h3 className="font-semibold text-primary mb-3">Tenant Information</h3>
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
@@ -375,7 +380,7 @@ export default function StandardLeaseStep1({
                                         if (errors.tenantLastName) setErrors(prev => ({ ...prev, tenantLastName: "" }));
                                     }}
                                     onBlur={(e) => validateField("tenantLastName", e.target.value)}
-                                    className={errors.tenantLastName ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.tenantLastName ? "border-red-500" : ""}`}
                                 />
                                 {errors.tenantLastName && <p className="text-xs text-red-600">{errors.tenantLastName}</p>}
                             </div>
@@ -385,6 +390,7 @@ export default function StandardLeaseStep1({
                                     placeholder="First and middle name(s)"
                                     value={standardLeaseData.tenantFirstName}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenantFirstName: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -397,6 +403,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Phone number"
                                     value={standardLeaseData.tenantPhone}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenantPhone: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -410,7 +417,7 @@ export default function StandardLeaseStep1({
                                         if (errors.tenantEmail) setErrors(prev => ({ ...prev, tenantEmail: "" }));
                                     }}
                                     onBlur={(e) => validateField("tenantEmail", e.target.value)}
-                                    className={errors.tenantEmail ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.tenantEmail ? "border-red-500" : ""}`}
                                 />
                                 {errors.tenantEmail && <p className="text-xs text-red-600">{errors.tenantEmail}</p>}
                             </div>
@@ -423,6 +430,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Other phone number"
                                     value={standardLeaseData.tenantOtherPhone}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenantOtherPhone: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -432,6 +440,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Other email address"
                                     value={standardLeaseData.tenantOtherEmail}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenantOtherEmail: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -443,6 +452,7 @@ export default function StandardLeaseStep1({
                                     placeholder="Last name"
                                     value={standardLeaseData.tenant2LastName}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenant2LastName: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -451,6 +461,7 @@ export default function StandardLeaseStep1({
                                     placeholder="First and middle name(s)"
                                     value={standardLeaseData.tenant2FirstName}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, tenant2FirstName: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -458,7 +469,7 @@ export default function StandardLeaseStep1({
                 </div>
 
                 <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">Rental Unit Address</h3>
+                    <h3 className="font-semibold text-primary mb-3">Rental Unit Address</h3>
                     <div className="space-y-3">
                         <div className="space-y-1">
                             <Label className="text-xs text-gray-600">Unit Number (optional)</Label>
@@ -466,6 +477,7 @@ export default function StandardLeaseStep1({
                                 placeholder="Unit #"
                                 value={standardLeaseData.unitNumber}
                                 onChange={(e) => setStandardLeaseData(prev => ({ ...prev, unitNumber: e.target.value }))}
+                                className="bg-primary-foreground"
                             />
                         </div>
                         <div className="space-y-1">
@@ -478,7 +490,7 @@ export default function StandardLeaseStep1({
                                     if (errors.streetAddress) setErrors(prev => ({ ...prev, streetAddress: "" }));
                                 }}
                                 onBlur={(e) => validateField("streetAddress", e.target.value)}
-                                className={errors.streetAddress ? "border-red-500" : ""}
+                                className={`bg-primary-foreground ${errors.streetAddress ? "border-red-500" : ""}`}
                             />
                             {errors.streetAddress && <p className="text-xs text-red-600">{errors.streetAddress}</p>}
                         </div>
@@ -493,7 +505,7 @@ export default function StandardLeaseStep1({
                                         if (errors.city) setErrors(prev => ({ ...prev, city: "" }));
                                     }}
                                     onBlur={(e) => validateField("city", e.target.value)}
-                                    className={errors.city ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.city ? "border-red-500" : ""}`}
                                 />
                                 {errors.city && <p className="text-xs text-red-600">{errors.city}</p>}
                             </div>
@@ -507,7 +519,7 @@ export default function StandardLeaseStep1({
                                         if (errors.province) setErrors(prev => ({ ...prev, province: "" }));
                                     }}
                                     onBlur={(e) => validateField("province", e.target.value)}
-                                    className={errors.province ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.province ? "border-red-500" : ""}`}
                                 />
                                 {errors.province && <p className="text-xs text-red-600">{errors.province}</p>}
                             </div>
@@ -521,7 +533,7 @@ export default function StandardLeaseStep1({
                                         if (errors.postalCode) setErrors(prev => ({ ...prev, postalCode: "" }));
                                     }}
                                     onBlur={(e) => validateField("postalCode", e.target.value)}
-                                    className={errors.postalCode ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.postalCode ? "border-red-500" : ""}`}
                                 />
                                 {errors.postalCode && <p className="text-xs text-red-600">{errors.postalCode}</p>}
                             </div>
@@ -531,7 +543,7 @@ export default function StandardLeaseStep1({
             </div>
 
             {/* Back + Continue Buttons */}
-            <div className="flex justify-between mt-6 gap-4">
+            <div className="flex justify-between mt-6 mb-6 gap-4">
                 <Button
                     variant="outline"
                     className="flex-1 py-6 rounded-2xl"

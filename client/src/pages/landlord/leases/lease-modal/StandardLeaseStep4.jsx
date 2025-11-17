@@ -12,7 +12,7 @@ export default function StandardLeaseStep4({
     return (
         <>
             <DialogHeader>
-                <DialogTitle className="text-center text-[20px] font-bold p-4">
+                <DialogTitle className="text-center text-[20px] font-bold p-4 text-primary">
                     Review & Submit (Page 4 of 4)
                 </DialogTitle>
             </DialogHeader>

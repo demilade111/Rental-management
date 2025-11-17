@@ -126,15 +126,15 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
         <>
             <div>
                 {/* Table Header - Rounded Black Header like Applications */}
-                <div className="grid grid-cols-[1fr_120px_80px_80px] gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
+                <div className="grid grid-cols-[1fr_120px_80px_80px] gap-4 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl mb-3">
                     <div>Description</div>
-                    <div className="border-l border-gray-600 pl-4">Amount</div>
-                    <div className="border-l border-gray-600 pl-4 text-center">Shared</div>
-                    <div className="border-l border-gray-600 pl-4 text-center">Actions</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Amount</div>
+                    <div className="border-l border-primary-foreground/20 pl-4 text-center">Shared</div>
+                    <div className="border-l border-primary-foreground/20 pl-4 text-center">Actions</div>
                 </div>
 
                 {/* Table Body - Card Style Rows */}
-                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                <div className="space-y-1 max-h-[400px] overflow-y-auto">
                     {invoices.map((invoice, index) => (
                         <Card 
                             key={invoice.id}

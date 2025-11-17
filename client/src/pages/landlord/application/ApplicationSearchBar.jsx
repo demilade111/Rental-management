@@ -19,14 +19,14 @@ const ApplicationSearchBar = ({
                     placeholder="Search.."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-gray-50 border-gray-300"
+                    className="pl-10 bg-primary-foreground border-gray-300"
                 />
             </div>
 
             <Button
                 variant="outline"
                 size="icon"
-                className="border-gray-200"
+                className="border-gray-200 bg-primary-foreground"
                 onClick={onFilter}
             >
                 <SlidersHorizontal className="w-4 h-4" />
@@ -36,7 +36,7 @@ const ApplicationSearchBar = ({
 
         {/* Generate Link button */}
         <Button
-            className="bg-black text-white hover:bg-gray-800 rounded-xl"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
             onClick={onGenerateLink}
         >
             <Plus className="w-4 h-4 mr-2" />

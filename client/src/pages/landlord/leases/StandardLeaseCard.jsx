@@ -187,7 +187,7 @@ const StandardLeaseCard = ({
                 <div className="flex-1 flex flex-col md:flex-row items-center p-4 gap-6">
                     {/* Property Info - larger width */}
                     <div className="w-full md:w-64 flex-shrink-0 min-w-0">
-                        <h3 className="font-semibold text-base mb-1 truncate">{propertyInfo}</h3>
+                        <h3 className="font-semibold text-base mb-1 truncate text-primary">{propertyInfo}</h3>
                         {propertyAddress && (
                             <p className="text-xs text-gray-600 truncate">{propertyAddress}</p>
                         )}
@@ -283,12 +283,12 @@ const StandardLeaseCard = ({
                                 e.stopPropagation();
                                 onViewDetails?.(lease);
                             }}
-                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-gray-900 hover:bg-gray-800 text-white"
+                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                             title="View Details"
                             variant="ghost"
                             size="icon"
                         >
-                            <Eye className="w-4 h-4 text-white" />
+                            <Eye className="w-4 h-4 text-primary-foreground" />
                         </Button>
 
                         <Button

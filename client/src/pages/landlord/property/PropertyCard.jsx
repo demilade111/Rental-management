@@ -201,16 +201,16 @@ const PropertyCard = ({ property }) => {
                         <div className="flex items-center gap-2 text-sm whitespace-nowrap">
                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                                 property.status === 'ACTIVE' 
-                                    ? 'bg-black' 
-                                    : 'border border-black'
+                                    ? 'bg-green-500' 
+                                    : 'bg-green-500/30'
                             }`}></div>
                             <span>listed</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm whitespace-nowrap">
                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                                 property.status === 'RENTED' 
-                                    ? 'bg-black' 
-                                    : 'border border-black'
+                                    ? 'bg-orange-500' 
+                                    : 'bg-orange-500/30'
                             }`}></div>
                             <span>occupied</span>
                         </div>

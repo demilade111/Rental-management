@@ -230,17 +230,17 @@ const TenancyInfo = ({ listingId }) => {
 
             {/* Tenancy History */}
             <div>
-                <div className="grid grid-cols-7 gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
+                <div className="grid grid-cols-7 gap-4 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl mb-3">
                     <div>Tenant</div>
-                    <div className="border-l border-gray-600 pl-4">Lease</div>
-                    <div className="border-l border-gray-600 pl-4">Status</div>
-                    <div className="border-l border-gray-600 pl-4 text-right">Rent</div>
-                    <div className="border-l border-gray-600 pl-4">Term</div>
-                    <div className="border-l border-gray-600 pl-4">Duration</div>
-                    <div className="border-l border-gray-600 pl-4 text-center">Updated</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Lease</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+                    <div className="border-l border-primary-foreground/20 pl-4 text-right">Rent</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Term</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Duration</div>
+                    <div className="border-l border-primary-foreground/20 pl-4 text-center">Updated</div>
                 </div>
 
-                <div className="space-y-3 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
+                <div className="space-y-1 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
                     {tenancyRecords.map((record) => (
                         <Card
                             key={record.id}
