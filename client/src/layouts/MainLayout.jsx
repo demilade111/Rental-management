@@ -79,7 +79,10 @@ const MainLayout = () => {
 
   const handleNavChange = (id) => {
     const item = navItems.find((nav) => nav.id === id);
-    if (item) navigate(item.path);
+    if (item) {
+      // Always navigate, even to the same route, to trigger component updates
+      navigate(item.path, { replace: false, state: { timestamp: Date.now() } });
+    }
   };
 
   return (

@@ -10,11 +10,11 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const TenantPaymentSkeleton = () => (
-  <div className="space-y-3">
+  <div className="space-y-1">
     {Array.from({ length: 5 }).map((_, index) => (
       <Card
         key={index}
-        className="border border-gray-300 rounded-2xl p-4 shadow-sm"
+        className="border border-gray-300 rounded-2xl p-3 shadow-sm"
       >
         <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 items-center">
           <div className="space-y-1">
@@ -46,7 +46,7 @@ const TenantPaymentSkeleton = () => (
 );
 
 const getStatusBadgeClass = (status, dueDate, hasReceipt) => {
-  const baseClasses = 'px-3 py-1 rounded-md text-[14px] font-medium';
+  const baseClasses = 'px-3 py-1 rounded-full text-[14px] font-medium';
   
   if (status === 'PAID') {
     return `${baseClasses} bg-gray-200 text-gray-800`;
@@ -174,13 +174,13 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
     return (
         <div className="h-full flex flex-col">
             {/* Table Header - Always visible */}
-            <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0">
+            <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0">
                 <div>Date</div>
-                <div className="border-l border-gray-300 pl-4">Note</div>
-                <div className="border-l border-gray-300 pl-4">Category</div>
-                <div className="border-l border-gray-300 pl-4 pr-4 text-right">Amount</div>
-                <div className="border-l border-gray-300 pl-4">Status</div>
-                <div className="border-l border-gray-300 pl-4">Actions</div>
+                <div className="border-l border-primary-foreground/20 pl-4">Note</div>
+                <div className="border-l border-primary-foreground/20 pl-4">Category</div>
+                <div className="border-l border-primary-foreground/20 pl-4 pr-4 text-right">Amount</div>
+                <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+                <div className="border-l border-primary-foreground/20 pl-4">Actions</div>
             </div>
 
             {/* Table Content */}
@@ -192,7 +192,7 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                         <p className="text-lg">No payment records found</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-1">
                     {paymentList.map((payment) => {
                     const listing = payment.lease?.listing || payment.customLease?.listing;
                     const hasReceipt = !!payment.proofUrl;
@@ -202,7 +202,7 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                     const dateLabel = isPaid ? 'Paid' : 'Due';
 
                     return (
-                        <Card key={payment.id} className="border border-gray-300 hover:shadow-md transition-shadow p-4">
+                        <Card key={payment.id} className="border border-gray-300 hover:shadow-md transition-shadow p-3 mb-1">
                             <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 items-center">
                                 {/* Date */}
                                 <div>
@@ -240,7 +240,7 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                                                     e.stopPropagation();
                                                     handleViewInvoice(payment);
                                                 }}
-                                                className="p-1.5 rounded-md text-gray-600 hover:text-white hover:bg-gray-900 transition-all cursor-pointer"
+                                                className="p-1.5 rounded-2xl text-gray-600 hover:text-white hover:bg-gray-900 transition-all cursor-pointer"
                                                 title="View Invoice Details"
                                             >
                                                 <FileText className="h-5 w-5" />
@@ -268,7 +268,7 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                                             size="sm"
                                             variant={isPaid ? "outline" : "default"}
                                             onClick={() => handleViewReceipt(payment.proofUrl)}
-                                            className={`text-xs ${!isPaid ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}`}
+                                            className={`text-xs rounded-2xl ${!isPaid ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}`}
                                         >
                                             <Eye className="w-3 h-3 mr-1" />
                                             View Receipt
@@ -287,7 +287,7 @@ const TenantPaymentTable = ({ payments, isLoading }) => {
                                                 size="sm"
                                                 onClick={() => document.getElementById(`receipt-${payment.id}`).click()}
                                                 disabled={uploadingId === payment.id}
-                                                className="text-xs bg-black text-white hover:bg-gray-800"
+                                                className="text-xs bg-black text-white hover:bg-gray-800 rounded-2xl"
                                             >
                                                 {uploadingId === payment.id ? (
                                                     'Uploading...'

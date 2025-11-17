@@ -123,7 +123,7 @@ export default function MaintenanceSearchBar({
                                 <Badge
                                     key={label}
                                     variant={active ? "default" : "secondary"}
-                                    className={`px-3 py-2 cursor-pointer whitespace-nowrap flex-shrink-0 ${active ? "bg-gray-900 text-white" : ""}`}
+                                    className={`px-3 py-2 cursor-pointer whitespace-nowrap flex-shrink-0 border ${active ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}
                                     onClick={() => {
                                         // toggling a chip calls onFilter for chip only
                                         toggleChip(label);
@@ -140,13 +140,12 @@ export default function MaintenanceSearchBar({
                 {showCreateButton && (
                     <div className="flex gap-2 w-full md:w-auto justify-end">
                         <Button
-                            variant="outline"
-                            className="rounded-2xl border border-gray-900"
+                            className="rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
                             onClick={onNewRequest}
                             disabled={disabled}
                             title={disabled ? "Your lease has been terminated. Maintenance requests are no longer available." : ""}
                         >
-                            <Plus className="w-4 h-4 mr-2 rounded-full bg-gray-900 text-white" />
+                            <Plus className="w-4 h-4 mr-2 text-primary-foreground" />
                             New Request
                         </Button>
                     </div>
@@ -155,7 +154,7 @@ export default function MaintenanceSearchBar({
         </div>
         {/* Filter Modal (simple, no loading) */}
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl pt-8 px-8 pb-4">
+            <DialogContent className="bg-background rounded-xl pt-8 px-8 pb-6">
                 <DialogHeader>
                     <DialogTitle>Filters</DialogTitle>
                 </DialogHeader>
@@ -206,6 +205,7 @@ export default function MaintenanceSearchBar({
                             if (typeof onFilter === "function") onFilter({ priority: "", category: "" });
                             setOpen(false);
                         }}
+                        className="rounded-2xl"
                     >
                         Reset
                     </Button>
@@ -218,6 +218,7 @@ export default function MaintenanceSearchBar({
                             if (typeof onFilter === "function") onFilter(normalized);
                             setOpen(false);
                         }}
+                        className="rounded-2xl"
                     >
                         Apply
                     </Button>

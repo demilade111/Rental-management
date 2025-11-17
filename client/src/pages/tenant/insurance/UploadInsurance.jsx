@@ -34,7 +34,7 @@ const insuranceSchema = z.object({
   notes: z.string().optional(),
 });
 
-const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
+const UploadInsurance = ({ onSuccess, onCancel, leaseId, customLeaseId }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -173,14 +173,14 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
       <div className="max-w-3xl mx-auto">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Upload Insurance Document</h2>
+          <h2 className="text-2xl font-bold text-primary">Upload Insurance Document</h2>
           <p className="text-gray-600 mt-1">
             Upload your renter's insurance certificate. We'll automatically extract the key details.
           </p>
         </div>
         <Button
           type="button"
-          className="bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-2xltext-sm"
+          className="bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-full text-sm"
           onClick={() => {
             form.reset({
               providerName: "Evertrust Insurance Group",
@@ -202,10 +202,10 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {/* File Upload Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold mb-4">Insurance Document</h3>
+        <div className="bg-card rounded-2xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold mb-4 text-primary">Insurance Document</h3>
           <FileUploader
             onFileSelect={handleFileSelect}
             acceptedFileTypes=".pdf,.jpg,.jpeg,.png"
@@ -232,8 +232,8 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
         </div>
 
         {/* Insurance Details Form */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold mb-4">Insurance Details</h3>
+        <div className="bg-card rounded-2xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold mb-4 text-primary">Insurance Details</h3>
           
           {!documentUrl && (
             <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start space-x-3">
@@ -250,9 +250,9 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="providerName"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Provider Name *</FormLabel>
+                  <FormLabel className="text-primary">Provider Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., State Farm" {...field} />
+                    <Input className="bg-primary-foreground" placeholder="e.g., State Farm" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -264,9 +264,9 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="policyNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Policy Number *</FormLabel>
+                  <FormLabel className="text-primary">Policy Number *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., POL-123456" {...field} />
+                    <Input className="bg-primary-foreground" placeholder="e.g., POL-123456" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -278,9 +278,9 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="coverageType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Coverage Type *</FormLabel>
+                  <FormLabel className="text-primary">Coverage Type *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Standard Renter's Insurance" {...field} />
+                    <Input className="bg-primary-foreground" placeholder="e.g., Standard Renter's Insurance" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -292,9 +292,9 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="coverageAmount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Coverage Amount ($)</FormLabel>
+                  <FormLabel className="text-primary">Coverage Amount ($)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 50000" {...field} />
+                    <Input className="bg-primary-foreground" type="number" placeholder="e.g., 50000" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -306,9 +306,9 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="monthlyCost"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Monthly Cost ($)</FormLabel>
+                  <FormLabel className="text-primary">Monthly Cost ($)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" placeholder="e.g., 50.00" {...field} />
+                    <Input className="bg-primary-foreground" type="number" step="0.01" placeholder="e.g., 50.00" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -320,10 +320,11 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Effective Date *</FormLabel>
+                  <FormLabel className="text-primary">Effective Date *</FormLabel>
                   <DatePicker
                     value={field.value}
                     onChange={field.onChange}
+                    className="bg-primary-foreground"
                     calendarProps={{
                       captionLayout: "dropdown",
                       fromYear: new Date().getFullYear() - 20,
@@ -340,10 +341,11 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="expiryDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Expiration Date *</FormLabel>
+                  <FormLabel className="text-primary">Expiration Date *</FormLabel>
                   <DatePicker
                     value={field.value}
                     onChange={field.onChange}
+                    className="bg-primary-foreground"
                     calendarProps={{
                       captionLayout: "dropdown",
                       fromYear: new Date().getFullYear() - 20,
@@ -360,9 +362,10 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
               name="notes"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormLabel className="text-primary">Notes (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
+                      className="bg-primary-foreground"
                       rows={3}
                       placeholder="Any additional information about your insurance policy"
                       {...field}
@@ -380,12 +383,19 @@ const UploadInsurance = ({ onSuccess, leaseId, customLeaseId }) => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/tenant/insurance")}
+            onClick={() => {
+              if (onCancel) {
+                onCancel();
+              } else {
+                navigate("/tenant/insurance");
+              }
+            }}
             disabled={loading}
+            className="rounded-2xl"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={loading || !documentUrl}>
+          <Button type="submit" disabled={loading || !documentUrl} className="rounded-2xl">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Submit Insurance
           </Button>

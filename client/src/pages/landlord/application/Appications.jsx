@@ -330,7 +330,7 @@ const Applications = () => {
 
                 <div className="flex-1 overflow-y-auto min-h-0">
                     {listingsLoading || appsLoading || leasesLoading ? (
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                             {[...Array(5)].map((_, idx) => (
                                 <div
                                     key={`application-skeleton-${idx}`}

@@ -87,7 +87,7 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
 
     if (initialLoading) {
         return (
-            <div className="space-y-3">
+            <div className="space-y-1">
                 {Array.from({ length: 3 }).map((_, idx) => (
                     <Card
                         key={`invoice-skeleton-${idx}`}
@@ -202,11 +202,11 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isDeleting} className="rounded-2xl">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-red-600 hover:bg-red-700 rounded-2xl"
                         >
                             {isDeleting ? "Deleting..." : "Delete"}
                         </AlertDialogAction>

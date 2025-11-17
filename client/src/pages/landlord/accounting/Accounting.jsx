@@ -13,9 +13,9 @@ import ReceiptReviewModal from './ReceiptReviewModal';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PaymentTableSkeleton = () => (
-  <div className="space-y-3">
+  <div className="space-y-1">
     {Array.from({ length: 5 }).map((_, index) => (
-      <div key={index} className="bg-white border border-gray-300 rounded-2xl p-4">
+      <div key={index} className="bg-card border border-gray-300 rounded-2xl p-3">
         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
           <div className="space-y-2">
             <Skeleton className="h-4 w-32" />
@@ -293,8 +293,8 @@ const Accounting = () => {
   }, [filteredPayments, page, limit]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-      <div className="flex-shrink-0">
+    <div className="px-4 md:px-8 py-4">
+      <div>
         <PageHeader
           title="Accounting"
           subtitle="Track payments, outstanding balances, and manage financial records"
@@ -311,12 +311,12 @@ const Accounting = () => {
         />
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex flex-col">
         {/* Summary Cards - Always visible */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white border border-gray-300 rounded-lg p-6 animate-pulse">
+              <div key={i} className="bg-card rounded-2xl p-6 animate-pulse">
                 <div className="h-5 bg-gray-200 rounded w-1/2 mb-3"></div>
                 <div className="h-9 bg-gray-200 rounded w-3/4 mb-4"></div>
                 <div className="space-y-2">
@@ -333,9 +333,9 @@ const Accounting = () => {
         )}
 
         {/* Transaction Table */}
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex flex-col">
           {/* Table Header - Always visible */}
-          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0">
+          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4">
             <div className="">Tenant</div>
             <div className="border-l border-primary-foreground/20 pl-4">Property</div>
             <div className="border-l border-primary-foreground/20 pl-4">Category</div>
@@ -346,7 +346,7 @@ const Accounting = () => {
           </div>
 
           {/* Table Body */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div>
             {isLoading ? (
               <PaymentTableSkeleton />
             ) : error ? (

@@ -263,7 +263,7 @@ const CustomLeases = ({ onTotalChange }) => {
 
                 <div className="flex-1 overflow-y-auto min-h-0">
                     {isLoading ? (
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                             {[...Array(4)].map((_, idx) => (
                                 <div key={`custom-lease-skeleton-${idx}`} className="flex items-center gap-3">
                                     <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
@@ -386,10 +386,10 @@ const CustomLeases = ({ onTotalChange }) => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-2xl">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleConfirmDelete}
-                            className="bg-red-500 hover:bg-red-600"
+                            className="bg-red-500 hover:bg-red-600 rounded-2xl"
                             disabled={deleteMutation.isPending}
                         >
                             {deleteMutation.isPending ? "Deleting..." : "Delete"}

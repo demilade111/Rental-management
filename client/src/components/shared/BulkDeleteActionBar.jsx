@@ -92,11 +92,11 @@ const BulkDeleteActionBar = ({
             <AlertDialogDescription>{displayMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="rounded-2xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90 rounded-2xl"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>

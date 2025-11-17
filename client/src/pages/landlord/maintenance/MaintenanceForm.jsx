@@ -131,13 +131,13 @@ const MaintenanceForm = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
-        <DialogHeader className="px-2 pt-3 pb-2">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 rounded-2xl">
+        <DialogHeader className="p-0 px-10 pt-8">
           <div className="flex items-center justify-between gap-3">
             <DialogTitle>New Maintenance Request</DialogTitle>
             <Button
               type="button"
-              className="bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-2xl text-sm"
+              className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
               onClick={() => {
                 const propertyOptions = userRole === "TENANT" ? properties.slice(0, 1) : properties;
                 const chosenProperty = propertyOptions.length
@@ -172,8 +172,8 @@ const MaintenanceForm = ({
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 3 w-full max-w-xl max-h-[90vh] overflow-y-auto overflow-x-visible px-2">
-          <form onSubmit={onSubmit} className="space-y-4 mt-4">
+        <div className="flex-1 overflow-y-auto px-10 py-6">
+          <form onSubmit={onSubmit} className="space-y-4">
             {/* Title */}
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
@@ -182,6 +182,7 @@ const MaintenanceForm = ({
                 value={formData.title}
                 onChange={onChange}
                 placeholder="e.g. My door is broken"
+                className="bg-primary-foreground"
                 minLength={3}
                 required
               />
@@ -200,7 +201,7 @@ const MaintenanceForm = ({
                     }
                     disabled={properties.length === 0}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-primary-foreground">
                       <SelectValue placeholder={`Available properties ( ${properties.length} )`} />
                     </SelectTrigger>
                     <SelectContent>
@@ -222,7 +223,7 @@ const MaintenanceForm = ({
                     onChange({ target: { name: "priority", value } })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full bg-primary-foreground">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -244,7 +245,7 @@ const MaintenanceForm = ({
                   onChange({ target: { name: "category", value } })
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-primary-foreground">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -269,7 +270,7 @@ const MaintenanceForm = ({
                 name="description"
                 value={formData.description}
                 onChange={onChange}
-                className="border rounded-md w-full p-2"
+                className="bg-primary-foreground border rounded-md w-full p-2"
                 placeholder="Describe the issue... (minimum 10 characters)"
                 minLength={10}
                 required
@@ -291,7 +292,7 @@ const MaintenanceForm = ({
                 multiple
               />
               {previewUrls.length === 0 && (
-                <label htmlFor="maintenance-image-input" className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-muted/10">
+                <label htmlFor="maintenance-image-input" className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-muted/10 bg-card">
                   <Upload className="w-6 h-6 mb-2" />
                   <span className="text-sm text-muted-foreground">Upload image(s)</span>
                 </label>
@@ -333,13 +334,25 @@ const MaintenanceForm = ({
             </div>
 
             {/* Actions */}
-            <DialogFooter className="flex justify-end gap-3 pt-2">
-              <Button variant="secondary" onClick={() => setOpen(false)} className="rounded-2xl">
-                Close
-              </Button>
-              <Button type="submit" disabled={saving} className="rounded-2xl">
-                {saving ? "Saving..." : <><Save className="mr-2" /> Save</>}
-              </Button>
+            <DialogFooter className="py-4">
+              <div className="flex justify-end gap-3 w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  className="text-gray-700 shadow-none rounded-2xl border"
+                  disabled={saving}
+                >
+                  Close
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
+                >
+                  {saving ? "Saving..." : <><Save className="mr-2" /> Save</>}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </div>

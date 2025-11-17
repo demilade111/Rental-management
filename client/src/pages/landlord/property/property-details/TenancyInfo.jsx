@@ -146,7 +146,7 @@ const TenancyInfo = ({ listingId }) => {
                         <div key={`tenancy-head-skeleton-${idx}`} className="h-4 bg-gray-900/20 rounded" />
                     ))}
                 </div>
-                <div className="space-y-3 h-[320px] overflow-hidden">
+                <div className="space-y-1 h-[320px] overflow-hidden">
                     {[...Array(4)].map((_, idx) => (
                         <Card key={`tenancy-skeleton-${idx}`} className="border border-gray-200 p-3 animate-pulse">
                             <div className="grid grid-cols-7 gap-4 items-center">

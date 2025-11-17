@@ -2,9 +2,9 @@ import React from 'react';
 
 const SummaryCard = ({ title, total, breakdown }) => {
   return (
-    <div className="bg-white border border-gray-300 rounded-lg p-6">
-      <h3 className="text-[18px] font-semibold text-gray-700 mb-3">{title}</h3>
-      <div className="text-[36px] font-bold text-gray-900 mb-4">
+    <div className="bg-card rounded-2xl p-6">
+      <h3 className="text-[18px] font-semibold text-primary mb-3">{title}</h3>
+      <div className="text-[36px] font-bold text-primary mb-4">
         ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </div>
       <div className="space-y-2">
