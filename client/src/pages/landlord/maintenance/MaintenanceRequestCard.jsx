@@ -37,10 +37,10 @@ const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActio
   });
 
   return (
-    <div className="mb-2">
-      <Card className="cursor-pointer" onClick={() => onCardClick?.(request)}>
-        <CardHeader className="flex items-center gap-3">
-          <div className="w-20 h-20 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+    <div className="mb-1">
+      <Card className="cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => onCardClick?.(request)}>
+        <CardHeader className="flex items-center gap-2 px-3 py-2">
+          <div className="w-14 h-14 rounded-md overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
             {request.images?.length ? (
               <PropertyImage
                 image={request.images[0]}
@@ -79,33 +79,52 @@ const MaintenanceRequestCard = ({ request, actions, onActionClick, updatingActio
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 py-2">
           <p className="text-sm font-medium line-clamp-2">{request.description}</p>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Category: {getCategoryDisplayName(request.category)}
           </p>
         </CardContent>
-        <CardFooter className="flex justify-between" onClick={(e) => e.stopPropagation()}>
+        <CardFooter className="flex justify-end gap-2 px-3 py-2" onClick={(e) => e.stopPropagation()}>
           {filteredActions.map((action) => {
             const isUpdating = updatingActions[request.id] === action; // check per button
 
+            // Define button colors based on action type using specified color palette
+            const getButtonClassName = (action) => {
+              const baseClass = "rounded-2xl text-white hover:text-white border";
+              switch (action) {
+                case "Cancel":
+                  return `${baseClass} bg-[#E57667] hover:bg-[#E57667]/90 border-[#E57667]`;
+                case "Accept":
+                  return `${baseClass} bg-[#53848F] hover:bg-[#53848F]/90 border-[#53848F]`;
+                case "Reply":
+                  return `${baseClass} bg-[#53848F] hover:bg-[#53848F]/90 border-[#53848F]`;
+                case "Finish":
+                  return `${baseClass} bg-[#53848F] hover:bg-[#53848F]/90 border-[#53848F]`;
+                case "Trash":
+                  return `${baseClass} bg-[#E57667] hover:bg-[#E57667]/90 border-[#E57667]`;
+                case "View":
+                  return `${baseClass} bg-[#53848F] hover:bg-[#53848F]/90 border-[#53848F]`;
+                default:
+                  return `${baseClass} bg-[#53848F] hover:bg-[#53848F]/90 border-[#53848F]`;
+              }
+            };
+
             return (
               <Button
-                className="rounded-2xl py-6 border-gray-400"
+                className={getButtonClassName(action)}
                 key={action}
-                variant={
-                  action === "Cancel" || action === "Trash" ? "outline" : "outline"
-                }
-                size="lg"
+                variant="outline"
+                size="sm"
                 onClick={() => onActionClick(action, request.id)}
                 disabled={isUpdating}
               >
-                {action === "Cancel" && <X className="size-4 mr-1" />}
-                {action === "Accept" && <Check className="size-4 mr-1 bg-black text-white rounded-full" />}
-                {action === "Reply" && <Reply className="size-4 mr-1" />}
-                {action === "Finish" && <Check className="size-4 mr-1 bg-black text-white rounded-full" />}
-                {action === "Trash" && <Trash2 className="size-4 mr-1" />}
-                {action === "View" && <Eye className="size-4 mr-1" />}
+                {action === "Cancel" && <X className="size-3 mr-1" />}
+                {action === "Accept" && <Check className="size-3 mr-1" />}
+                {action === "Reply" && <Reply className="size-3 mr-1" />}
+                {action === "Finish" && <Check className="size-3 mr-1" />}
+                {action === "Trash" && <Trash2 className="size-3 mr-1" />}
+                {action === "View" && <Eye className="size-3 mr-1" />}
                 {action}
               </Button>
             );

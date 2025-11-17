@@ -127,7 +127,7 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
                 <h3 className="text-xl font-semibold mb-4 text-primary">Maintenance History</h3>
                 
                 {loadingMaintenance ? (
-                    <div className="space-y-3">
+                    <div className="space-y-1">
                         {[...Array(4)].map((_, idx) => (
                             <Card key={`maintenance-skeleton-${idx}`} className="border border-gray-200 p-3">
                                 <div className="grid grid-cols-6 gap-4 items-center animate-pulse">
@@ -255,7 +255,7 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
                     <h3 className="text-xl font-semibold mb-4">Maintenance History</h3>
                     
                     {loadingMaintenance ? (
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                             {[...Array(4)].map((_, idx) => (
                                 <Card key={`maintenance-skeleton-${idx}`} className="border border-gray-200 p-3">
                                     <div className="grid grid-cols-6 gap-4 items-center animate-pulse">

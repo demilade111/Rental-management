@@ -252,7 +252,7 @@ const StandardLeases = ({ onTotalChange }) => {
 
                 <div className="flex-1 overflow-y-auto min-h-0">
                     {isLoading ? (
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                             {[...Array(4)].map((_, idx) => (
                                 <div key={`standard-lease-skeleton-${idx}`} className="flex items-center gap-3">
                                     <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
@@ -345,10 +345,10 @@ const StandardLeases = ({ onTotalChange }) => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-2xl">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-red-600 hover:bg-red-700 rounded-2xl"
                         >
                             {deleteMutation.isPending ? "Deleting..." : "Delete"}
                         </AlertDialogAction>

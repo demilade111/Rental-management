@@ -792,31 +792,27 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
         </div>
 
         <DialogFooter className="p-6 pt-4 border-t">
-          <div className="flex justify-between w-full">
-            <div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                className="border-0 text-gray-700 shadow-none rounded-2xl"
-                disabled={isPending}
-              >
-                Discard
-              </Button>
-            </div>
-            <div className="space-x-3">
-              <Button
-                type="submit"
-                onClick={handleSubmit}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
-                disabled={isPending}
-              >
-                {isPending 
-                  ? (isEditMode ? "Updating..." : "Adding...") 
-                  : (isEditMode ? "Update Property" : "Add Property")
-                }
-              </Button>
-            </div>
+          <div className="flex justify-end gap-3 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="border text-gray-700 shadow-none rounded-2xl"
+              disabled={isPending}
+            >
+              Discard
+            </Button>
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
+              disabled={isPending}
+            >
+              {isPending 
+                ? (isEditMode ? "Updating..." : "Adding...") 
+                : (isEditMode ? "Update Property" : "Add Property")
+              }
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

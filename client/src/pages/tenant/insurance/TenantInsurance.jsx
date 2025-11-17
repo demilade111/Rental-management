@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, FileText, Calendar, DollarSign, Building, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,16 +12,17 @@ import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import UploadInsurance from "./UploadInsurance";
 import { Skeleton } from "@/components/ui/skeleton";
-import PageHeader from "@/components/shared/PageHeader";
 import PolicyDocumentViewer from "@/pages/landlord/insurance/components/PolicyDocumentViewer";
 
 const TenantInsurance = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthStore();
   const [insurances, setInsurances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
   const [viewingInsurance, setViewingInsurance] = useState(null);
+  const prevLocationRef = useRef(location.pathname);
 
   // Fetch tenant's active leases
   const { data: allLeases = [] } = useQuery({
@@ -86,7 +87,24 @@ const TenantInsurance = () => {
 
   useEffect(() => {
     fetchInsurances();
+    // Reset showUpload when component mounts (e.g., navigating to insurance page)
+    setShowUpload(false);
   }, []);
+
+  // Reset showUpload when location changes to insurance page
+  useEffect(() => {
+    if (location.pathname === "/tenant/insurance" && prevLocationRef.current !== location.pathname) {
+      setShowUpload(false);
+    }
+    prevLocationRef.current = location.pathname;
+  }, [location.pathname]);
+
+  // Reset showUpload when location state changes (handles menu clicks on same route)
+  useEffect(() => {
+    if (location.pathname === "/tenant/insurance" && location.state?.timestamp) {
+      setShowUpload(false);
+    }
+  }, [location.state]);
 
   const getPropertyName = (insurance) => {
     if (insurance.lease?.listing?.streetAddress) {
@@ -117,6 +135,9 @@ const TenantInsurance = () => {
             setShowUpload(false);
             fetchInsurances();
           }}
+          onCancel={() => {
+            setShowUpload(false);
+          }}
           leaseId={leaseId}
           customLeaseId={customLeaseId}
         />
@@ -126,13 +147,16 @@ const TenantInsurance = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-        <PageHeader
-          title="Renter's Insurance"
-          subtitle="Manage and track your renter's insurance policies"
-          total={insurances.length}
-        />
-      <div className="mb-4">
-        <Button onClick={() => setShowUpload(true)}>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-[32px] sm:text-3xl md:text-4xl font-extrabold text-primary mb-1">
+            Renter's Insurance <span className="text-gray-600 font-semibold text-[28px]">({insurances.length})</span>
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Manage and track your renter's insurance policies
+          </p>
+        </div>
+        <Button onClick={() => setShowUpload(true)} className="rounded-2xl">
           <Plus className="mr-2 h-4 w-4" />
           Upload Insurance
         </Button>
@@ -140,11 +164,11 @@ const TenantInsurance = () => {
       {/* Content */}
       <div className="flex-1 overflow-auto">
         {loading ? (
-          <div className="space-y-4">
+          <div className="space-y-1">
             {[...Array(4)].map((_, idx) => (
               <div
                 key={`tenant-insurance-skeleton-${idx}`}
-                className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4"
+                className="bg-card rounded-2xl border border-gray-200 p-5 space-y-4"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
@@ -166,7 +190,7 @@ const TenantInsurance = () => {
             ))}
           </div>
         ) : insurances.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+          <div className="bg-card rounded-2xl border border-gray-200 p-12 text-center">
             <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               No Insurance Records
@@ -174,13 +198,13 @@ const TenantInsurance = () => {
             <p className="text-gray-600 mb-6">
               Upload your renter's insurance certificate to get started
             </p>
-            <Button onClick={() => setShowUpload(true)}>
+            <Button onClick={() => setShowUpload(true)} className="rounded-2xl">
               <Plus className="mr-2 h-4 w-4" />
               Upload Insurance
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-1">
             {insurances.map((insurance) => {
               const daysUntilExpiry = getDaysUntilExpiry(insurance.expiryDate);
               const isExpiringSoon = daysUntilExpiry <= 30 && daysUntilExpiry > 0;
@@ -189,7 +213,7 @@ const TenantInsurance = () => {
               return (
                 <div
                   key={insurance.id}
-                  className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                  className="bg-card rounded-2xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -277,6 +301,7 @@ const TenantInsurance = () => {
                             variant="outline"
                             onClick={() => setViewingInsurance(insurance)}
                             size="sm"
+                            className="rounded-2xl"
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             View Doc

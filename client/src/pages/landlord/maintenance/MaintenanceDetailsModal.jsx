@@ -41,7 +41,7 @@ const MessagesSkeleton = () => (
         <Skeleton className="h-4 w-32" />
         {Array.from({ length: 2 }).map((_, idx) => (
             <div key={idx} className="flex">
-                <Skeleton className="h-10 w-full rounded-xl" />
+                <Skeleton className="w-full rounded-xl" />
             </div>
         ))}
     </div>
@@ -172,7 +172,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
 
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
-            <DialogContent className="bg-white dark:bg-gray-900 rounded-xl p-8">
+            <DialogContent className="bg-background rounded-xl p-8">
                 <DialogHeader className="px-2 pt-3">
                     <DialogTitle className="text-base md:text-lg">Maintenance Details</DialogTitle>
                 </DialogHeader>
@@ -211,7 +211,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+                    <div className="border border-gray-200 rounded-md p-4 bg-primary-foreground">
                         <label className="block text-sm font-medium mb-1">Description</label>
                         <div className="text-sm whitespace-pre-wrap">{request.description}</div>
                     </div>
@@ -222,8 +222,8 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                                 <label className="block text-sm font-medium mb-1">Image(s)</label>
                                 {canScroll && (
                                     <div className="flex items-center gap-2">
-                                        <Button type="button" variant="outline" size="sm" onClick={scrollLeft}>◀</Button>
-                                        <Button type="button" variant="outline" size="sm" onClick={scrollRight}>▶</Button>
+                                        <Button type="button" variant="outline" size="sm" onClick={scrollLeft} className="rounded-2xl">◀</Button>
+                                        <Button type="button" variant="outline" size="sm" onClick={scrollRight} className="rounded-2xl">▶</Button>
                                     </div>
                                 )}
                             </div>
@@ -244,7 +244,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                     <div className="mt-6">
                         <Button
                             type="button"
-                            className="w-full bg-gray-900 hover:bg-gray-800 text-white rounded-lg py-2.5 font-medium flex items-center justify-center gap-2"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-2.5 font-medium flex items-center justify-center gap-2"
                             onClick={() => setShowInvoicesModal(true)}
                         >
                             <svg 
@@ -266,7 +266,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                     </div>
 
                     <div className="mt-8">
-                        <div className="flex flex-col gap-2 bg-orange-50/50 p-3 rounded-sm border border-gray-300">
+                        <div className="flex flex-col gap-2 bg-primary-foreground p-3 rounded-sm border border-gray-300">
 
                             <p className="text-[14px]  text-semibold mb-2">Messages</p>
                             <div className="max-h-56 w-full">
@@ -313,7 +313,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
 
                             <div className="flex items-center gap-2 mt-2">
                                 <input
-                                    className="flex-1 border rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-900"
+                                    className="flex-1 border rounded-md px-3 py-2 text-sm bg-primary-foreground"
                                     placeholder="Write a message..."
                                     value={messageBody}
                                     onChange={(e) => setMessageBody(e.target.value)}
@@ -321,6 +321,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                                 <Button
                                     disabled={sending || !messageBody.trim()}
                                     onClick={handleSendMessage}
+                                    className="rounded-2xl"
                                 >
                                     <SendIcon className="size-4" />
                                     {sending ? "Sending..." : "Send"}
@@ -329,7 +330,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                         </div>
 
                         <DialogFooter className="flex justify-end gap-3 pt-2 mt-4">
-                            <Button className="rounded-2xl" variant="secondary" onClick={onClose}>Close</Button>
+                            <Button className="rounded-2xl border" variant="secondary" onClick={onClose}>Close</Button>
                         </DialogFooter>
                     </div>
                 </div>

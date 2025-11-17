@@ -109,10 +109,10 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+      <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="bg-background rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto pt-8">
           {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-background px-6 pb-4 flex items-center justify-between z-10">
             <div>
               <h2 className="text-xl font-bold text-gray-900">
                 {getTenantName()}'s Insurance Policy Details
@@ -130,7 +130,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="px-6 pt-6 pb-4 space-y-6">
             {/* Status */}
             <div className="flex items-center justify-between">
               <StatusBadge status={insurance.status} className="text-base px-4 py-2" />
@@ -147,7 +147,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
             </div>
 
             {/* Tenant Information */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-card border border-gray-300 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <User className="mr-2 h-5 w-5" />
                 Tenant Information
@@ -254,7 +254,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
             </div>
 
             {insurance.notes && (
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-card border border-gray-300 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">Notes</h3>
                 <p className="text-sm text-gray-700">{insurance.notes}</p>
               </div>
@@ -270,16 +270,16 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
             )}
 
             {/* Document Actions */}
-            <div className="border-t border-gray-200 pt-6">
+            <div className="pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Policy Document
               </h3>
               <div className="flex flex-wrap gap-3">
-                <Button variant="outline" onClick={() => setShowDocumentViewer(true)}>
+                <Button variant="outline" onClick={() => setShowDocumentViewer(true)} className="rounded-2xl bg-gray-100 hover:bg-gray-200">
                   <FileText className="mr-2 h-4 w-4" />
                   View Document
                 </Button>
-                <Button variant="outline" onClick={handleDownload}>
+                <Button variant="outline" onClick={handleDownload} className="rounded-2xl bg-gray-100 hover:bg-gray-200">
                   <Download className="mr-2 h-4 w-4" />
                   Download
                 </Button>
@@ -287,7 +287,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="border-t border-gray-200 pt-6">
+            <div className="pt-6">
               {showRejectForm ? (
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -308,6 +308,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
                         setShowRejectForm(false);
                         setRejectionReason("");
                       }}
+                      className="rounded-2xl"
                     >
                       Cancel
                     </Button>
@@ -315,6 +316,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
                       onClick={handleReject}
                       disabled={loading || !rejectionReason.trim()}
                       variant="destructive"
+                      className="rounded-2xl"
                     >
                       Reject Insurance
                     </Button>
@@ -324,7 +326,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
                 <div className="flex flex-wrap gap-3">
                   {insurance.status === "PENDING" && (
                     <>
-                      <Button onClick={handleVerify} disabled={loading}>
+                      <Button onClick={handleVerify} disabled={loading} className="rounded-2xl">
                         <CheckCircle className="mr-2 h-4 w-4" />
                         Verify Insurance
                       </Button>
@@ -332,6 +334,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
                         variant="destructive"
                         onClick={() => setShowRejectForm(true)}
                         disabled={loading}
+                        className="rounded-2xl"
                       >
                         <XCircle className="mr-2 h-4 w-4" />
                         Reject

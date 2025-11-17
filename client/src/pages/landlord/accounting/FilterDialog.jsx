@@ -56,16 +56,16 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md pt-8 px-8 pb-4 rounded-xl">
+      <DialogContent className="max-w-md pt-8 px-8 pb-6 rounded-xl">
         <DialogHeader>
-          <DialogTitle className="text-[18px]">Filter Payments</DialogTitle>
+          <DialogTitle className="text-[18px] text-primary">Filter Payments</DialogTitle>
         </DialogHeader>
 
         {/* Single Column Layout */}
         <div className="space-y-4 mt-4">
           {/* Status Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Payment Status</label>
+            <label className="text-sm font-medium text-primary">Payment Status</label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All" />
@@ -82,7 +82,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
           {/* Type Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Payment Type</label>
+            <label className="text-sm font-medium text-primary">Payment Type</label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All" />
@@ -100,7 +100,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
           {/* Tenant Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Tenant</label>
+            <label className="text-sm font-medium text-primary">Tenant</label>
             <Select value={tenantId} onValueChange={setTenantId}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Tenants" />
@@ -118,7 +118,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
           {/* Property Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Property</label>
+            <label className="text-sm font-medium text-primary">Property</label>
             <Select value={listingId} onValueChange={setListingId}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Properties" />

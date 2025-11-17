@@ -144,7 +144,7 @@ const TenantAccounting = () => {
     }, [filteredPayments, displayPage, limit]);
 
     return (
-        <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
+        <div className="px-4 md:px-8 py-4">
             <PageHeader
                 title="My Payments"
                 subtitle="View your rent payments, deposits, and transaction history"
@@ -199,7 +199,7 @@ const TenantAccounting = () => {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className={`w-full sm:w-[150px] justify-start text-left font-normal ${!startDate ? "text-gray-400" : ""}`}
+                                className={`w-full sm:w-[150px] justify-start text-left font-normal rounded-2xl ${!startDate ? "text-gray-400" : ""}`}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {startDate ? format(startDate, "MMM d") : "Start Date"}
@@ -225,7 +225,7 @@ const TenantAccounting = () => {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className={`w-full sm:w-[150px] justify-start text-left font-normal ${!endDate ? "text-gray-400" : ""}`}
+                                className={`w-full sm:w-[150px] justify-start text-left font-normal rounded-2xl ${!endDate ? "text-gray-400" : ""}`}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {endDate ? format(endDate, "MMM d") : "End Date"}
@@ -250,7 +250,7 @@ const TenantAccounting = () => {
                                 setStartDate(null);
                                 setEndDate(null);
                             }}
-                            className="w-full sm:w-auto"
+                            className="w-full sm:w-auto rounded-2xl"
                         >
                             <X className="h-4 w-4 mr-2" />
                             Clear
@@ -261,9 +261,9 @@ const TenantAccounting = () => {
             )}
 
             {/* Table Container with Pagination */}
-            <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex flex-col">
                 {/* Payment Table */}
-                <div className="flex-1 min-h-0 overflow-hidden">
+                <div>
                     <TenantPaymentTable 
                         payments={paginatedPayments} 
                         isLoading={loadingPayments || initialLoad} 

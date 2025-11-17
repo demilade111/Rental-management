@@ -155,6 +155,7 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
                                 id="share-toggle"
                                 checked={shareWithCounterparty}
                                 onCheckedChange={setShareWithCounterparty}
+                                className="data-[state=checked]:!bg-primary"
                             />
                         </div>
                     </div>
@@ -228,7 +229,7 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
                                 <Button
                                     type="button"
                                     onClick={handleAddItem}
-                                    className="bg-gray-900 hover:bg-gray-800 text-white h-10 w-10 p-0 rounded-full flex items-center justify-center"
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-10 p-0 rounded-full flex items-center justify-center"
                                     title="Add item"
                                 >
                                     <Plus className="h-5 w-5" />
@@ -298,7 +299,7 @@ const InvoicesModal = ({ open, onClose, maintenanceRequest }) => {
                     <Button
                         variant="outline"
                         onClick={onClose}
-                        className="px-6"
+                        className="px-6 rounded-2xl"
                     >
                         Close
                     </Button>
