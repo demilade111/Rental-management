@@ -56,7 +56,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-6">
+      <DialogContent className="max-w-md pt-8 px-8 pb-4 rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-[18px]">Filter Payments</DialogTitle>
         </DialogHeader>

@@ -125,7 +125,7 @@ const PropertyPortfolio = () => {
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         {isLoading && (
-          <div className="space-y-3">
+          <div className="space-y-1">
             {Array.from({ length: 4 }).map((_, idx) => (
               <div key={`portfolio-skeleton-${idx}`} className="flex items-center gap-3">
                 <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />

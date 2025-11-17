@@ -55,7 +55,7 @@ const AccountingSearchBar = ({
             placeholder="Search.."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-gray-50 border-gray-300"
+            className="pl-10 bg-primary-foreground border-gray-300"
           />
         </div>
 
@@ -63,7 +63,7 @@ const AccountingSearchBar = ({
         <Button
           variant="outline"
           size="icon"
-          className="border-gray-200"
+          className="border-gray-200 bg-primary-foreground"
           onClick={onFilter}
         >
           <SlidersHorizontal className="w-4 h-4" />

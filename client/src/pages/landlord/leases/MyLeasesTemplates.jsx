@@ -9,7 +9,7 @@ const MyLeasesTemplates = () => {
     <div className="p-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Lease Templates</h1>
+        <h1 className="text-2xl font-bold text-primary">My Lease Templates</h1>
         <p className="text-sm text-gray-500">Template Archive</p>
       </div>
 

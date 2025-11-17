@@ -52,7 +52,7 @@ const TerminateLeaseDialog = ({ open, onClose, lease, onConfirm, isLoading }) =>
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="max-w-md p-8">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold">Terminate Lease</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold text-primary">Terminate Lease</DialogTitle>
                     <DialogDescription>
                         You are about to terminate the lease for{" "}
                         <span className="font-semibold">

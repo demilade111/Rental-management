@@ -335,14 +335,14 @@ const Accounting = () => {
         {/* Transaction Table */}
         <div className="flex-1 min-h-0 flex flex-col">
           {/* Table Header - Always visible */}
-          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0">
+          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0">
             <div className="">Tenant</div>
-            <div className="border-l border-gray-300 pl-4">Property</div>
-            <div className="border-l border-gray-300 pl-4">Category</div>
-            <div className="border-l border-gray-300 pl-4 pr-4 text-right">Amount</div>
-            <div className="border-l border-gray-300 pl-4">Date</div>
-            <div className="border-l border-gray-300 pl-4">Status</div>
-            <div className="border-l border-gray-300 pl-4">Action</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Property</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Category</div>
+            <div className="border-l border-primary-foreground/20 pl-4 pr-4 text-right">Amount</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Date</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+            <div className="border-l border-primary-foreground/20 pl-4">Action</div>
           </div>
 
           {/* Table Body */}

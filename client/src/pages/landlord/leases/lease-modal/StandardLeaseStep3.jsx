@@ -52,26 +52,26 @@ export default function StandardLeaseStep3({
 
     return (
         <>
-            <DialogHeader>
-                <DialogTitle className="text-center text-[20px] font-bold p-4">
+            <DialogHeader className="p-0 pb-4 border-b mb-6 -mt-6">
+                <DialogTitle className="text-center text-[20px] font-bold text-primary">
                     Deposits & Services (Page 3 of 4)
                 </DialogTitle>
             </DialogHeader>
 
             {/* Fill Demo Data Button */}
-            <div className="flex justify-center mb-3">
+            <div className="flex justify-center mb-3 -mt-2">
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={fillDemoData}
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
                 >
-                    🎲 Fill Demo Data
+                    Demo Autofill
                 </Button>
             </div>
 
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto">
                 {/* Security Deposit */}
                 <div className="space-y-2">
                     <Label className="text-sm font-semibold text-gray-900">Security Deposit</Label>
@@ -85,6 +85,7 @@ export default function StandardLeaseStep3({
                                 step="0.01"
                                 value={standardLeaseData.securityDeposit}
                                 onChange={(e) => setStandardLeaseData(prev => ({ ...prev, securityDeposit: e.target.value }))}
+                                className="bg-primary-foreground"
                             />
                         </div>
                         <div className="grid grid-cols-3 gap-3">
@@ -97,6 +98,7 @@ export default function StandardLeaseStep3({
                                     max="31"
                                     value={standardLeaseData.securityDepositDay}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, securityDepositDay: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -108,6 +110,7 @@ export default function StandardLeaseStep3({
                                     max="12"
                                     value={standardLeaseData.securityDepositMonth}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, securityDepositMonth: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -118,6 +121,7 @@ export default function StandardLeaseStep3({
                                     min="2024"
                                     value={standardLeaseData.securityDepositYear}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, securityDepositYear: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -150,6 +154,7 @@ export default function StandardLeaseStep3({
                                     step="0.01"
                                     value={standardLeaseData.petDeposit}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, petDeposit: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="grid grid-cols-3 gap-3">
@@ -162,6 +167,7 @@ export default function StandardLeaseStep3({
                                         max="31"
                                         value={standardLeaseData.petDepositDay}
                                         onChange={(e) => setStandardLeaseData(prev => ({ ...prev, petDepositDay: e.target.value }))}
+                                        className="bg-primary-foreground"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -173,6 +179,7 @@ export default function StandardLeaseStep3({
                                         max="12"
                                         value={standardLeaseData.petDepositMonth}
                                         onChange={(e) => setStandardLeaseData(prev => ({ ...prev, petDepositMonth: e.target.value }))}
+                                        className="bg-primary-foreground"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -183,6 +190,7 @@ export default function StandardLeaseStep3({
                                         min="2024"
                                         value={standardLeaseData.petDepositYear}
                                         onChange={(e) => setStandardLeaseData(prev => ({ ...prev, petDepositYear: e.target.value }))}
+                                        className="bg-primary-foreground"
                                     />
                                 </div>
                             </div>
@@ -222,6 +230,7 @@ export default function StandardLeaseStep3({
                                 placeholder="e.g., 1"
                                 min="0"
                                 value={standardLeaseData.parkingSpaces}
+                                className="bg-primary-foreground"
                                 onChange={(e) => setStandardLeaseData(prev => ({ ...prev, parkingSpaces: e.target.value }))}
                             />
                         </div>
@@ -230,7 +239,7 @@ export default function StandardLeaseStep3({
             </div>
 
             {/* Back + Continue Buttons */}
-            <div className="flex justify-between mt-6 gap-4">
+            <div className="flex justify-between mt-6 mb-6 gap-4">
                 <Button
                     variant="outline"
                     className="flex-1 py-6 rounded-2xl"

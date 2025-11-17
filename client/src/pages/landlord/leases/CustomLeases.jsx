@@ -246,7 +246,7 @@ const CustomLeases = ({ onTotalChange }) => {
 
             <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
                 {/* Table Header */}
-                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-gray-900 p-3 text-white font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -255,10 +255,10 @@ const CustomLeases = ({ onTotalChange }) => {
                         />
                     </div>
                     <div className="">Lease Name</div>
-                    <div className="border-l border-gray-300 pl-4">Listing Info</div>
-                    <div className="border-l border-gray-300 pl-4">Tenant</div>
-                    <div className="border-l border-gray-300 pl-4">Status</div>
-                    <div className="border-l border-gray-300 pl-4">Actions</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Listing Info</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Tenant</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+                    <div className="border-l border-primary-foreground/20 pl-4">Actions</div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0">
@@ -355,7 +355,7 @@ const CustomLeases = ({ onTotalChange }) => {
                 <Dialog open={viewFileOpen} onOpenChange={setViewFileOpen}>
                     <DialogContent className="max-w-4xl max-h-[90vh]">
                         <DialogHeader>
-                            <DialogTitle>View Lease Document</DialogTitle>
+                            <DialogTitle className="text-primary">View Lease Document</DialogTitle>
                             <DialogDescription>
                                 {selectedLease.leaseName}
                             </DialogDescription>
@@ -368,7 +368,7 @@ const CustomLeases = ({ onTotalChange }) => {
                             />
                         </div>
                         <DialogFooter>
-                            <Button onClick={() => setViewFileOpen(false)}>
+                            <Button onClick={() => setViewFileOpen(false)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                                 Close
                             </Button>
                         </DialogFooter>
@@ -380,7 +380,7 @@ const CustomLeases = ({ onTotalChange }) => {
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Custom Lease</AlertDialogTitle>
+                        <AlertDialogTitle className="text-primary">Delete Custom Lease</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to delete "{selectedLease?.leaseName}"? This action cannot be undone.
                         </AlertDialogDescription>

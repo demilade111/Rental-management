@@ -179,26 +179,26 @@ export default function StandardLeaseStep2({
     };
     return (
         <>
-            <DialogHeader>
-                <DialogTitle className="text-center text-[20px] font-bold p-4">
+            <DialogHeader className="p-0 pb-4 border-b mb-6 -mt-6">
+                <DialogTitle className="text-center text-[20px] font-bold text-primary">
                     Term & Rent Details (Page 2 of 4)
                 </DialogTitle>
             </DialogHeader>
 
             {/* Fill Demo Data Button */}
-            <div className="flex justify-center mb-3">
+            <div className="flex justify-center mb-3 -mt-2">
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={fillDemoData}
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
                 >
-                    🎲 Fill Demo Data
+                    Demo Autofill
                 </Button>
             </div>
 
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto">
                 {/* Tenancy Start Date */}
                 <div className="space-y-2">
                     <Label className="text-sm font-semibold text-gray-900">Tenancy Start Date *</Label>
@@ -216,7 +216,7 @@ export default function StandardLeaseStep2({
                                     if (errors.startDay) setErrors(prev => ({ ...prev, startDay: "" }));
                                 }}
                                 onBlur={(e) => validateField("startDay", e.target.value)}
-                                className={errors.startDay ? "border-red-500" : ""}
+                                className={`bg-primary-foreground ${errors.startDay ? "border-red-500" : ""}`}
                             />
                             {errors.startDay && <p className="text-xs text-red-600">{errors.startDay}</p>}
                         </div>
@@ -233,7 +233,7 @@ export default function StandardLeaseStep2({
                                     if (errors.startMonth) setErrors(prev => ({ ...prev, startMonth: "" }));
                                 }}
                                 onBlur={(e) => validateField("startMonth", e.target.value)}
-                                className={errors.startMonth ? "border-red-500" : ""}
+                                className={`bg-primary-foreground ${errors.startMonth ? "border-red-500" : ""}`}
                             />
                             {errors.startMonth && <p className="text-xs text-red-600">{errors.startMonth}</p>}
                         </div>
@@ -249,7 +249,7 @@ export default function StandardLeaseStep2({
                                     if (errors.startYear) setErrors(prev => ({ ...prev, startYear: "" }));
                                 }}
                                 onBlur={(e) => validateField("startYear", e.target.value)}
-                                className={errors.startYear ? "border-red-500" : ""}
+                                className={`bg-primary-foreground ${errors.startYear ? "border-red-500" : ""}`}
                             />
                             {errors.startYear && <p className="text-xs text-red-600">{errors.startYear}</p>}
                         </div>
@@ -263,7 +263,7 @@ export default function StandardLeaseStep2({
                         setStandardLeaseData(prev => ({ ...prev, tenancyType: val, periodicBasis: "", periodicOther: "", fixedEndCondition: "", vacateReason: "" }));
                         if (errors.tenancyType) setErrors(prev => ({ ...prev, tenancyType: "", periodicBasis: "", periodicOther: "", fixedEndCondition: "", vacateReason: "" }));
                     }}>
-                        <SelectTrigger className={errors.tenancyType ? "border-red-500" : ""}>
+                        <SelectTrigger className={`bg-primary-foreground ${errors.tenancyType ? "border-red-500" : ""}`}>
                             <SelectValue placeholder="Select tenancy type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -303,7 +303,7 @@ export default function StandardLeaseStep2({
                                                 setStandardLeaseData(prev => ({ ...prev, periodicOther: e.target.value }));
                                                 if (errors.periodicOther) setErrors(prev => ({ ...prev, periodicOther: "" }));
                                             }}
-                                            className={`mt-1 ${errors.periodicOther ? "border-red-500" : ""}`}
+                                            className={`mt-1 bg-primary-foreground ${errors.periodicOther ? "border-red-500" : ""}`}
                                         />
                                     )}
                                     {errors.periodicOther && <p className="text-xs text-red-600 mt-1">{errors.periodicOther}</p>}
@@ -328,6 +328,7 @@ export default function StandardLeaseStep2({
                                     max="31"
                                     value={standardLeaseData.fixedEndDay}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, fixedEndDay: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -339,6 +340,7 @@ export default function StandardLeaseStep2({
                                     max="12"
                                     value={standardLeaseData.fixedEndMonth}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, fixedEndMonth: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -349,6 +351,7 @@ export default function StandardLeaseStep2({
                                     min="2024"
                                     value={standardLeaseData.fixedEndYear}
                                     onChange={(e) => setStandardLeaseData(prev => ({ ...prev, fixedEndYear: e.target.value }))}
+                                    className="bg-primary-foreground"
                                 />
                             </div>
                         </div>
@@ -385,7 +388,7 @@ export default function StandardLeaseStep2({
                                                 setStandardLeaseData(prev => ({ ...prev, vacateReason: e.target.value }));
                                                 if (errors.vacateReason) setErrors(prev => ({ ...prev, vacateReason: "" }));
                                             }}
-                                            className={errors.vacateReason ? "border-red-500" : ""}
+                                            className={`bg-primary-foreground ${errors.vacateReason ? "border-red-500" : ""}`}
                                         />
                                         {errors.vacateReason && <p className="text-xs text-red-600">{errors.vacateReason}</p>}
                                     </div>
@@ -400,7 +403,7 @@ export default function StandardLeaseStep2({
 
                 {/* Rent Details */}
                 <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">Rent Details</h3>
+                    <h3 className="font-semibold text-primary mb-3">Rent Details</h3>
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
@@ -416,14 +419,14 @@ export default function StandardLeaseStep2({
                                         if (errors.rentAmount) setErrors(prev => ({ ...prev, rentAmount: "" }));
                                     }}
                                     onBlur={(e) => validateField("rentAmount", e.target.value)}
-                                    className={errors.rentAmount ? "border-red-500" : ""}
+                                    className={`bg-primary-foreground ${errors.rentAmount ? "border-red-500" : ""}`}
                                 />
                                 {errors.rentAmount && <p className="text-xs text-red-600">{errors.rentAmount}</p>}
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">Payment Frequency</Label>
                                 <Select value={standardLeaseData.rentFrequency} onValueChange={(val) => setStandardLeaseData(prev => ({ ...prev, rentFrequency: val }))}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="bg-primary-foreground">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -447,7 +450,7 @@ export default function StandardLeaseStep2({
                                     if (errors.rentDueDay) setErrors(prev => ({ ...prev, rentDueDay: "" }));
                                 }}
                                 onBlur={(e) => validateField("rentDueDay", e.target.value)}
-                                className={errors.rentDueDay ? "border-red-500" : ""}
+                                className={`bg-primary-foreground ${errors.rentDueDay ? "border-red-500" : ""}`}
                             />
                             {errors.rentDueDay && <p className="text-xs text-red-600">{errors.rentDueDay}</p>}
                         </div>
@@ -456,7 +459,7 @@ export default function StandardLeaseStep2({
             </div>
 
             {/* Back + Continue Buttons */}
-            <div className="flex justify-between mt-6 gap-4">
+            <div className="flex justify-between mt-6 mb-6 gap-4">
                 <Button
                     variant="outline"
                     className="flex-1 py-6 rounded-2xl"

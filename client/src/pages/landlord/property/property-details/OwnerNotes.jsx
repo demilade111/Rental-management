@@ -277,17 +277,17 @@ const OwnerNotes = ({ notes, propertyId, activeCard, onCardChange, showOnlyMaint
                     ) : (
                     <>
                         {/* Table Header */}
-                        <div className="grid grid-cols-6 gap-4 bg-gray-900 p-3 text-white font-semibold rounded-2xl mb-3">
+                        <div className="grid grid-cols-6 gap-4 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl mb-3">
                             <div>Title</div>
-                            <div className="border-l border-gray-600 pl-4">Description</div>
-                            <div className="border-l border-gray-600 pl-4">Priority</div>
-                            <div className="border-l border-gray-600 pl-4">Status</div>
-                            <div className="border-l border-gray-600 pl-4 text-right">Cost</div>
-                            <div className="border-l border-gray-600 pl-4 text-center">Date</div>
+                            <div className="border-l border-primary-foreground/20 pl-4">Description</div>
+                            <div className="border-l border-primary-foreground/20 pl-4">Priority</div>
+                            <div className="border-l border-primary-foreground/20 pl-4">Status</div>
+                            <div className="border-l border-primary-foreground/20 pl-4 text-right">Cost</div>
+                            <div className="border-l border-primary-foreground/20 pl-4 text-center">Date</div>
                         </div>
 
                         {/* Table Rows - Scrollable Container with fixed height */}
-                        <div className="space-y-3 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
+                        <div className="space-y-1 h-[350px] overflow-y-auto pr-2 border border-gray-200 rounded-lg p-2">
                             {paginatedMaintenance.map((request) => (
                                 <Card key={request.id} className="border border-gray-300 hover:shadow-md transition-shadow p-3">
                                     <div className="grid grid-cols-6 gap-4 items-center">
