@@ -15,33 +15,32 @@ import { Skeleton } from '@/components/ui/skeleton';
 const PaymentTableSkeleton = () => (
   <div className="space-y-1">
     {Array.from({ length: 5 }).map((_, index) => (
-      <div key={index} className="bg-card border border-gray-300 rounded-2xl p-3">
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <div className="border-l border-gray-200 pl-4 space-y-2">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-3 w-28" />
-          </div>
-          <div className="border-l border-gray-200 pl-4 space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-          <div className="border-l border-gray-200 pl-4 pr-4">
-            <Skeleton className="h-4 w-24 ml-auto" />
-          </div>
-          <div className="border-l border-gray-200 pl-4 space-y-1">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-          <div className="border-l border-gray-200 pl-4">
-            <Skeleton className="h-6 w-20 rounded-full" />
-          </div>
-          <div className="border-l border-gray-200 pl-4">
-            <Skeleton className="h-8 w-24 rounded-xl" />
-          </div>
+      <div
+        key={`payment-skeleton-${index}`}
+        className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 border border-gray-200 rounded-2xl p-3 items-center bg-card"
+      >
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-40 rounded-lg" />
+          <Skeleton className="h-3 w-28 rounded-md" />
+        </div>
+        <div className="space-y-2 border-l border-gray-100 pl-4">
+          <Skeleton className="h-4 w-32 rounded-lg" />
+          <Skeleton className="h-3 w-24 rounded-md" />
+        </div>
+        <div className="border-l border-gray-100 pl-4">
+          <Skeleton className="h-4 w-24 rounded-lg" />
+        </div>
+        <div className="border-l border-gray-100 pl-4 pr-4 text-right">
+          <Skeleton className="h-4 w-28 rounded-lg ml-auto" />
+        </div>
+        <div className="border-l border-gray-100 pl-4">
+          <Skeleton className="h-4 w-28 rounded-lg" />
+        </div>
+        <div className="border-l border-gray-100 pl-4 flex items-center gap-2">
+          <Skeleton className="h-4 w-16 rounded-full" />
+        </div>
+        <div className="border-l border-gray-100 pl-4 flex justify-end gap-2">
+          <Skeleton className="h-8 w-24 rounded-xl" />
         </div>
       </div>
     ))}
@@ -295,10 +294,12 @@ const Accounting = () => {
   return (
     <div className="px-4 md:px-8 py-4">
       <div>
-        <PageHeader
-          title="Accounting"
-          subtitle="Track payments, outstanding balances, and manage financial records"
-        />
+        <div className="hidden md:block">
+          <PageHeader
+            title="Accounting"
+            subtitle="Track payments, outstanding balances, and manage financial records"
+          />
+        </div>
 
         <AccountingSearchBar
           searchQuery={searchTerm}
@@ -334,8 +335,8 @@ const Accounting = () => {
 
         {/* Transaction Table */}
         <div className="flex flex-col">
-          {/* Table Header - Always visible */}
-          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4">
+          {/* Table Header - Desktop */}
+          <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4">
             <div className="">Tenant</div>
             <div className="border-l border-primary-foreground/20 pl-4">Property</div>
             <div className="border-l border-primary-foreground/20 pl-4">Category</div>
@@ -343,6 +344,12 @@ const Accounting = () => {
             <div className="border-l border-primary-foreground/20 pl-4">Date</div>
             <div className="border-l border-primary-foreground/20 pl-4">Status</div>
             <div className="border-l border-primary-foreground/20 pl-4">Action</div>
+          </div>
+
+          {/* Table Header - Mobile: Tenant and Amount */}
+          <div className="md:hidden grid grid-cols-[1fr_auto] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4">
+            <div className="">Tenant</div>
+            <div className="text-right pr-2">Amount</div>
           </div>
 
           {/* Table Body */}

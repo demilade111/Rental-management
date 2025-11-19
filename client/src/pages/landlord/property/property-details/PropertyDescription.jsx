@@ -27,11 +27,11 @@ const PropertyDescription = ({ description }) => {
     return (
         <>
             <div className="bg-card rounded-2xl p-6">
-                <h2 className="text-[24px] font-bold mb-4 text-primary">Description</h2>
+                <h2 className="text-lg sm:text-xl md:text-[24px] font-bold mb-4 text-primary">Description</h2>
                 <div className="relative">
                     <p 
                         ref={descriptionRef}
-                        className={`text-gray-700 leading-relaxed text-[16px] ${
+                        className={`text-gray-700 leading-relaxed text-sm sm:text-base md:text-[16px] ${
                             isTruncated ? 'line-clamp-3' : ''
                         }`}
                     >
@@ -40,7 +40,7 @@ const PropertyDescription = ({ description }) => {
                     {isTruncated && (
                         <button
                             onClick={() => setShowFullDialog(true)}
-                            className="text-blue-600 hover:text-blue-700 font-medium mt-2 text-[16px]"
+                            className="text-blue-600 hover:text-blue-700 font-medium mt-2 text-sm sm:text-base md:text-[16px]"
                         >
                             Read more...
                         </button>
@@ -52,10 +52,10 @@ const PropertyDescription = ({ description }) => {
             <Dialog open={showFullDialog} onOpenChange={setShowFullDialog}>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-[24px] font-bold">Full Description</DialogTitle>
+                        <DialogTitle className="text-lg sm:text-xl md:text-[24px] font-bold">Full Description</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
-                        <p className="text-gray-700 leading-relaxed text-[16px] whitespace-pre-wrap">
+                        <p className="text-gray-700 leading-relaxed text-sm sm:text-base md:text-[16px] whitespace-pre-wrap">
                             {description}
                         </p>
                     </div>

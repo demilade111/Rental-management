@@ -173,7 +173,7 @@ async function main() {
     tenants.push(tenant);
   }
 
-  console.log("🏠 Creating 20 listings...");
+  console.log("🏠 Creating 30+ listings...");
 
   // Different property images for each listing type
   const propertyImages = [
@@ -217,6 +217,26 @@ async function main() {
     ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"],
     // 19 - Executive Suite
     ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"],
+    // 20 - Modern Studio
+    ["https://images.unsplash.com/photo-1586023492125-27b2c045efd7", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
+    // 21 - Spacious Apartment
+    ["https://images.unsplash.com/photo-1600607687644-c7171b42498b", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
+    // 22 - Luxury Apartment
+    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde"],
+    // 23 - Cozy Condo
+    ["https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c"],
+    // 24 - Modern Townhouse
+    ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"],
+    // 25 - Elegant Home
+    ["https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0", "https://images.unsplash.com/photo-1600585154526-990dced4db0d"],
+    // 26 - Contemporary Apartment
+    ["https://images.unsplash.com/photo-1600573472550-8090b5e0745e", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb"],
+    // 27 - Classic Condo
+    ["https://images.unsplash.com/photo-1600585154363-67eb9e2e2099", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
+    // 28 - Modern Family Home
+    ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
+    // 29 - Urban Loft
+    ["https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
   ];
 
   const listings = [];
@@ -440,6 +460,116 @@ async function main() {
       status: "RENTED",
       desc: "Beautifully designed townhouse with high-end finishes. Private rooftop deck with city views.",
       amenities: ["Roof Deck", "Garage", "In-unit Laundry", "Smart Home", "Designer Finishes"],
+    },
+    {
+      landlord: landlord3,
+      title: "Modern Studio Apartment",
+      type: "STUDIO",
+      beds: 0, baths: 1, sqft: 450, year: 2020,
+      street: "123 Market St, #101", city: "San Francisco", state: "California", zip: "94102",
+      rent: 2100, deposit: 2100, petDeposit: 0,
+      status: "ACTIVE",
+      desc: "Sleek modern studio with smart home features. Perfect for professionals seeking convenience.",
+      amenities: ["Smart Home", "In-unit Laundry", "Gym", "Parking"],
+    },
+    {
+      landlord: landlord1,
+      title: "Spacious 3BR Apartment",
+      type: "APARTMENT",
+      beds: 3, baths: 2, sqft: 1500, year: 2018,
+      street: "456 Geary Blvd, #5C", city: "San Francisco", state: "California", zip: "94118",
+      rent: 4800, deposit: 4800, petDeposit: 600,
+      status: "ACTIVE",
+      desc: "Large 3-bedroom apartment with modern amenities. Great for families or roommates.",
+      amenities: ["In-unit Laundry", "Dishwasher", "Air Conditioning", "Parking", "Storage"],
+    },
+    {
+      landlord: landlord2,
+      title: "Luxury 2BR Apartment",
+      type: "APARTMENT",
+      beds: 2, baths: 2, sqft: 1350, year: 2021,
+      street: "789 Post St, #12A", city: "San Francisco", state: "California", zip: "94109",
+      rent: 5500, deposit: 5500, petDeposit: 0,
+      status: "ACTIVE",
+      desc: "Premium apartment with high-end finishes and stunning city views. Building amenities included.",
+      amenities: ["Concierge", "Gym", "Pool", "Parking", "In-unit Laundry", "Balcony"],
+    },
+    {
+      landlord: landlord3,
+      title: "Cozy 1BR Condo",
+      type: "CONDO",
+      beds: 1, baths: 1, sqft: 800, year: 2016,
+      street: "321 Fillmore St, Unit 8", city: "San Francisco", state: "California", zip: "94117",
+      rent: 3200, deposit: 3200, petDeposit: 400,
+      status: "ACTIVE",
+      desc: "Charming one-bedroom condo in vibrant neighborhood. Recently updated with modern fixtures.",
+      amenities: ["Hardwood Floors", "Updated Kitchen", "Storage", "Pet Friendly"],
+    },
+    {
+      landlord: landlord1,
+      title: "Modern 2BR Townhouse",
+      type: "TOWNHOUSE",
+      beds: 2, baths: 2.5, sqft: 1800, year: 2019,
+      street: "654 Divisadero St", city: "San Francisco", state: "California", zip: "94117",
+      rent: 5200, deposit: 5200, petDeposit: 800,
+      status: "ACTIVE",
+      desc: "Contemporary townhouse with private entrance and modern design. Perfect for professionals.",
+      amenities: ["Private Entrance", "Garage", "In-unit Laundry", "Patio", "Updated Kitchen"],
+    },
+    {
+      landlord: landlord2,
+      title: "Elegant 4BR Family Home",
+      type: "SINGLE_FAMILY",
+      beds: 4, baths: 3, sqft: 2800, year: 2012,
+      street: "987 Pacific Ave", city: "San Francisco", state: "California", zip: "94109",
+      rent: 7200, deposit: 7200, petDeposit: 1200,
+      status: "ACTIVE",
+      desc: "Beautiful family home with spacious rooms and large backyard. Ideal for families with children.",
+      amenities: ["Backyard", "Garage", "Fireplace", "Central AC", "Updated Kitchen", "Hardwood Floors"],
+    },
+    {
+      landlord: landlord3,
+      title: "Contemporary 2BR Apartment",
+      type: "APARTMENT",
+      beds: 2, baths: 1, sqft: 1100, year: 2017,
+      street: "147 Union St, #3B", city: "San Francisco", state: "California", zip: "94133",
+      rent: 4100, deposit: 4100, petDeposit: 0,
+      status: "ACTIVE",
+      desc: "Stylish two-bedroom apartment with modern design. Close to restaurants and shopping.",
+      amenities: ["In-unit Laundry", "Dishwasher", "Hardwood Floors", "Storage"],
+    },
+    {
+      landlord: landlord1,
+      title: "Classic 1BR Condo",
+      type: "CONDO",
+      beds: 1, baths: 1, sqft: 750, year: 2014,
+      street: "258 Broadway, Unit 15", city: "San Francisco", state: "California", zip: "94133",
+      rent: 3000, deposit: 3000, petDeposit: 0,
+      status: "ACTIVE",
+      desc: "Well-maintained one-bedroom condo in historic building. Great location with character.",
+      amenities: ["Hardwood Floors", "Updated Bathroom", "Storage", "Laundry in Building"],
+    },
+    {
+      landlord: landlord2,
+      title: "Modern 3BR Family Home",
+      type: "SINGLE_FAMILY",
+      beds: 3, baths: 2.5, sqft: 2100, year: 2016,
+      street: "369 Lombard St", city: "San Francisco", state: "California", zip: "94133",
+      rent: 6800, deposit: 6800, petDeposit: 1000,
+      status: "ACTIVE",
+      desc: "Spacious family home with modern updates and large yard. Perfect for growing families.",
+      amenities: ["Backyard", "Garage", "Fireplace", "Central AC", "Updated Kitchen", "In-unit Laundry"],
+    },
+    {
+      landlord: landlord3,
+      title: "Urban 1BR Loft",
+      type: "APARTMENT",
+      beds: 1, baths: 1, sqft: 950, year: 2015,
+      street: "741 Mission St, #4A", city: "San Francisco", state: "California", zip: "94103",
+      rent: 3600, deposit: 3600, petDeposit: 0,
+      status: "ACTIVE",
+      desc: "Industrial-style loft with high ceilings and exposed brick. Perfect for creative professionals.",
+      amenities: ["High Ceilings", "Exposed Brick", "In-unit Laundry", "Gym", "Roof Access"],
     },
   ];
 
@@ -758,6 +888,44 @@ async function main() {
     applications.push(app);
   }
 
+  // Additional applications for new listings (20-29) - no leases yet
+  const newListingApps = [
+    { applicant: getPlaceholderApplicant(), listing: listings[20], status: "NEW" },
+    { applicant: null, listing: listings[21], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[22], status: "APPROVED" },
+    { applicant: getPlaceholderApplicant(), listing: listings[23], status: "NEW" },
+    { applicant: null, listing: listings[24], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[25], status: "APPROVED" },
+    { applicant: getPlaceholderApplicant(), listing: listings[26], status: "REJECTED" },
+    { applicant: null, listing: listings[27], status: "PENDING" },
+    { applicant: getPlaceholderApplicant(), listing: listings[28], status: "NEW" },
+    { applicant: getPlaceholderApplicant(), listing: listings[29], status: "APPROVED" },
+  ];
+
+  for (let i = 0; i < newListingApps.length; i++) {
+    const data = newListingApps[i];
+    const daysAgo = Math.floor(Math.random() * 50) + 1;
+    const publicId = `APP-NEW-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 9)}`;
+
+    const app = await prisma.requestApplication.create({
+      data: {
+        publicId: publicId,
+        tenantId: null, // No tenant assigned until lease is signed
+        landlordId: data.listing.landlordId,
+        listingId: data.listing.id,
+        fullName: data.applicant ? `${data.applicant.firstName} ${data.applicant.lastName}` : "N/A",
+        email: data.applicant ? data.applicant.email : "N/A",
+        phone: data.applicant ? data.applicant.phone : "N/A",
+        moveInDate: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000),
+        currentAddress: data.applicant ? `${Math.floor(Math.random() * 9999)} ${["Oak", "Pine", "Elm", "Maple", "Cedar", "Ash", "Birch"][Math.floor(Math.random() * 7)]} St` : "N/A",
+        monthlyIncome: data.applicant ? Math.floor(Math.random() * 8000) + 4000 : 0,
+        status: data.status,
+        createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      },
+    });
+    applications.push(app);
+  }
+
   console.log("📝 Creating standard leases (1 lease per listing max)...");
 
   const leases = [];
@@ -812,10 +980,15 @@ async function main() {
     // ✅ ACTIVE STANDARD LEASES (Tenant assigned after signing)
     { tenant: tenants[0], listing: listings[0], status: "ACTIVE", startDays: -180, endDays: 180 },  // Jane signed
     { tenant: tenants[1], listing: listings[3], status: "ACTIVE", startDays: -90, endDays: 270 },   // Mike signed
+    { tenant: tenants[3], listing: listings[11], status: "ACTIVE", startDays: -60, endDays: 305 },  // Alex signed (new)
+    { tenant: tenants[4], listing: listings[12], status: "ACTIVE", startDays: -45, endDays: 320 },  // Sophia signed (new)
 
     // 📝 DRAFT STANDARD LEASES (No tenant assigned yet - will assign when sent)
     { tenant: null, listing: listings[8], status: "DRAFT", startDays: 15, endDays: 380 },   // Not assigned
     { tenant: null, listing: listings[10], status: "DRAFT", startDays: 20, endDays: 385 },  // Not assigned
+    { tenant: null, listing: listings[13], status: "DRAFT", startDays: 30, endDays: 395 },  // Not assigned (new)
+    { tenant: null, listing: listings[14], status: "DRAFT", startDays: 25, endDays: 390 },  // Not assigned (new)
+    { tenant: null, listing: listings[15], status: "DRAFT", startDays: 35, endDays: 400 },  // Not assigned (new)
   ];
 
   for (const data of leaseData) {
@@ -940,6 +1113,12 @@ async function main() {
     { tenant: null, listing: listings[4], status: "DRAFT", startDays: 45, months: 24, rent: 2200 },
     { tenant: null, listing: listings[7], status: "DRAFT", startDays: 15, months: 12, rent: 7500 },
     { tenant: null, listing: listings[9], status: "DRAFT", startDays: 30, months: 12, rent: 2800 },
+    { tenant: null, listing: listings[16], status: "DRAFT", startDays: 40, months: 12, rent: 1800 },
+    { tenant: null, listing: listings[17], status: "DRAFT", startDays: 50, months: 18, rent: 4300 },
+    { tenant: null, listing: listings[18], status: "DRAFT", startDays: 35, months: 12, rent: 2900 },
+    { tenant: null, listing: listings[19], status: "DRAFT", startDays: 45, months: 12, rent: 6500 },
+    { tenant: null, listing: listings[20], status: "DRAFT", startDays: 30, months: 12, rent: 2100 },
+    { tenant: null, listing: listings[21], status: "DRAFT", startDays: 25, months: 12, rent: 4800 },
   ];
 
   for (const data of customLeaseData) {
@@ -1303,9 +1482,9 @@ async function main() {
 
 Created:
 - 3 Landlords
-- 5 Tenants (3 with active leases, 2 available)
-- 20 Listings
-- 20+ Applications (including ${applications.filter(a => a.status === 'PENDING' && !a.tenantId).length} unassigned PENDING)
+- 5 Tenants (5 with active leases, 0 available)
+- 30 Listings
+- 30+ Applications (including ${applications.filter(a => a.status === 'PENDING' && !a.tenantId).length} unassigned PENDING)
 - ${leases.length} Standard Leases (${leases.filter(l => l.leaseStatus === 'ACTIVE').length} ACTIVE, ${leases.filter(l => l.leaseStatus === 'DRAFT').length} DRAFT)
 - ${customLeases.length} Custom Leases (${customLeases.filter(l => l.leaseStatus === 'ACTIVE').length} ACTIVE, ${customLeases.filter(l => l.leaseStatus === 'DRAFT').length} DRAFT)
 - 40+ Rent Payments
@@ -1324,10 +1503,10 @@ Created:
    ✅ ACTIVE: ${leases.filter(l => l.tenantId === tenants[2].id && l.leaseStatus === 'ACTIVE').length + customLeases.filter(l => l.tenantId === tenants[2].id && l.leaseStatus === 'ACTIVE').length} lease(s) - Custom
 
 👤 ${tenants[3].firstName} ${tenants[3].lastName} (alex.tenant@test.com):
-   ✅ ACTIVE: 0 lease(s) - Available to sign
+   ✅ ACTIVE: ${leases.filter(l => l.tenantId === tenants[3].id && l.leaseStatus === 'ACTIVE').length + customLeases.filter(l => l.tenantId === tenants[3].id && l.leaseStatus === 'ACTIVE').length} lease(s) - Standard
 
 👤 ${tenants[4].firstName} ${tenants[4].lastName} (sophia.resident@test.com):
-   ✅ ACTIVE: 0 lease(s) - Available to sign
+   ✅ ACTIVE: ${leases.filter(l => l.tenantId === tenants[4].id && l.leaseStatus === 'ACTIVE').length + customLeases.filter(l => l.tenantId === tenants[4].id && l.leaseStatus === 'ACTIVE').length} lease(s) - Standard
 
 📝 DRAFT LEASES (No tenant assigned):
    - ${leases.filter(l => l.leaseStatus === 'DRAFT').length} Standard draft leases
@@ -1341,10 +1520,11 @@ Tenants WITH Active Leases (CANNOT sign new leases):
   - tenant@test.com / password123 (Jane - has standard lease)
   - mike.renter@test.com / password123 (Mike - has standard lease)
   - emma.wilson@test.com / password123 (Emma - has custom lease)
+  - alex.tenant@test.com / password123 (Alex - has standard lease)
+  - sophia.resident@test.com / password123 (Sophia - has standard lease)
 
 Tenants WITHOUT Leases (CAN sign leases & appear in applications):
-  - alex.tenant@test.com / password123 (Alex)
-  - sophia.resident@test.com / password123 (Sophia)
+  - None (all tenants now have active leases)
 
 ⚠️ BUSINESS RULES ENFORCED:
 ──────────────────────────────────────

@@ -24,7 +24,7 @@ const PropertyImage = ({ image, alt = "Property", className = "" }) => {
                 if (!isS3Unsigned) {
                     if (!cancelled) {
                         setResolvedSrc(encodeURI(rawSrc));
-                        setLoading(false);
+                        // Keep loading true until image actually loads
                     }
                     return;
                 }
@@ -32,7 +32,7 @@ const PropertyImage = ({ image, alt = "Property", className = "" }) => {
                 if (!key) {
                     if (!cancelled) {
                         setResolvedSrc(encodeURI(rawSrc));
-                        setLoading(false);
+                        // Keep loading true until image actually loads
                     }
                     return;
                 }
@@ -40,12 +40,12 @@ const PropertyImage = ({ image, alt = "Property", className = "" }) => {
                 const signed = resp.data?.data?.downloadURL || resp.data?.downloadURL;
                 if (!cancelled) {
                     setResolvedSrc(signed || encodeURI(rawSrc));
-                    setLoading(false);
+                    // Keep loading true until image actually loads
                 }
             } catch {
                 if (!cancelled) {
                     setResolvedSrc(encodeURI(rawSrc));
-                    setLoading(false);
+                    // Keep loading true until image actually loads
                 }
             }
         }
@@ -67,41 +67,22 @@ const PropertyImage = ({ image, alt = "Property", className = "" }) => {
         <div className={`relative w-full h-full overflow-hidden ${className}`}>
             {/* Shimmer Loading State */}
             {loading && (
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200">
-                    <div className="absolute inset-0 shimmer-effect"></div>
+                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 shimmer-container z-10">
+                    <div className="shimmer-bar" />
                 </div>
             )}
             {/* Image with Smooth Fade-in */}
-            <img
-                src={resolvedSrc}
-                alt={alt}
-                className={`w-full h-full object-cover transition-all duration-500 ease-out ${
-                    loading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-                }`}
-                onLoad={() => setLoading(false)}
-                onError={() => { setErrored(true); setLoading(false); }}
-            />
-            <style jsx>{`
-                @keyframes shimmer {
-                    0% {
-                        transform: translateX(-100%);
-                    }
-                    100% {
-                        transform: translateX(100%);
-                    }
-                }
-                .shimmer-effect {
-                    background: linear-gradient(
-                        90deg,
-                        rgba(255, 255, 255, 0) 0%,
-                        rgba(255, 255, 255, 0.6) 40%,
-                        rgba(255, 255, 255, 0.8) 50%,
-                        rgba(255, 255, 255, 0.6) 60%,
-                        rgba(255, 255, 255, 0) 100%
-                    );
-                    animation: shimmer 2s ease-in-out infinite;
-                }
-            `}</style>
+            {resolvedSrc && (
+                <img
+                    src={resolvedSrc}
+                    alt={alt}
+                    className={`w-full h-full object-cover transition-opacity duration-500 ease-out ${
+                        loading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    onLoad={() => setLoading(false)}
+                    onError={() => { setErrored(true); setLoading(false); }}
+                />
+            )}
         </div>
     );
 };

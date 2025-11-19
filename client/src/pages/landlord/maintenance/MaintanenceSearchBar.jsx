@@ -84,20 +84,20 @@ export default function MaintenanceSearchBar({
 
                 {/* Search + Filter + Chips */}
                 <div className="flex flex-col md:flex-row gap-3 flex-1 w-full">
-                    {/* Search */}
-                    <div className="relative w-full md:w-80">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                            type="text"
-                            placeholder="Search.."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 bg-primary-foreground border-gray-300"
-                        />
-                    </div>
+                    {/* Search + Filter on one line for mobile, all together on desktop */}
+                    <div className="flex justify-between md:justify-start gap-4 md:gap-3 w-full md:w-auto items-center">
+                        {/* Search */}
+                        <div className="relative flex-1 md:w-80">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                type="text"
+                                placeholder="Search.."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-10 bg-primary-foreground border-gray-300 text-xs md:text-sm"
+                            />
+                        </div>
 
-                    {/* Filter + Chips on one line */}
-                    <div className="flex gap-2 items-center flex-nowrap overflow-x-auto">
                         {/* Filter */}
                         <Button
                             variant="outline"
@@ -116,6 +116,30 @@ export default function MaintenanceSearchBar({
                             <SlidersHorizontal className="w-4 h-4" />
                         </Button>
 
+                        {/* Chips on same line for desktop */}
+                        <div className="hidden md:flex gap-2 items-center flex-nowrap overflow-x-auto">
+                            {/* Toggle Chips */}
+                            {["Today", "Requests in 7 days", "Requests in 30 days"].map((label) => {
+                                const active = activeChips.has(label);
+                                return (
+                                    <Badge
+                                        key={label}
+                                        variant={active ? "default" : "secondary"}
+                                        className={`px-3 py-2 cursor-pointer whitespace-nowrap flex-shrink-0 border ${active ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}
+                                        onClick={() => {
+                                            // toggling a chip calls onFilter for chip only
+                                            toggleChip(label);
+                                        }}
+                                    >
+                                        {label}
+                                    </Badge>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Chips on next line for mobile only */}
+                    <div className="flex md:hidden gap-2 items-center flex-nowrap overflow-x-auto">
                         {/* Toggle Chips */}
                         {["Today", "Requests in 7 days", "Requests in 30 days"].map((label) => {
                             const active = activeChips.has(label);
@@ -140,7 +164,7 @@ export default function MaintenanceSearchBar({
                 {showCreateButton && (
                     <div className="flex gap-2 w-full md:w-auto justify-end">
                         <Button
-                            className="rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
+                            className="hidden md:flex rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90"
                             onClick={onNewRequest}
                             disabled={disabled}
                             title={disabled ? "Your lease has been terminated. Maintenance requests are no longer available." : ""}

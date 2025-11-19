@@ -145,11 +145,13 @@ const TenantAccounting = () => {
 
     return (
         <div className="px-4 md:px-8 py-4">
-            <PageHeader
-                title="My Payments"
-                subtitle="View your rent payments, deposits, and transaction history"
-                total={displayTotal}
-            />
+            <div className="hidden md:block">
+                <PageHeader
+                    title="My Payments"
+                    subtitle="View your rent payments, deposits, and transaction history"
+                    total={displayTotal}
+                />
+            </div>
 
             {/* Search and Filters - Only show after initial load */}
             {!initialLoad && (
@@ -162,87 +164,93 @@ const TenantAccounting = () => {
                         placeholder="Search payments..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 bg-primary-foreground border-gray-300"
+                        className="pl-10 bg-primary-foreground border-gray-300 text-xs md:text-sm"
                     />
                 </div>
 
                 {/* Right: Filters */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    {/* Status Filter */}
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full sm:w-[150px]">
-                            <SelectValue placeholder="All Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">All Status</SelectItem>
-                            <SelectItem value="PENDING">Outstanding</SelectItem>
-                            <SelectItem value="PAID">Paid</SelectItem>
-                            <SelectItem value="FAILED">Failed</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div className="flex flex-col md:flex-row gap-3">
+                    {/* Mobile: Status and Type on one line */}
+                    <div className="flex flex-row gap-3 md:hidden">
+                        {/* Status Filter */}
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="flex-1">
+                                <SelectValue placeholder="All Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Status</SelectItem>
+                                <SelectItem value="PENDING">Outstanding</SelectItem>
+                                <SelectItem value="PAID">Paid</SelectItem>
+                                <SelectItem value="FAILED">Failed</SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                    {/* Type Filter */}
-                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="w-full sm:w-[150px]">
-                            <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">All Types</SelectItem>
-                            <SelectItem value="RENT">Rent</SelectItem>
-                            <SelectItem value="UTILITIES">Utilities</SelectItem>
-                            <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                        </SelectContent>
-                    </Select>
+                        {/* Type Filter */}
+                        <Select value={typeFilter} onValueChange={setTypeFilter}>
+                            <SelectTrigger className="flex-1">
+                                <SelectValue placeholder="All Types" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Types</SelectItem>
+                                <SelectItem value="RENT">Rent</SelectItem>
+                                <SelectItem value="UTILITIES">Utilities</SelectItem>
+                                <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                    {/* Start Date */}
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className={`w-full sm:w-[150px] justify-start text-left font-normal rounded-2xl ${!startDate ? "text-gray-400" : ""}`}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {startDate ? format(startDate, "MMM d") : "Start Date"}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-auto">
-                            <Calendar
-                                mode="single"
-                                selected={startDate}
-                                onSelect={(date) => {
-                                    setStartDate(date);
-                                    if (endDate && date > endDate) {
-                                        setEndDate(null);
-                                    }
-                                }}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    {/* Mobile: Start Date and End Date on one line */}
+                    <div className="flex flex-row gap-3 md:hidden">
+                        {/* Start Date */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={`flex-1 justify-start text-left font-normal rounded-2xl bg-card ${!startDate ? "text-gray-400" : ""}`}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {startDate ? format(startDate, "MMM d") : "Start Date"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-auto">
+                                <Calendar
+                                    mode="single"
+                                    selected={startDate}
+                                    onSelect={(date) => {
+                                        setStartDate(date);
+                                        if (endDate && date > endDate) {
+                                            setEndDate(null);
+                                        }
+                                    }}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
 
-                    {/* End Date */}
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className={`w-full sm:w-[150px] justify-start text-left font-normal rounded-2xl ${!endDate ? "text-gray-400" : ""}`}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {endDate ? format(endDate, "MMM d") : "End Date"}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-auto">
-                            <Calendar
-                                mode="single"
-                                selected={endDate}
-                                onSelect={setEndDate}
-                                disabled={(date) => startDate && date < startDate}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                        {/* End Date */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={`flex-1 justify-start text-left font-normal rounded-2xl bg-card ${!endDate ? "text-gray-400" : ""}`}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {endDate ? format(endDate, "MMM d") : "End Date"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-auto">
+                                <Calendar
+                                    mode="single"
+                                    selected={endDate}
+                                    onSelect={setEndDate}
+                                    disabled={(date) => startDate && date < startDate}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
 
-                    {/* Clear Date Filter Button */}
+                    {/* Mobile: Clear button on its own line */}
                     {(startDate || endDate) && (
                         <Button
                             variant="outline"
@@ -250,12 +258,104 @@ const TenantAccounting = () => {
                                 setStartDate(null);
                                 setEndDate(null);
                             }}
-                            className="w-full sm:w-auto rounded-2xl"
+                            className="w-full md:hidden rounded-2xl"
                         >
                             <X className="h-4 w-4 mr-2" />
                             Clear
                         </Button>
                     )}
+
+                    {/* Desktop: All filters in one row */}
+                    <div className="hidden md:flex gap-3">
+                        {/* Status Filter */}
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-[150px]">
+                                <SelectValue placeholder="All Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Status</SelectItem>
+                                <SelectItem value="PENDING">Outstanding</SelectItem>
+                                <SelectItem value="PAID">Paid</SelectItem>
+                                <SelectItem value="FAILED">Failed</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {/* Type Filter */}
+                        <Select value={typeFilter} onValueChange={setTypeFilter}>
+                            <SelectTrigger className="w-[150px]">
+                                <SelectValue placeholder="All Types" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All Types</SelectItem>
+                                <SelectItem value="RENT">Rent</SelectItem>
+                                <SelectItem value="UTILITIES">Utilities</SelectItem>
+                                <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {/* Start Date */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={`w-[150px] justify-start text-left font-normal rounded-2xl bg-card ${!startDate ? "text-gray-400" : ""}`}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {startDate ? format(startDate, "MMM d") : "Start Date"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-auto">
+                                <Calendar
+                                    mode="single"
+                                    selected={startDate}
+                                    onSelect={(date) => {
+                                        setStartDate(date);
+                                        if (endDate && date > endDate) {
+                                            setEndDate(null);
+                                        }
+                                    }}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+
+                        {/* End Date */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={`w-[150px] justify-start text-left font-normal rounded-2xl bg-card ${!endDate ? "text-gray-400" : ""}`}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {endDate ? format(endDate, "MMM d") : "End Date"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-auto">
+                                <Calendar
+                                    mode="single"
+                                    selected={endDate}
+                                    onSelect={setEndDate}
+                                    disabled={(date) => startDate && date < startDate}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+
+                        {/* Clear Date Filter Button */}
+                        {(startDate || endDate) && (
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setStartDate(null);
+                                    setEndDate(null);
+                                }}
+                                className="rounded-2xl"
+                            >
+                                <X className="h-4 w-4 mr-2" />
+                                Clear
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
             )}

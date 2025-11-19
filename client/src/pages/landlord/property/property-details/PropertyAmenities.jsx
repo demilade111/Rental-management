@@ -19,11 +19,11 @@ const PropertyAmenities = ({ amenities = [] }) => {
         <>
             <div className="bg-card rounded-2xl p-6 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-[24px] font-bold text-primary">Amenities</h2>
+                    <h2 className="text-lg sm:text-xl md:text-[24px] font-bold text-primary">Amenities</h2>
                     {hasMore && (
                         <button 
                             onClick={() => setShowAllDialog(true)}
-                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium"
                         >
                             Read All
                         </button>
@@ -34,13 +34,13 @@ const PropertyAmenities = ({ amenities = [] }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1 content-start">
                         {displayedAmenities.map((amenity) => (
                             <div key={amenity.id} className="flex items-center gap-2">
-                                <Check className="w-5 h-5 text-primary-foreground bg-primary rounded-full" />
-                                <span className="capitalize text-black">{amenity.name}</span>
+                                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground bg-primary rounded-full" />
+                                <span className="capitalize text-black text-xs sm:text-sm md:text-base">{amenity.name}</span>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="text-gray-400 text-sm">No amenities listed.</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">No amenities listed.</p>
                 )}
             </div>
 
@@ -48,7 +48,7 @@ const PropertyAmenities = ({ amenities = [] }) => {
             <Dialog open={showAllDialog} onOpenChange={setShowAllDialog}>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-[24px] font-bold">All Amenities</DialogTitle>
+                        <DialogTitle className="text-lg sm:text-xl md:text-[24px] font-bold">All Amenities</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

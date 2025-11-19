@@ -49,54 +49,52 @@ const BulkDeleteActionBar = ({
 
   return (
     <>
-      <div className="fixed z-50 w-full" style={{ left: '220px', right: '0', maxWidth: 'calc(100vw - 220px)', bottom: '60px' }}>
-        <div className="flex justify-between items-center px-4 md:px-8">
-          <div className="flex-1"></div>
-        <div className="bg-white dark:bg-gray-800 border border-gray-300 rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 w-fit">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {selectedCount} {selectedCount === 1 ? resourceName.slice(0, -1) : resourceName} selected
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClearSelection}
-            disabled={isDeleting}
-            className="rounded-lg"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Clear
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setOpen(true)}
-            disabled={isDeleting}
-            className="rounded-lg"
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete {selectedCount}
-          </Button>
-        </div>
-        </div>
-          <div className="flex-1"></div>
+      <div className="fixed z-50 left-0 right-0 bottom-20 md:left-[220px] md:right-0 md:max-w-[calc(100vw-220px)] md:bottom-[60px]">
+        <div className="flex justify-center items-center px-4 md:px-8">
+          <div className="bg-white dark:bg-gray-800 border border-gray-300 rounded-lg shadow-lg px-4 py-3 flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                {selectedCount} {selectedCount === 1 ? resourceName.slice(0, -1) : resourceName} selected
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearSelection}
+                disabled={isDeleting}
+                className="rounded-lg text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                Clear
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setOpen(true)}
+                disabled={isDeleting}
+                className="rounded-lg text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                Delete {selectedCount}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] sm:w-full sm:max-w-lg rounded-2xl sm:rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
-            <AlertDialogDescription>{displayMessage}</AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">{displayMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting} className="rounded-2xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="rounded-2xl text-xs sm:text-sm">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-destructive text-white hover:bg-destructive/90 rounded-2xl"
+              className="bg-destructive text-white hover:bg-destructive/90 rounded-2xl text-xs sm:text-sm"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>

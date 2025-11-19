@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText } from 'lucide-react';
+import { FileText, ChevronDown, ChevronUp, User, Home, Calendar, Tag, DollarSign } from 'lucide-react';
 import InvoiceDetailsModal from '@/components/shared/InvoiceDetailsModal';
 
 const getStatusBadgeClass = (status) => {
@@ -34,6 +34,7 @@ const getStatusText = (status, dueDate) => {
 };
 
 const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const tenant = payment.tenant;
   const listing = payment.lease?.listing || payment.customLease?.listing;
   const status = getStatusText(payment.status, payment.dueDate);
@@ -44,9 +45,212 @@ const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
   const displayDate = isPaid ? payment.paidDate : payment.dueDate;
   const dateLabel = isPaid ? 'Paid' : 'Due';
 
+  // Truncate text for mobile
+  const truncateText = (text, maxLength = 35) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  const handleDropdownClick = (e) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
+  const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'N/A';
+  const propertyTitle = listing?.title || (payment.type === 'MAINTENANCE' && payment.notes ? 'Property Maintenance' : 'N/A');
+
   return (
-    <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-1 p-3">
-      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
+    <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-1 p-0 md:p-3">
+      {/* Mobile: Collapsed Row View */}
+      <div className="md:hidden">
+        <div className="flex items-center p-3 gap-3">
+          {/* Title and Description (stacked) */}
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <h3 
+                className="font-semibold text-sm" 
+                title={tenantName}
+              >
+                {truncateText(tenantName)}
+              </h3>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-sm font-semibold text-gray-900">
+                  ${payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <p 
+                className="text-xs text-gray-600 truncate"
+                title={propertyTitle}
+              >
+                {truncateText(propertyTitle)}
+              </p>
+              {displayDate && (
+                <span className={`text-xs flex-shrink-0 font-medium ${
+                  isPaid 
+                    ? 'text-green-600' 
+                    : payment.status === 'PENDING' && new Date(displayDate) < new Date()
+                    ? 'text-red-600'
+                    : 'text-yellow-600'
+                }`}>
+                  {dateLabel}: {format(new Date(displayDate), 'MMM d')}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Dropdown Icon */}
+          <button
+            onClick={handleDropdownClick}
+            className="flex-shrink-0 p-1 self-center flex items-center justify-center"
+            aria-label="Toggle details"
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-600" />
+            )}
+          </button>
+        </div>
+
+        {/* Expanded Content */}
+        {isExpanded && (
+          <div className="px-4 pb-4 border-gray-200 border-t space-y-4 pt-4">
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Left Column: Tenant & Property Info */}
+              <div className="space-y-3">
+                {/* Tenant Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-gray-600" />
+                    <p className="text-xs font-semibold text-gray-700">Tenant</p>
+                  </div>
+                  <p className="text-xs text-gray-900 font-medium">{tenantName}</p>
+                  {payment.createdAt && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Submitted {format(new Date(payment.createdAt), 'd')} days ago
+                    </p>
+                  )}
+                </div>
+
+                {/* Property Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Home className="w-4 h-4 text-gray-600" />
+                    <p className="text-xs font-semibold text-gray-700">Property</p>
+                  </div>
+                  {listing ? (
+                    <>
+                      <p className="text-xs text-gray-900 font-medium">{listing.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {listing.streetAddress}, {listing.city}
+                      </p>
+                    </>
+                  ) : payment.type === 'MAINTENANCE' && payment.notes ? (
+                    <>
+                      <p className="text-xs text-gray-900 font-medium">Property Maintenance</p>
+                      <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-500">N/A</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Amount, Date, Status & Category */}
+              <div className="space-y-3">
+                {/* Amount Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-4 h-4 text-gray-600" />
+                    <p className="text-xs font-semibold text-gray-700">Amount</p>
+                  </div>
+                  <p className="text-sm text-gray-900 font-bold">
+                    ${payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                {/* Date Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4 text-gray-600" />
+                    <p className="text-xs font-semibold text-gray-700">Date</p>
+                  </div>
+                  {displayDate ? (
+                    <>
+                      <p className="text-xs text-gray-900 font-medium">
+                        {format(new Date(displayDate), 'MMM d, yyyy')}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{dateLabel}</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-500">N/A</p>
+                  )}
+                </div>
+
+                {/* Category Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Tag className="w-4 h-4 text-gray-600" />
+                    <p className="text-xs font-semibold text-gray-700">Category</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs text-gray-900 font-medium capitalize">{payment.type.toLowerCase()}</p>
+                    {hasInvoice && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewInvoice(payment);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 transition-colors p-0.5"
+                        title="View Invoice Details"
+                      >
+                        <FileText className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-300">
+              {payment.proofUrl ? (
+                isPaid ? (
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewProof(payment);
+                    }}
+                    className="text-xs px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+                  >
+                    View Receipt
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewProof(payment);
+                    }}
+                    className="text-xs px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-medium"
+                  >
+                    Review Receipt
+                  </Button>
+                )
+              ) : (
+                <span className="text-xs text-gray-400 px-4 py-2">Awaiting payment</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: Original Layout */}
+      <div className="hidden md:grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
         {/* Tenant */}
         <div className="text-[16px] text-gray-700 truncate">
           <div className="font-semibold text-gray-900">{tenant ? `${tenant.firstName} ${tenant.lastName}` : 'N/A'}</div>

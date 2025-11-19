@@ -19,7 +19,7 @@ const ApplicationSearchBar = ({
                     placeholder="Search.."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-primary-foreground border-gray-300"
+                    className="pl-10 bg-primary-foreground border-gray-300 text-xs md:text-sm"
                 />
             </div>
 
@@ -36,7 +36,7 @@ const ApplicationSearchBar = ({
 
         {/* Generate Link button */}
         <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
+            className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
             onClick={onGenerateLink}
         >
             <Plus className="w-4 h-4 mr-2" />

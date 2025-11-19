@@ -208,18 +208,17 @@ const NotificationDropdown = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative w-10 h-10 p-0 hover:bg-gray-100 rounded-full transition-colors"
+          className="relative w-9 h-9 p-0 hover:bg-gray-100 rounded-full transition-colors"
           onClick={() => setOpen(!open)}
         >
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Notification Icon */}
             <svg
-              width="28"
-              height="28"
               viewBox="0 0 31 31"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
+              className="!size-7 text-gray-700 hover:text-gray-900 transition-colors"
+              style={{ width: '24px', height: '24px' }}
             >
               <path
                 d="M15.5001 3.1C13.0335 3.1 10.6681 4.07982 8.92397 5.82391C7.17988 7.56799 6.20006 9.93349 6.20006 12.4V17.9583L5.10421 19.0541C4.88751 19.2709 4.73994 19.5471 4.68016 19.8477C4.62038 20.1483 4.65107 20.4599 4.76836 20.7431C4.88565 21.0263 5.08426 21.2684 5.3391 21.4387C5.59393 21.609 5.89355 21.6999 6.20006 21.7H24.8001C25.1066 21.6999 25.4062 21.609 25.661 21.4387C25.9159 21.2684 26.1145 21.0263 26.2318 20.7431C26.349 20.4599 26.3797 20.1483 26.32 19.8477C26.2602 19.5471 26.1126 19.2709 25.8959 19.0541L24.8001 17.9583V12.4C24.8001 9.93349 23.8202 7.56799 22.0762 5.82391C20.3321 4.07982 17.9666 3.1 15.5001 3.1ZM15.5001 27.9C14.2668 27.9 13.0841 27.4101 12.212 26.538C11.34 25.666 10.8501 24.4833 10.8501 23.25H20.1501C20.1501 24.4833 19.6602 25.666 18.7881 26.538C17.9161 27.4101 16.7333 27.9 15.5001 27.9Z"

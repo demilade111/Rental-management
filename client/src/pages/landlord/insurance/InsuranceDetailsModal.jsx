@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   X,
   Download,
@@ -27,6 +28,7 @@ import { format } from "date-fns";
 import PolicyDocumentViewer from "./components/PolicyDocumentViewer";
 
 const InsuranceDetailsModal = ({ insurance, onClose }) => {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -59,6 +61,8 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
       setLoading(true);
       await verifyInsurance(insurance.id);
       toast.success("Insurance verified successfully");
+      // Invalidate and refetch insurances query to update the table
+      queryClient.invalidateQueries({ queryKey: ["insurances"] });
       onClose();
     } catch (error) {
       console.error("Error verifying insurance:", error);
@@ -78,6 +82,8 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
       setLoading(true);
       await rejectInsurance(insurance.id, rejectionReason);
       toast.success("Insurance rejected");
+      // Invalidate and refetch insurances query to update the table
+      queryClient.invalidateQueries({ queryKey: ["insurances"] });
       onClose();
     } catch (error) {
       console.error("Error rejecting insurance:", error);
@@ -130,7 +136,7 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
           </div>
 
           {/* Content */}
-          <div className="px-6 pt-6 pb-4 space-y-6">
+          <div className="px-6 pt-6 pb-8 space-y-6">
             {/* Status */}
             <div className="flex items-center justify-between">
               <StatusBadge status={insurance.status} className="text-base px-4 py-2" />

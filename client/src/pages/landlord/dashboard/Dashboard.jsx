@@ -138,7 +138,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-4 p-4 md:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-0 lg:gap-4 p-4 md:p-6">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden auto-rows-fr">
           <AccountingCard />
@@ -146,7 +146,7 @@ const Dashboard = () => {
           {/* Applicants */}
           <div className="bg-card rounded-2xl p-5 md:p-6 flex flex-col h-full min-h-[350px] overflow-hidden">
             <div className="flex items-center justify-between mb-8 flex-shrink-0">
-              <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold text-primary">
+              <h3 className="text-3xl md:text-3xl lg:text-[32px] font-bold text-primary">
                 Applications
               </h3>
               <button
@@ -175,13 +175,20 @@ const Dashboard = () => {
                   )}
                 </div>
               ) : (
-                <table className="w-full border-collapse min-w-[400px]">
+                <table className="w-full border-collapse min-w-0 md:min-w-[400px]">
                   <tbody className="divide-y divide-gray-300">
                     {applications.slice(0, 5).map((app) => {
                       const listing = app.listing;
-                      const address = listing?.streetAddress 
+                      const fullAddress = listing?.streetAddress 
                         ? `${listing.streetAddress}${listing.city ? `, ${listing.city}` : ""}${listing.state ? `, ${listing.state}` : ""}`
                         : listing?.title || "N/A";
+                      // Truncate address for mobile
+                      const truncateAddress = (text, maxLength = 25) => {
+                        if (!text) return "N/A";
+                        if (text.length <= maxLength) return text;
+                        return text.substring(0, maxLength) + '...';
+                      };
+                      const address = truncateAddress(fullAddress);
                       const timeAgo = formatTimeAgo(app.createdAt);
                       
                       // Show the exact status from database without transformation
@@ -189,15 +196,16 @@ const Dashboard = () => {
                       
                       return (
                         <tr key={app.id} className="border-b border-gray-300">
-                          <td className="text-xs sm:text-sm font-semibold text-gray-900 py-3 max-w-[200px] truncate">
-                            {address}
+                          <td className="text-xs sm:text-sm font-semibold text-gray-900 py-3 max-w-[120px] md:max-w-[200px] truncate" title={fullAddress}>
+                            <span className="md:hidden">{address}</span>
+                            <span className="hidden md:inline">{fullAddress}</span>
                           </td>
                           <td className="text-xs text-gray-500 py-2.5 whitespace-nowrap">
                             {timeAgo}
                           </td>
                           <td className="text-right py-2.5">
                             <span
-                              className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${getStatusColor(
+                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${getStatusColor(
                                 displayStatus
                               )}`}
                             >
@@ -223,9 +231,9 @@ const Dashboard = () => {
         </div>
 
         {/* Maintenance Sidebar */}
-        <div className="flex flex-col lg:h-[calc(100vh-120px)]">
+        <div className="flex flex-col lg:h-[calc(100vh-120px)] maintenance-sidebar">
           <div className="bg-card rounded-2xl p-5 md:p-6 flex flex-col h-full overflow-hidden">
-            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 flex-shrink-0 text-primary">
+            <h3 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 flex-shrink-0 text-primary">
               Maintenance
             </h3>
 

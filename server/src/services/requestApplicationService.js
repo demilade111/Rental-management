@@ -92,8 +92,59 @@ export async function getAllApplicationsByLandlord(
 ) {
   const { status, listingId } = filters;
 
+  // Get listing IDs that have active or terminated leases
+  const activeLeases = await prisma.lease.findMany({
+    where: {
+      landlordId,
+      leaseStatus: 'ACTIVE',
+    },
+    select: { listingId: true },
+  });
+
+  const terminatedLeases = await prisma.lease.findMany({
+    where: {
+      landlordId,
+      leaseStatus: 'TERMINATED',
+    },
+    select: { listingId: true },
+  });
+
+  const activeCustomLeases = await prisma.customLease.findMany({
+    where: {
+      landlordId,
+      leaseStatus: 'ACTIVE',
+    },
+    select: { listingId: true },
+  });
+
+  const terminatedCustomLeases = await prisma.customLease.findMany({
+    where: {
+      landlordId,
+      leaseStatus: 'TERMINATED',
+    },
+    select: { listingId: true },
+  });
+
+  // Combine all listing IDs that should be excluded
+  const excludedListingIds = [
+    ...activeLeases.map(l => l.listingId).filter(Boolean),
+    ...terminatedLeases.map(l => l.listingId).filter(Boolean),
+    ...activeCustomLeases.map(l => l.listingId).filter(Boolean),
+    ...terminatedCustomLeases.map(l => l.listingId).filter(Boolean),
+  ];
+
   const whereClause = {
     landlordId,
+    // Only include applications for listings with ACTIVE status
+    listing: {
+      status: 'ACTIVE',
+    },
+    // Exclude applications for listings with active or terminated leases
+    ...(excludedListingIds.length > 0 && {
+      listingId: {
+        notIn: excludedListingIds,
+      },
+    }),
   };
 
   if (status) {

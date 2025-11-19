@@ -38,7 +38,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg shadow-lg cursor-pointer"
+        className="lg:hidden fixed bottom-4 right-4 z-50 p-3 bg-gray-800 text-white rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center"
       >
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -46,7 +46,8 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
       {/* Overlay for mobile */}
       {isMobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="lg:hidden fixed inset-0 z-30"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -251,6 +252,17 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                       >
                         <path d="M4 32C2.9 32 1.95867 31.6087 1.176 30.826C0.393333 30.0433 0.00133333 29.1013 0 28V4C0 2.9 0.392 1.95867 1.176 1.176C1.96 0.393333 2.90133 0.00133333 4 0H36C37.1 0 38.042 0.392 38.826 1.176C39.61 1.96 40.0013 2.90133 40 4V14C40 14.5667 39.808 15.042 39.424 15.426C39.04 15.81 38.5653 16.0013 38 16H33C31.0667 16 29.4167 16.6833 28.05 18.05C26.6833 19.4167 26 21.0667 26 23V30C26 30.5667 25.808 31.042 25.424 31.426C25.04 31.81 24.5653 32.0013 24 32H4ZM20 14L6.6 5.6C6.03333 5.23333 5.45867 5.21667 4.876 5.55C4.29333 5.88333 4.00133 6.38333 4 7.05C4 7.35 4.06667 7.62533 4.2 7.876C4.33333 8.12667 4.53333 8.33467 4.8 8.5L18.95 17.35C19.2833 17.55 19.6333 17.65 20 17.65C20.3667 17.65 20.7167 17.55 21.05 17.35L35.2 8.5C35.4667 8.33333 35.6667 8.12533 35.8 7.876C35.9333 7.62667 36 7.35133 36 7.05C36 6.38333 35.7087 5.88333 35.126 5.55C34.5433 5.21667 33.968 5.23333 33.4 5.6L20 14ZM36 40C33.8 40 31.9167 39.2167 30.35 37.65C28.7833 36.0833 28 34.2 28 32V23C28 21.6 28.4833 20.4167 29.45 19.45C30.4167 18.4833 31.6 18 33 18C34.4 18 35.5833 18.4833 36.55 19.45C37.5167 20.4167 38 21.6 38 23V30C38 30.5667 37.808 31.042 37.424 31.426C37.04 31.81 36.5653 32.0013 36 32C35.4347 31.9987 34.96 31.8067 34.576 31.424C34.192 31.0413 34 30.5667 34 30V23C34 22.7333 33.9 22.5 33.7 22.3C33.5 22.1 33.2667 22 33 22C32.7333 22 32.5 22.1 32.3 22.3C32.1 22.5 32 22.7333 32 23V32C32 33.1 32.392 34.042 33.176 34.826C33.96 35.61 34.9013 36.0013 36 36C37.0987 35.9987 38.0407 35.6073 38.826 34.826C39.6113 34.0447 40.0027 33.1027 40 32V26C40 25.4333 40.192 24.9587 40.576 24.576C40.96 24.1933 41.4347 24.0013 42 24C42.5653 23.9987 43.0407 24.1907 43.426 24.576C43.8113 24.9613 44.0027 25.436 44 26V32C44 34.2 43.2167 36.0833 41.65 37.65C40.0833 39.2167 38.2 40 36 40Z" fill="currentColor"/>
                       </svg>
+                    ) : item.id === "analytics" ? (
+                      <svg
+                        width="23"
+                        height="23"
+                        viewBox="0 0 23 23"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`${isActive ? "text-primary" : "text-background"}`}
+                      >
+                        <path d="M6.25 11.25C5.89583 11.25 5.59917 11.37 5.36 11.61C5.12083 11.85 5.00083 12.1467 5 12.5V16.25C5 16.6042 5.12 16.9012 5.36 17.1412C5.6 17.3812 5.89667 17.5008 6.25 17.5C6.60333 17.4992 6.90042 17.3792 7.14125 17.14C7.38208 16.9008 7.50167 16.6042 7.5 16.25V12.5C7.5 12.1458 7.38 11.8492 7.14 11.61C6.9 11.3708 6.60333 11.2508 6.25 11.25ZM16.25 5C15.8958 5 15.5992 5.12 15.36 5.36C15.1208 5.6 15.0008 5.89667 15 6.25V16.25C15 16.6042 15.12 16.9012 15.36 17.1412C15.6 17.3812 15.8967 17.5008 16.25 17.5C16.6033 17.4992 16.9004 17.3792 17.1412 17.14C17.3821 16.9008 17.5017 16.6042 17.5 16.25V6.25C17.5 5.89583 17.38 5.59917 17.14 5.36C16.9 5.12083 16.6033 5.00083 16.25 5ZM11.25 13.75C10.8958 13.75 10.5992 13.87 10.36 14.11C10.1208 14.35 10.0008 14.6467 10 15V16.25C10 16.6042 10.12 16.9012 10.36 17.1412C10.6 17.3812 10.8967 17.5008 11.25 17.5C11.6033 17.4992 11.9004 17.3792 12.1413 17.14C12.3821 16.9008 12.5017 16.6042 12.5 16.25V15C12.5 14.6458 12.38 14.3492 12.14 14.11C11.9 13.8708 11.6033 13.7508 11.25 13.75ZM2.5 22.5C1.8125 22.5 1.22417 22.2554 0.735 21.7663C0.245833 21.2771 0.000833333 20.6883 0 20V2.5C0 1.8125 0.245 1.22417 0.735 0.735C1.225 0.245833 1.81333 0.000833333 2.5 0H20C20.6875 0 21.2763 0.245 21.7663 0.735C22.2563 1.225 22.5008 1.81333 22.5 2.5V20C22.5 20.6875 22.2554 21.2763 21.7663 21.7663C21.2771 22.2563 20.6883 22.5008 20 22.5H2.5ZM11.25 11.25C11.6042 11.25 11.9013 11.13 12.1413 10.89C12.3813 10.65 12.5008 10.3533 12.5 10C12.4992 9.64667 12.3792 9.35 12.14 9.11C11.9008 8.87 11.6042 8.75 11.25 8.75C10.8958 8.75 10.5992 8.87 10.36 9.11C10.1208 9.35 10.0008 9.64667 10 10C9.99917 10.3533 10.1192 10.6504 10.36 10.8913C10.6008 11.1321 10.8975 11.2517 11.25 11.25Z" fill="currentColor"/>
+                      </svg>
                     ) : null}
                   </div>
                   {!isCollapsed && (
@@ -283,37 +295,6 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
             {!isCollapsed && <span className="text-[16px] text-white dark:text-gray-300 whitespace-nowrap relative z-10">Help & Support</span>}
           </button>
 
-          <button
-            onClick={() => navigate(user?.role === "ADMIN" ? "/landlord/account" : "/tenant/account")}
-            className={`w-full flex items-center ${
-              isCollapsed ? "justify-center px-0" : "space-x-3"
-            } ${
-              !isCollapsed && isAccountActive ? "pl-3 pr-0" : !isCollapsed ? "px-3" : ""
-            } py-2.5 rounded-tl-full rounded-bl-full transition-all duration-200 ease-in-out cursor-pointer ${
-              isAccountActive 
-                ? "bg-background" 
-                : "hover:bg-gray-400/10 dark:hover:bg-gray-800"
-            } relative overflow-visible`}
-          >
-            <div className={`w-8 h-8 rounded-full flex-shrink-0 relative z-10 transition-all duration-200 ease-in-out ${
-              isAccountActive 
-                ? "bg-[#1F363D] dark:bg-gray-100" 
-                : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600"
-            }`}>
-              <div className="w-full h-full flex items-center justify-center">
-                <User className={`w-5 h-5 ${isAccountActive ? "text-white dark:text-gray-900" : "text-gray-900 dark:text-gray-100"}`} />
-              </div>
-            </div>
-            {!isCollapsed && (
-              <span className={`text-[16px] whitespace-nowrap relative z-10 transition-colors duration-200 ease-in-out ${
-                isAccountActive 
-                  ? "text-[#1F363D] dark:text-gray-100 font-semibold" 
-                  : "text-white dark:text-gray-300"
-              }`}>
-                Account
-              </span>
-            )}
-          </button>
 
           <button
             onClick={() => setLogoutOpen(true)}
@@ -337,16 +318,16 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
 
       {/* Logout confirmation */}
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] sm:w-full sm:max-w-lg rounded-2xl sm:rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Logout</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Logout</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               Are you sure you want to logout?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-2xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="rounded-2xl" onClick={handleLogout}>Logout</AlertDialogAction>
+            <AlertDialogCancel className="rounded-2xl text-xs sm:text-sm">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="rounded-2xl text-xs sm:text-sm" onClick={handleLogout}>Logout</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

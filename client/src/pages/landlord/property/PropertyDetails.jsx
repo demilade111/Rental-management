@@ -131,7 +131,7 @@ const PropertyDetails = () => {
                                 {/* Left Column */}
                                 <div className="flex flex-col gap-6 h-full">
                                     {/* Property Images */}
-                                    <div className="h-[400px]">
+                                    <div className="h-[200px] sm:h-[300px] md:h-[400px]">
                                         <PropertyImages images={property.images} />
                                     </div>
 
@@ -201,11 +201,11 @@ const PropertyDetails = () => {
 
                         {/* Owner Notes Section */}
                         <div className="mt-8 p-6">
-                            <h2 className="text-[32px] font-bold mb-2 text-primary">Owner Notes (Private Section)</h2>
+                            <h2 className="text-xl sm:text-2xl md:text-[32px] font-bold mb-2 text-primary">Owner Notes (Private Section)</h2>
                             {property.notes && (
                                 <>
-                                    <p className="text-[16px] text-gray-600 mb-6">{property.notes}</p>
-                                    <p className="text-[16px] text-gray-700 mb-6">
+                                    <p className="text-sm sm:text-base md:text-[16px] text-gray-600 mb-6">{property.notes}</p>
+                                    <p className="text-sm sm:text-base md:text-[16px] text-gray-700 mb-6">
                                         Here you can review your property's tenancy history and maintenance history; these details are private and will not be shared with applicants or tenants when the listing is published.
                                     </p>
                                 </>
@@ -219,11 +219,11 @@ const PropertyDetails = () => {
                                         activeCard === 'listing' ? 'bg-primary text-primary-foreground' : 'bg-card'
                                     }`}
                                 >
-                                    <h3 className={`text-[28px] font-bold mb-1 ${activeCard === 'listing' ? 'text-primary-foreground' : 'text-primary'}`}>Listing Details</h3>
-                                    <p className={`text-[16px] mb-3 ${activeCard === 'listing' ? 'text-primary-foreground' : 'text-primary'}`}>
+                                    <h3 className={`text-lg sm:text-xl md:text-[28px] font-bold mb-1 ${activeCard === 'listing' ? 'text-primary-foreground' : 'text-primary'}`}>Listing Details</h3>
+                                    <p className={`text-sm sm:text-base md:text-[16px] mb-3 ${activeCard === 'listing' ? 'text-primary-foreground' : 'text-primary'}`}>
                                         Per Property
                                     </p>
-                                    <p className={`text-[13px] ${activeCard === 'listing' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <p className={`text-xs sm:text-sm md:text-[13px] ${activeCard === 'listing' ? 'text-gray-300' : 'text-gray-600'}`}>
                                         View your listing details from rental info to amenities
                                     </p>
                                 </div>
@@ -233,11 +233,11 @@ const PropertyDetails = () => {
                                         activeCard === 'maintenance' ? 'bg-primary text-primary-foreground' : 'bg-card'
                                     }`}
                                 >
-                                    <h3 className={`text-[28px] font-bold mb-1 ${activeCard === 'maintenance' ? 'text-primary-foreground' : 'text-primary'}`}>Maintenance Info</h3>
-                                    <p className={`text-[16px] mb-3 ${activeCard === 'maintenance' ? 'text-primary-foreground' : 'text-primary'}`}>
+                                    <h3 className={`text-lg sm:text-xl md:text-[28px] font-bold mb-1 ${activeCard === 'maintenance' ? 'text-primary-foreground' : 'text-primary'}`}>Maintenance Info</h3>
+                                    <p className={`text-sm sm:text-base md:text-[16px] mb-3 ${activeCard === 'maintenance' ? 'text-primary-foreground' : 'text-primary'}`}>
                                         Per Property
                                     </p>
-                                    <p className={`text-[13px] ${activeCard === 'maintenance' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <p className={`text-xs sm:text-sm md:text-[13px] ${activeCard === 'maintenance' ? 'text-gray-300' : 'text-gray-600'}`}>
                                         View all maintenance requests and history for this property
                                     </p>
                                 </div>
@@ -247,11 +247,11 @@ const PropertyDetails = () => {
                                         activeCard === 'tenancy' ? 'bg-primary text-primary-foreground' : 'bg-card'
                                     }`}
                                 >
-                                    <h3 className={`text-[28px] font-bold mb-1 ${activeCard === 'tenancy' ? 'text-primary-foreground' : 'text-primary'}`}>Tenancy Info</h3>
-                                    <p className={`text-[16px] mb-3 ${activeCard === 'tenancy' ? 'text-primary-foreground' : 'text-primary'}`}>
+                                    <h3 className={`text-lg sm:text-xl md:text-[28px] font-bold mb-1 ${activeCard === 'tenancy' ? 'text-primary-foreground' : 'text-primary'}`}>Tenancy Info</h3>
+                                    <p className={`text-sm sm:text-base md:text-[16px] mb-3 ${activeCard === 'tenancy' ? 'text-primary-foreground' : 'text-primary'}`}>
                                         Per Property
                                     </p>
-                                    <p className={`text-[13px] ${activeCard === 'tenancy' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <p className={`text-xs sm:text-sm md:text-[13px] ${activeCard === 'tenancy' ? 'text-gray-300' : 'text-gray-600'}`}>
                                         Monitor occupancy, current tenant info, tenant turnover, and lease duration
                                     </p>
                                 </div>

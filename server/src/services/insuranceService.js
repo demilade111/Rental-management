@@ -130,9 +130,13 @@ export async function getAllInsurances(filters = {}) {
     leaseId,
     customLeaseId,
     expiringBefore,
-    page = 1,
-    limit = 50,
+    page: pageParam = 1,
+    limit: limitParam = 50,
   } = filters;
+
+  // Parse page and limit as integers
+  const page = parseInt(pageParam, 10) || 1;
+  const limit = parseInt(limitParam, 10) || 50;
 
   // Build base conditions (these apply to all queries)
   const baseConditions = {};

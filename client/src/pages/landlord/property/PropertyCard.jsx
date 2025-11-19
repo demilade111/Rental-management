@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Home, DollarSign } from 'lucide-react';
+import { Home, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { getPropertyCategory, PROPERTY_CATEGORY_NAMES, PROPERTY_OPTIONS } from '@/constants/propertyTypes';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
@@ -42,7 +42,7 @@ const ListingThumbnail = ({ images, alt }) => {
                 if (!isS3Unsigned) {
                     if (!cancelled) {
                         setResolvedSrc(encodeURI(rawSrc));
-                        setLoading(false);
+                        // Keep loading true until image actually loads
                     }
                     return;
                 }
@@ -50,7 +50,7 @@ const ListingThumbnail = ({ images, alt }) => {
                 if (!key) {
                     if (!cancelled) {
                         setResolvedSrc(encodeURI(rawSrc));
-                        setLoading(false);
+                        // Keep loading true until image actually loads
                     }
                     return;
                 }
@@ -58,12 +58,12 @@ const ListingThumbnail = ({ images, alt }) => {
                 const signed = resp.data?.data?.downloadURL || resp.data?.downloadURL;
                 if (!cancelled) {
                     setResolvedSrc(signed || encodeURI(rawSrc));
-                    setLoading(false);
+                    // Keep loading true until image actually loads
                 }
             } catch {
                 if (!cancelled) {
                     setResolvedSrc(encodeURI(rawSrc));
-                    setLoading(false);
+                    // Keep loading true until image actually loads
                 }
             }
         }
@@ -85,55 +85,170 @@ const ListingThumbnail = ({ images, alt }) => {
         <div className="relative w-full h-full overflow-hidden">
             {/* Shimmer Loading State */}
             {loading && (
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200">
-                    <div className="absolute inset-0 shimmer-effect"></div>
+                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 shimmer-container z-10">
+                    <div className="shimmer-bar" />
                 </div>
             )}
             {/* Image with Smooth Fade-in */}
-            <img
-                src={resolvedSrc}
-                alt={alt}
-                className={`w-full h-full object-cover transition-all duration-500 ease-out ${
-                    loading ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
-                }`}
-                onLoad={() => setLoading(false)}
-                onError={() => { setErrored(true); setLoading(false); }}
-            />
-            <style jsx>{`
-                @keyframes shimmer {
-                    0% {
-                        transform: translateX(-100%);
-                    }
-                    100% {
-                        transform: translateX(100%);
-                    }
-                }
-                .shimmer-effect {
-                    background: linear-gradient(
-                        90deg,
-                        rgba(255, 255, 255, 0) 0%,
-                        rgba(255, 255, 255, 0.6) 40%,
-                        rgba(255, 255, 255, 0.8) 50%,
-                        rgba(255, 255, 255, 0.6) 60%,
-                        rgba(255, 255, 255, 0) 100%
-                    );
-                    animation: shimmer 2s ease-in-out infinite;
-                }
-            `}</style>
+            {resolvedSrc && (
+                <img
+                    src={resolvedSrc}
+                    alt={alt}
+                    className={`w-full h-full object-cover transition-opacity duration-500 ease-out ${
+                        loading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    onLoad={() => setLoading(false)}
+                    onError={() => { setErrored(true); setLoading(false); }}
+                />
+            )}
         </div>
     );
 };
 
 const PropertyCard = ({ property }) => {
     const navigate = useNavigate();
+    const [isExpanded, setIsExpanded] = useState(false);
     
     const handleClick = () => {
         navigate(`/landlord/portfolio/${property.id}`);
     };
 
+    const handleDropdownClick = (e) => {
+        e.stopPropagation();
+        setIsExpanded(!isExpanded);
+    };
+
+    // Truncate title for mobile
+    const truncateTitle = (text, maxLength = 35) => {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    };
+
     return (
         <Card onClick={handleClick} className="p-0 border border-gray-300 hover:shadow-md transition-shadow overflow-hidden">
-            <div className="flex flex-col md:flex-row">
+            {/* Mobile: Collapsed Row View */}
+            <div className="md:hidden">
+                <div className="flex items-center p-3 gap-3">
+                    {/* Thumbnail */}
+                    <div className="w-16 h-16 bg-gray-100 flex-shrink-0 rounded-lg overflow-hidden">
+                        <ListingThumbnail images={property?.images} alt={property.title || property.name || 'Listing image'} />
+                    </div>
+
+                    {/* Title and Description (stacked) */}
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                        <h3 
+                            className="font-semibold text-sm mb-0.5" 
+                            title={property.title}
+                        >
+                            {truncateTitle(property.title)}
+                        </h3>
+                        <p 
+                            className="text-xs text-gray-600 truncate"
+                            title={property.streetAddress}
+                        >
+                            {property.streetAddress}
+                        </p>
+                    </div>
+
+                    {/* Dropdown Icon */}
+                    <button
+                        onClick={handleDropdownClick}
+                        className="flex-shrink-0 p-1"
+                        aria-label="Toggle details"
+                    >
+                        {isExpanded ? (
+                            <ChevronUp className="w-5 h-5 text-gray-600" />
+                        ) : (
+                            <ChevronDown className="w-5 h-5 text-gray-600" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                    <div className="px-6  pb-3 border-gray-200 border-t-0 space-y-3 pt-3">
+                        <div>
+                            <p className="text-xs text-gray-600 mb-1">{property.zipCode}</p>
+                        </div>
+
+                        {/* Two Column Layout */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Left Column: Financial Info */}
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-5 h-5 rounded-full border-2 border-black flex items-center justify-center flex-shrink-0">
+                                        <DollarSign className="w-3 h-3" />
+                                    </div>
+                                    <p className="text-xs font-semibold">Financial</p>
+                                </div>
+                                <p className="text-xs">
+                                    <span className="font-bold">Rent:</span> $ {property.rentAmount}
+                                </p>
+                                <p className="text-xs">
+                                    <span className="font-bold">Deposit:</span> $ {property.securityDeposit}
+                                </p>
+                                {property.petDeposit > 0 && (
+                                    <p className="text-xs">
+                                        <span className="font-bold">Pet Deposit:</span> $ {property.petDeposit}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Right Column: Property Type */}
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                                        <Home className="w-4 h-4" />
+                                    </div>
+                                    <p className="text-xs font-semibold">Property</p>
+                                </div>
+                                <p className="text-xs">
+                                    <span className="font-bold">
+                                        {PROPERTY_CATEGORY_NAMES[getPropertyCategory(property.propertyType)]}:{" "}
+                                    </span>
+                                    {
+                                        Object.values(PROPERTY_OPTIONS)
+                                            .flat()
+                                            .find((t) => t.value === property.propertyType)?.label || property.propertyType
+                                    }
+                                </p>
+                                <p className="text-xs">
+                                    <span className="font-bold">Size:</span> {property.totalSquareFeet} sq ft
+                                </p>
+                                {property.bedrooms && (
+                                    <p className="text-xs">
+                                        {property.bedrooms} Bedroom | {property.bathrooms} Bath
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Status Indicators */}
+                        <div className="flex flex-row gap-4">
+                            <div className="flex items-center gap-2 text-xs">
+                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    property.status === 'ACTIVE' 
+                                        ? 'bg-green-500' 
+                                        : 'bg-green-500/30'
+                                }`}></div>
+                                <span>listed</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    property.status === 'RENTED' 
+                                        ? 'bg-orange-500' 
+                                        : 'bg-orange-500/30'
+                                }`}></div>
+                                <span>occupied</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop: Original Layout */}
+            <div className="hidden md:flex flex-col md:flex-row">
                 <div className="w-full md:w-48 h-28 bg-gray-100 flex-shrink-0 overflow-hidden">
                     <ListingThumbnail images={property?.images} alt={property.title || property.name || 'Listing image'} />
                 </div>

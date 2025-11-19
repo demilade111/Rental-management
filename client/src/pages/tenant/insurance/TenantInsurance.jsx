@@ -147,7 +147,7 @@ const TenantInsurance = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="hidden md:block mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-[32px] sm:text-3xl md:text-4xl font-extrabold text-primary mb-1">
             Renter's Insurance <span className="text-gray-600 font-semibold text-[28px]">({insurances.length})</span>
@@ -161,6 +161,14 @@ const TenantInsurance = () => {
           Upload Insurance
         </Button>
       </div>
+      
+      {/* Floating Upload Insurance Button - Mobile Only */}
+      <button
+        onClick={() => setShowUpload(true)}
+        className="md:hidden fixed bottom-20 right-4 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center hover:bg-primary/90 transition-colors"
+      >
+        <Plus size={24} />
+      </button>
       {/* Content */}
       <div className="flex-1 overflow-auto">
         {loading ? (

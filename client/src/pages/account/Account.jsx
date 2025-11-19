@@ -239,10 +239,12 @@ const Account = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
       <div className="flex-shrink-0">
-        <PageHeader
-          title="Account Settings"
-          subtitle="Manage your profile and security settings"
-        />
+        <div className="hidden md:block">
+          <PageHeader
+            title="Account Settings"
+            subtitle="Manage your profile and security settings"
+          />
+        </div>
       </div>
 
       {/* Content with Sidebar */}
@@ -263,7 +265,7 @@ const Account = () => {
                       onClick={() => setActiveSection(item.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         isActive
-                          ? 'bg-black text-white'
+                          ? 'bg-primary text-primary-foreground'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
@@ -288,7 +290,7 @@ const Account = () => {
                     onClick={() => setActiveSection(item.id)}
                     className={`flex items-center gap-2 px-4 py-2 font-medium transition-colors border-b-2 ${
                       isActive
-                        ? 'border-black text-black'
+                        ? 'border-primary text-primary'
                         : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -406,7 +408,7 @@ const Account = () => {
                   <Button
                     type="submit"
                     disabled={updateProfileMutation.isPending}
-                    className="bg-black text-white hover:bg-gray-800 rounded-2xl px-8 py-5 text-base"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-8 py-5 text-base"
                   >
                     {updateProfileMutation.isPending ? 'Updating...' : 'Update Profile'}
                   </Button>
@@ -504,7 +506,7 @@ const Account = () => {
                     <Button
                       type="submit"
                       disabled={changePasswordMutation.isPending}
-                      className="bg-black text-white hover:bg-gray-800 rounded-2xl px-8 py-5 text-base"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-8 py-5 text-base"
                     >
                       {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}
                     </Button>
@@ -576,7 +578,7 @@ const Account = () => {
                   <div className="pt-4 flex justify-end">
                     <Button
                       type="submit"
-                      className="bg-black text-white hover:bg-gray-800 rounded-2xl px-8 py-5 text-base"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-8 py-5 text-base"
                     >
                       Save Settings
                     </Button>

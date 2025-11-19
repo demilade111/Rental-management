@@ -43,7 +43,7 @@ const PortfolioCard = () => {
     if (isLoading) {
         return (
             <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
-                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Portfolio</h2>
+                <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Portfolio</h2>
                 
                 {/* Category Labels Skeleton */}
                 <div className="relative mb-1">
@@ -88,7 +88,7 @@ const PortfolioCard = () => {
     if (!hasData) {
         return (
             <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
-                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Portfolio</h2>
+                <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Portfolio</h2>
                 <div className="text-center py-4 text-gray-500">
                     No properties in portfolio
                 </div>
@@ -98,7 +98,7 @@ const PortfolioCard = () => {
 
     return (
         <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start fade-in">
-            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Portfolio</h2>
+            <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Portfolio</h2>
             
             {/* Category Labels with Markers */}
             <div className="relative mb-1 overflow-visible">
