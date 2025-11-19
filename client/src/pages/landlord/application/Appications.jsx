@@ -17,6 +17,7 @@ import { useAuthStore } from "@/store/authStore";
 import Pagination from "@/components/shared/Pagination";
 import BulkDeleteActionBar from "@/components/shared/BulkDeleteActionBar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Plus } from "lucide-react";
 
 // Shadcn/ui imports for modal
 import {
@@ -121,15 +122,9 @@ const Applications = () => {
         .filter((app) => !isPlaceholderApplication(app));
     const availableListings = getAvailableListings(listings, applicationsForAvailability);
 
-    // filtering applications by modal (frontend filtering)
-    // Note: filterApplications always filters out non-ACTIVE listings, so filteredApps may be less than API total
-    // Also filter out applications for listings that have an ACTIVE lease
-    // Wait for leases to load before filtering to prevent flash of unfiltered content
-    const filteredApps = leasesLoading
-        ? []
-        : filterApplications(applicationsData?.applications || [], searchQuery, filters)
-            .filter((app) => !activeLeaseListingIds.includes(app.listingId))
-            .filter((app) => !terminatedListingIds.includes(app.listingId));
+    // Filter applications by search and user filters (backend already filters out active/terminated leases)
+    // Backend now handles: excluding listings with active/terminated leases and non-ACTIVE listings
+    const filteredApps = filterApplications(applicationsData?.applications || [], searchQuery, filters);
     
     // Clear selection when filters or page change
     useEffect(() => {
@@ -137,27 +132,26 @@ const Applications = () => {
     }, [searchQuery, filters.status, filters.startDate, filters.endDate, page]);
     
     // Check if user has applied explicit filters (search, status, dates)
-    // Note: listing status filter (ACTIVE only) is always applied by filterApplications, so we don't count it
     const hasExplicitFilters = searchQuery.trim() !== "" || filters.status || filters.startDate || filters.endDate;
     
     // Calculate pagination totals
-    // Since filterApplications always filters by listing status (ACTIVE only), we need to use filtered count
-    // The displayed total should always match what's actually shown (filteredApps)
+    // Backend now returns only visible applications, so we can use API totals directly
     const filteredTotal = filteredApps.length;
     const apiTotal = applicationsData?.pagination?.total || 0;
+    const apiTotalPages = applicationsData?.pagination?.totalPages || 1;
+    const currentApiPage = applicationsData?.pagination?.page || 1;
     
-    // Always use filtered count for display total to match what's actually displayed
-    // This ensures the total matches the visible items (since filterApplications always filters by ACTIVE)
-    const displayTotal = filteredTotal;
+    // Use API total for display (backend already filtered)
+    const displayTotal = hasExplicitFilters ? filteredTotal : apiTotal;
     
     // For totalPages: When explicit filters are applied, calculate based on filtered count
-    // When no explicit filters, use API total for proper pagination (but total will still show filtered count)
+    // When no explicit filters, use API total pages (backend already filtered)
     const displayTotalPages = hasExplicitFilters 
         ? Math.ceil(filteredTotal / limit) || 1
-        : Math.ceil(apiTotal / limit) || 1;
+        : apiTotalPages;
     
     // When explicit filters are applied, always show page 1 since we're filtering current page's data
-    const displayPage = hasExplicitFilters ? 1 : (applicationsData?.pagination?.page || 1);
+    const displayPage = hasExplicitFilters ? 1 : currentApiPage;
 
     // Mutation to update status
     const updateStatusMutation = useMutation({
@@ -297,11 +291,13 @@ const Applications = () => {
     return (
         <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
             <div className="flex-shrink-0">
-                <PageHeader
-                    title="Applications"
-                    subtitle="Manage rental applications"
-                    total={displayTotal}
-                />
+                <div className="hidden md:block">
+                  <PageHeader
+                      title="Applications"
+                      subtitle="Manage rental applications"
+                      total={displayTotal}
+                  />
+                </div>
 
                 <ApplicationSearchBar
                     searchQuery={searchQuery}
@@ -312,8 +308,8 @@ const Applications = () => {
             </div>
 
             <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
-                {/* Table Header */}
-                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                {/* Table Header - Desktop */}
+                <div className={`hidden md:grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -328,13 +324,28 @@ const Applications = () => {
                     <div className="border-l border-primary-foreground/20 pl-4">Actions</div>
                 </div>
 
+                {/* Table Header - Mobile: Only Applicant Info */}
+                <div className={`md:hidden grid grid-cols-[auto_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                    <div className="flex items-center justify-center">
+                        <Checkbox
+                            checked={allSelected}
+                            onCheckedChange={handleSelectAll}
+                            ref={(el) => {
+                                if (el) el.indeterminate = someSelected;
+                            }}
+                            className="data-[state=checked]:bg-white data-[state=checked]:border-white"
+                        />
+                    </div>
+                    <div className="">Applicant Info</div>
+                </div>
+
                 <div className="flex-1 overflow-y-auto min-h-0">
-                    {listingsLoading || appsLoading || leasesLoading ? (
+                    {listingsLoading || appsLoading ? (
                         <div className="space-y-1">
                             {[...Array(5)].map((_, idx) => (
                                 <div
                                     key={`application-skeleton-${idx}`}
-                                    className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 border border-gray-200 rounded-2xl p-3 items-center"
+                                    className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 border border-gray-200 rounded-2xl p-3 items-center bg-card"
                                 >
                                     <div className="flex justify-center">
                                         <Skeleton className="h-4 w-4 rounded-sm" />
@@ -473,6 +484,14 @@ const Applications = () => {
                 resourceName="applications"
                 isDeleting={bulkDeleteMutation.isPending}
             />
+
+            {/* Floating Create Application Link button for mobile */}
+            <button
+                onClick={() => setModalOpen(true)}
+                className="md:hidden fixed bottom-20 right-4 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+                <Plus size={24} />
+            </button>
         </div>
     );
 };

@@ -11,6 +11,7 @@ import Pagination from "@/components/shared/Pagination";
 import BulkDeleteActionBar from "@/components/shared/BulkDeleteActionBar";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Plus } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -254,20 +255,65 @@ const StandardLeases = ({ onTotalChange }) => {
                     {isLoading ? (
                         <div className="space-y-1">
                             {[...Array(4)].map((_, idx) => (
-                                <div key={`standard-lease-skeleton-${idx}`} className="flex items-center gap-3">
-                                    <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
+                                <div key={`standard-lease-skeleton-${idx}`} className="flex items-center gap-3 mb-1">
+                                    <Skeleton className="h-5 w-5 rounded-md" />
                                     <div className="flex-1">
-                                        <div className="border border-gray-200 rounded-2xl p-4 animate-pulse">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
-                                                <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                                        <div className="border border-gray-200 rounded-2xl p-0 bg-card overflow-hidden">
+                                            {/* Mobile: Collapsed Row View */}
+                                            <div className="md:hidden">
+                                                <div className="flex items-center p-3 gap-3">
+                                                    <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0 overflow-hidden">
+                                                        <Skeleton className="h-4 w-3/4 rounded-full mb-1" />
+                                                        <Skeleton className="h-3 w-full rounded-full" />
+                                                    </div>
+                                                    <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
+                                                </div>
                                             </div>
-                                            <div className="h-5 w-1/2 bg-gray-100 rounded-full mb-3" />
-                                            <div className="grid grid-cols-2 gap-3 text-sm">
-                                                <div className="h-3 w-3/4 bg-gray-100 rounded-full" />
-                                                <div className="h-3 w-1/2 bg-gray-100 rounded-full" />
-                                                <div className="h-3 w-2/3 bg-gray-100 rounded-full" />
-                                                <div className="h-3 w-1/3 bg-gray-100 rounded-full" />
+                                            {/* Desktop: Full View */}
+                                            <div className="hidden md:flex flex-row">
+                                                {/* Image placeholder */}
+                                                <div className="w-48 h-28 bg-gray-200 dark:bg-gray-800 shimmer-container flex-shrink-0">
+                                                    <div className="shimmer-bar" />
+                                                </div>
+                                                {/* Content */}
+                                                <div className="flex-1 flex flex-col md:flex-row items-center p-4 gap-6">
+                                                    <div className="w-full md:w-64 flex-shrink-0 min-w-0">
+                                                        <Skeleton className="h-5 w-3/4 rounded-full mb-2" />
+                                                        <Skeleton className="h-3 w-full rounded-full mb-1" />
+                                                        <Skeleton className="h-3 w-2/3 rounded-full" />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 w-full md:w-48 flex-shrink-0">
+                                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                                        <div className="space-y-1">
+                                                            <Skeleton className="h-4 w-24 rounded-full" />
+                                                            <Skeleton className="h-4 w-28 rounded-full" />
+                                                            <Skeleton className="h-4 w-32 rounded-full" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 w-full md:w-48 flex-shrink-0">
+                                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                                        <div className="space-y-1">
+                                                            <Skeleton className="h-3 w-20 rounded-full" />
+                                                            <Skeleton className="h-4 w-28 rounded-full" />
+                                                            <Skeleton className="h-4 w-28 rounded-full" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center w-full md:w-44 flex-shrink-0">
+                                                        <div className="space-y-1">
+                                                            <Skeleton className="h-4 w-24 rounded-full" />
+                                                            <Skeleton className="h-3 w-32 rounded-full" />
+                                                            <Skeleton className="h-3 w-28 rounded-full" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-center w-full md:w-20 flex-shrink-0">
+                                                        <Skeleton className="h-6 w-16 rounded-full" />
+                                                    </div>
+                                                    <div className="flex gap-1.5 w-full md:w-auto flex-shrink-0 items-center justify-center">
+                                                        <Skeleton className="h-9 w-9 rounded-xl" />
+                                                        <Skeleton className="h-9 w-9 rounded-xl" />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -355,6 +401,14 @@ const StandardLeases = ({ onTotalChange }) => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Floating Create Lease button for mobile */}
+            <button
+                onClick={() => setShowCreateModal(true)}
+                className="md:hidden fixed bottom-20 right-4 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+                <Plus size={24} />
+            </button>
         </>
     );
 };

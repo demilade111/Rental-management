@@ -36,8 +36,8 @@ const NeighbourhoodScore = () => {
                     onClick={() => setShowDialog(true)}
                     className="flex items-center justify-between w-full hover:opacity-80 transition-opacity"
                 >
-                    <h2 className="text-[24px] font-bold text-primary">Neighbourhood Score</h2>
-                    <ChevronRight className="w-5 h-5" />
+                    <h2 className="text-lg sm:text-xl md:text-[24px] font-bold text-primary">Neighbourhood Score</h2>
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
             </div>
 

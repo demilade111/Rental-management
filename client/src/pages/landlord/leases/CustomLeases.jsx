@@ -11,6 +11,7 @@ import Pagination from "@/components/shared/Pagination";
 import BulkDeleteActionBar from "@/components/shared/BulkDeleteActionBar";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Plus } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -245,8 +246,8 @@ const CustomLeases = ({ onTotalChange }) => {
             />
 
             <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
-                {/* Table Header */}
-                <div className={`grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                {/* Table Header - Desktop */}
+                <div className={`hidden md:grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -261,24 +262,52 @@ const CustomLeases = ({ onTotalChange }) => {
                     <div className="border-l border-primary-foreground/20 pl-4">Actions</div>
                 </div>
 
+                {/* Table Header - Mobile: Only Lease Name */}
+                <div className={`md:hidden grid grid-cols-[auto_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                    <div className="flex items-center justify-center">
+                        <Checkbox
+                            checked={allSelected}
+                            onCheckedChange={handleSelectAll}
+                            ref={(el) => {
+                                if (el) el.indeterminate = someSelected;
+                            }}
+                            className="data-[state=checked]:bg-white data-[state=checked]:border-white"
+                        />
+                    </div>
+                    <div className="">Lease Name</div>
+                </div>
+
                 <div className="flex-1 overflow-y-auto min-h-0">
                     {isLoading ? (
                         <div className="space-y-1">
                             {[...Array(4)].map((_, idx) => (
                                 <div key={`custom-lease-skeleton-${idx}`} className="flex items-center gap-3">
-                                    <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
+                                    <Skeleton className="h-5 w-5 rounded-md" />
                                     <div className="flex-1">
-                                        <div className="border border-gray-200 rounded-2xl p-4 animate-pulse">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
-                                                <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                                        <div className="border border-gray-200 rounded-2xl p-0 bg-card overflow-hidden">
+                                            {/* Mobile: Collapsed Row View */}
+                                            <div className="md:hidden">
+                                                <div className="flex items-center p-3 gap-3">
+                                                    <div className="flex-1 min-w-0 overflow-hidden">
+                                                        <Skeleton className="h-4 w-3/4 rounded-full mb-1" />
+                                                        <Skeleton className="h-3 w-full rounded-full" />
+                                                    </div>
+                                                    <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
+                                                </div>
                                             </div>
-                                            <div className="h-5 w-1/2 bg-gray-100 rounded-full mb-3" />
-                                            <div className="grid grid-cols-2 gap-3 text-sm">
-                                                <div className="h-3 w-3/4 bg-gray-100 rounded-full" />
-                                                <div className="h-3 w-1/2 bg-gray-100 rounded-full" />
-                                                <div className="h-3 w-2/3 bg-gray-100 rounded-full" />
-                                                <div className="h-3 w-1/3 bg-gray-100 rounded-full" />
+                                            {/* Desktop: Full View */}
+                                            <div className="hidden md:block p-4">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <Skeleton className="h-4 w-1/3 rounded-full" />
+                                                    <Skeleton className="h-4 w-16 rounded-full" />
+                                                </div>
+                                                <Skeleton className="h-5 w-1/2 rounded-full mb-3" />
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                    <Skeleton className="h-3 w-3/4 rounded-full" />
+                                                    <Skeleton className="h-3 w-1/2 rounded-full" />
+                                                    <Skeleton className="h-3 w-2/3 rounded-full" />
+                                                    <Skeleton className="h-3 w-1/3 rounded-full" />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -397,6 +426,14 @@ const CustomLeases = ({ onTotalChange }) => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Floating Create Lease button for mobile */}
+            <button
+                onClick={() => setShowCreateModal(true)}
+                className="md:hidden fixed bottom-20 right-4 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+                <Plus size={24} />
+            </button>
         </div>
     );
 };

@@ -52,7 +52,6 @@ const MainLayout = () => {
         },
         { label: "Accounting", id: "accounting", path: "/landlord/accounting" },
         { label: "Insurance", id: "insurance", path: "/landlord/insurance" },
-        // { label: "Analytics", id: "analytics", path: "/landlord/analytics" },
       ]
     : [
         { label: "Dashboard", id: "dashboard", path: "/tenant/dashboard" },
@@ -108,7 +107,7 @@ const MainLayout = () => {
             <Route path="/landlord/applications" element={<Applications />} />
             <Route path="/landlord/accounting" element={<Accounting />} />
             <Route path="/landlord/account" element={<Account />} />
-            {/* <Route path="/landlord/analytics" element={<Analytics />} /> */}
+            <Route path="/landlord/analytics" element={<Analytics />} />
             <Route path="/landlord/leases" element={<LeasesPage />} />
             <Route
               path="/landlord/leases/:type/:id"

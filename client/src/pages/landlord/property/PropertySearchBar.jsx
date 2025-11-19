@@ -13,14 +13,14 @@ const PropertySearchBar = ({ searchQuery, setSearchQuery, onNewListing }) => (
                     placeholder="Search.."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-primary-foreground border-gray-300"
+                    className="pl-10 bg-primary-foreground border-gray-300 text-xs md:text-sm"
                 />
             </div>
             {/* <Button variant="outline" size="icon" className="border-gray-200">
                 <SlidersHorizontal className="w-4 h-4" />
             </Button> */}
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl" onClick={onNewListing}>
+        <Button className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl" onClick={onNewListing}>
             <Plus className="w-4 h-4 mr-2" />
             New Listing
         </Button>

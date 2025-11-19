@@ -14,6 +14,7 @@ import MaintenanceSearchBar from "./MaintanenceSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
 import MaintenanceDetailsModal from "./MaintenanceDetailsModal";
+import { Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -412,10 +413,12 @@ function Maintenance() {
 
   return (
     <div className="px-4 md:px-8 py-4">
-      <PageHeader
-        title="Maintenance"
-        subtitle="Track and manage all property maintenance tasks"
-      />
+      <div className="hidden md:block">
+        <PageHeader
+          title="Maintenance"
+          subtitle="Track and manage all property maintenance tasks"
+        />
+      </div>
 
       <MaintenanceSearchBar
         search={search}
@@ -496,6 +499,20 @@ function Maintenance() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating New Request button for mobile */}
+      {(user?.role === "TENANT" 
+        ? (!checkingLeaseStatus && !hasTerminatedLease)
+        : true) && (
+        <button
+          onClick={handleOpenModal}
+          disabled={user?.role === "TENANT" && hasTerminatedLease}
+          className="md:hidden fixed bottom-20 right-4 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title={user?.role === "TENANT" && hasTerminatedLease ? "Your lease has been terminated. Maintenance requests are no longer available." : "New Request"}
+        >
+          <Plus size={24} />
+        </button>
+      )}
     </div>
   );
 }

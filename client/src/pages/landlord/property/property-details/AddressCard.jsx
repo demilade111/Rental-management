@@ -70,8 +70,8 @@ const AddressCard = ({ fullAddress, zipCode, onAddressGenerated }) => {
           <MapPin className="w-10 h-10 text-gray-700" />
         </div>
         <div className="flex flex-col justify-center flex-1">
-          <h2 className="text-xl font-bold text-primary">Address</h2>
-          <p className="text-sm text-gray-700 break-words">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold text-primary">Address</h2>
+          <p className="text-xs sm:text-sm text-gray-700 break-words">
             {displayAddress || (zipCode ? `ZIP Code: ${zipCode}` : "No address provided")}
           </p>
         </div>

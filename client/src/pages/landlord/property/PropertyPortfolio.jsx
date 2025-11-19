@@ -13,7 +13,9 @@ import PageHeader from '@/components/shared/PageHeader';
 import { Checkbox } from '@/components/ui/checkbox';
 import Pagination from '@/components/shared/Pagination';
 import BulkDeleteActionBar from '@/components/shared/BulkDeleteActionBar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 
 const PropertyPortfolio = () => {
   const [activeTab, setActiveTab] = useState("listings");
@@ -104,14 +106,14 @@ const PropertyPortfolio = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4 bg-background">
       <div className="flex-shrink-0">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 hidden md:flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-[32px] sm:text-3xl md:text-4xl font-extrabold text-primary mb-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary mb-1">
               Portfolio {displayTotal !== undefined && (
-                <span className="text-primary font-semibold text-[28px]">({displayTotal})</span>
+                <span className="text-primary font-semibold text-xl sm:text-2xl md:text-[28px]">({displayTotal})</span>
               )}
             </h1>
-            <p className="text-sm sm:text-base text-primary">Per Property</p>
+            <p className="text-xs sm:text-sm md:text-base text-primary">Per Property</p>
           </div>
         </div>
 
@@ -128,19 +130,54 @@ const PropertyPortfolio = () => {
           <div className="space-y-1">
             {Array.from({ length: 4 }).map((_, idx) => (
               <div key={`portfolio-skeleton-${idx}`} className="flex items-center gap-3">
-                <div className="h-5 w-5 rounded-md bg-gray-200 animate-pulse" />
+                <Skeleton className="h-5 w-5 rounded-md" />
                 <div className="flex-1">
-                  <div className="border border-gray-200 rounded-2xl p-4 animate-pulse">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
-                      <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                  <div className="border border-gray-200 rounded-2xl p-0 bg-card overflow-hidden">
+                    {/* Mobile: Collapsed Row View */}
+                    <div className="md:hidden">
+                      <div className="flex items-center p-3 gap-3">
+                        <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <Skeleton className="h-4 w-3/4 rounded-full mb-1" />
+                          <Skeleton className="h-3 w-full rounded-full" />
+                        </div>
+                        <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
+                      </div>
                     </div>
-                    <div className="h-5 w-1/2 bg-gray-100 rounded-full mb-3" />
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="h-3 w-3/4 bg-gray-100 rounded-full" />
-                      <div className="h-3 w-1/2 bg-gray-100 rounded-full" />
-                      <div className="h-3 w-2/3 bg-gray-100 rounded-full" />
-                      <div className="h-3 w-1/3 bg-gray-100 rounded-full" />
+                    {/* Desktop: Full View */}
+                    <div className="hidden md:flex flex-row">
+                      {/* Image placeholder */}
+                      <div className="w-48 h-28 bg-gray-200 dark:bg-gray-800 shimmer-container flex-shrink-0">
+                        <div className="shimmer-bar" />
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 flex flex-col md:flex-row items-start md:items-center p-4 gap-4 md:gap-6">
+                        <div className="flex-1 min-w-0">
+                          <Skeleton className="h-5 w-1/2 rounded-full mb-2" />
+                          <Skeleton className="h-3 w-3/4 rounded-full mb-1" />
+                          <Skeleton className="h-3 w-1/2 rounded-full" />
+                        </div>
+                        <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-start">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-24 rounded-full" />
+                            <Skeleton className="h-4 w-28 rounded-full" />
+                            <Skeleton className="h-4 w-32 rounded-full" />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-start">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-32 rounded-full" />
+                            <Skeleton className="h-4 w-24 rounded-full" />
+                            <Skeleton className="h-4 w-28 rounded-full" />
+                          </div>
+                        </div>
+                        <div className="flex flex-row md:flex-col gap-3 md:gap-2 w-full md:w-auto md:flex-1 md:justify-center">
+                          <Skeleton className="h-4 w-16 rounded-full" />
+                          <Skeleton className="h-4 w-20 rounded-full" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -164,7 +201,7 @@ const PropertyPortfolio = () => {
                 }}
                 className="!border-black"
               />
-              <span className="text-sm text-gray-700">Select all</span>
+              <span className="text-xs sm:text-sm text-gray-700">Select all</span>
             </div>
 
             <PropertyList
@@ -198,6 +235,14 @@ const PropertyPortfolio = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
+      {/* Floating New Listing button for mobile */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="md:hidden fixed bottom-20 right-4 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg cursor-pointer w-14 h-14 flex items-center justify-center hover:bg-primary/90 transition-colors"
+      >
+        <Plus size={24} />
+      </button>
     </div>
   );
 };

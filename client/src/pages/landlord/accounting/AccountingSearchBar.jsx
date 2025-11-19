@@ -55,7 +55,7 @@ const AccountingSearchBar = ({
             placeholder="Search.."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-primary-foreground border-gray-300"
+            className="pl-10 bg-primary-foreground border-gray-300 text-xs md:text-sm"
           />
         </div>
 

@@ -56,7 +56,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md pt-8 px-8 pb-6 rounded-xl">
+      <DialogContent className="max-w-md pt-8 px-8 pb-8 rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-[18px] text-primary">Filter Payments</DialogTitle>
         </DialogHeader>
@@ -136,7 +136,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex justify-between gap-3 pt-6 border-t mt-6">
+        <div className="flex justify-between gap-3 pt-3">
           <Button
             variant="outline"
             onClick={handleReset}
@@ -147,7 +147,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
 
           <Button
             onClick={handleApply}
-            className="bg-black text-white hover:bg-gray-800 w-1/2 rounded-xl"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-1/2 rounded-xl"
           >
             Apply
           </Button>

@@ -268,7 +268,8 @@ const LeaseDetailPage = () => {
                         className="mb-4"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Leases
+                        <span className="md:hidden">Back</span>
+                        <span className="hidden md:inline">Back to Leases</span>
                     </Button>
                     <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                         <p className="text-red-600">Failed to load lease details</p>
@@ -318,15 +319,15 @@ const LeaseDetailPage = () => {
             <div className="px-4 md:px-8 py-4">
                 {/* Header with Back Button */}
                 <div className="mb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-                        <div className="flex-1">
-                            <h1 className="text-xl md:text-2xl font-bold text-primary">
-                                {type === "custom" ? lease.leaseName : "Standard Lease"}
-                            </h1>
-                            <p className="text-sm text-gray-600 mt-0.5">
-                                {type === "custom" ? "Custom Lease Agreement" : "Standard Lease Agreement"}
-                            </p>
-                        </div>
+                    <div className="flex flex-col gap-3 mb-4">
+                        <h1 className="text-xl md:text-2xl font-bold text-primary">
+                            {type === "custom" ? lease.leaseName : "Standard Lease"}
+                        </h1>
+                        <p className="text-sm text-gray-600 mt-0.5">
+                            {type === "custom" ? "Custom Lease Agreement" : "Standard Lease Agreement"}
+                        </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <Badge className={`${getStatusColor(lease.leaseStatus)} px-3 py-1.5 text-sm font-medium border`}>
                                 {lease.leaseStatus}
@@ -342,14 +343,15 @@ const LeaseDetailPage = () => {
                                     Terminate Lease
                                 </Button>
                             )}
-                            <Button
-                                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm ml-4"
-                                onClick={() => navigate("/landlord/leases")}
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to Leases
-                            </Button>
                         </div>
+                        <Button
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm"
+                            onClick={() => navigate("/landlord/leases")}
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            <span className="md:hidden">Back</span>
+                            <span className="hidden md:inline">Back to Leases</span>
+                        </Button>
                     </div>
                 </div>
 

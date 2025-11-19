@@ -139,16 +139,16 @@ const RentersInsuranceCard = () => {
     if (loading) {
         return (
             <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
-                <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Renters Insurance</h2>
+                <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Renters Insurance</h2>
                 
-                <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px]">
+                <div className="flex flex-row items-center gap-3 md:gap-6 lg:gap-10 flex-1 min-h-[280px]">
                     {/* Chart Skeleton */}
-                    <div className="w-20 sm:w-24 lg:w-32 h-64 flex-shrink-0 -ml-2">
-                        <Skeleton className="w-full h-full rounded-lg" />
+                    <div className="w-28 sm:w-24 lg:w-32 h-56 sm:h-64 flex-shrink-0 -ml-1 sm:-ml-2">
+                        <Skeleton className="w-full h-full rounded-xl" />
                     </div>
 
                     {/* Legend Skeleton */}
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-4 sm:space-y-6 min-w-0">
                         {/* Insured Section Skeleton */}
                         <div>
                             <Skeleton className="h-5 w-32 mb-3" />
@@ -186,13 +186,12 @@ const RentersInsuranceCard = () => {
 
     return (
         <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
-            <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-2 text-primary">Renters Insurance</h2>
+            <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Renters Insurance</h2>
             
-            <div className="flex items-center gap-6 lg:gap-10 flex-1 min-h-[280px] fade-in">
+            <div className="flex flex-row items-center gap-3 md:gap-6 lg:gap-10 flex-1 min-h-[280px] fade-in">
                 {/* Chart Container */}
                 <div 
-                    className="w-20 sm:w-24 lg:w-32 h-64 flex-shrink-0 p-0 -ml-2 rounded-lg overflow-hidden pt-3"
-                    style={{ clipPath: 'inset(0 round 0.5rem)' }}
+                    className="w-28 sm:w-24 lg:w-32 h-56 sm:h-64 flex-shrink-0 p-0 -ml-1 sm:-ml-2 rounded-xl overflow-hidden pt-2 sm:pt-3"
                 >
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -213,7 +212,7 @@ const RentersInsuranceCard = () => {
                             <Bar 
                                 dataKey="notified" 
                                 stackId="a" 
-                                radius={[0, 0, 10, 10]} 
+                                radius={[0, 0, 24, 24]} 
                                 fill="var(--chart-3)"
                                 minPointSize={2}
                             />
@@ -232,7 +231,7 @@ const RentersInsuranceCard = () => {
                             <Bar 
                                 dataKey="expiringInThirty" 
                                 stackId="a" 
-                                radius={[10, 10, 0, 0]} 
+                                radius={[24, 24, 0, 0]} 
                                 fill="url(#patternAccent)"
                                 minPointSize={2}
                             />
@@ -241,14 +240,14 @@ const RentersInsuranceCard = () => {
                 </div>
 
                 {/* Legend */}
-                <div className="flex-1 space-y-6">
+                <div className="flex-1 space-y-4 sm:space-y-6 min-w-0">
                     {/* Insured Section */}
                     <div>
-                        <h3 className="text-[17px] font-bold mb-3">Insured ({stats.totalInsured})</h3>
-                        <div className="space-y-2.5">
-                            <div className="flex items-center gap-3.5 ml-3">
+                        <h3 className="text-sm sm:text-base md:text-[17px] font-bold mb-2 sm:mb-3">Insured ({stats.totalInsured})</h3>
+                        <div className="space-y-2 sm:space-y-2.5">
+                            <div className="flex items-center gap-2 sm:gap-3.5 ml-2 sm:ml-3">
                                 <div 
-                                    className="w-8 h-8 rounded-lg flex-shrink-0" 
+                                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" 
                                     style={{
                                         background: `repeating-linear-gradient(
                                             45deg,
@@ -259,22 +258,22 @@ const RentersInsuranceCard = () => {
                                         )`
                                     }} 
                                 />
-                                <span className="text-[17px]">Expiring in 30 days ({stats.expiringInThirty})</span>
+                                <span className="text-xs sm:text-sm md:text-[17px]">Expiring in 30 days ({stats.expiringInThirty})</span>
                             </div>
-                            <div className="flex items-center gap-3.5 ml-3">
-                                <div className="w-8 h-8 rounded-lg flex-shrink-0" style={{ background: 'var(--chart-1)' }} />
-                                <span className="text-[17px]">Not expiring soon ({stats.notExpiring})</span>
+                            <div className="flex items-center gap-2 sm:gap-3.5 ml-2 sm:ml-3">
+                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" style={{ background: 'var(--chart-1)' }} />
+                                <span className="text-xs sm:text-sm md:text-[17px]">Not expiring soon ({stats.notExpiring})</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Uninsured Section */}
                     <div>
-                        <h3 className="text-[17px] font-bold mb-3">Uninsured ({stats.totalUninsured})</h3>
-                        <div className="space-y-2.5">
-                            <div className="flex items-center gap-3.5 ml-3">
+                        <h3 className="text-sm sm:text-base md:text-[17px] font-bold mb-2 sm:mb-3">Uninsured ({stats.totalUninsured})</h3>
+                        <div className="space-y-2 sm:space-y-2.5">
+                            <div className="flex items-center gap-2 sm:gap-3.5 ml-2 sm:ml-3">
                                 <div 
-                                    className="w-8 h-8 rounded-lg flex-shrink-0" 
+                                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" 
                                     style={{
                                         background: `repeating-linear-gradient(
                                             45deg,
@@ -285,11 +284,11 @@ const RentersInsuranceCard = () => {
                                         )`
                                     }} 
                                 />
-                                <span className="text-[17px]">Pending ({stats.notNotified})</span>
+                                <span className="text-xs sm:text-sm md:text-[17px]">Pending ({stats.notNotified})</span>
                             </div>
-                            <div className="flex items-center gap-3.5 ml-3">
-                                <div className="w-8 h-8 rounded-lg flex-shrink-0" style={{ background: 'var(--chart-3)' }} />
-                                <span className="text-[17px]">Rejected ({stats.notified})</span>
+                            <div className="flex items-center gap-2 sm:gap-3.5 ml-2 sm:ml-3">
+                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex-shrink-0" style={{ background: 'var(--chart-3)' }} />
+                                <span className="text-xs sm:text-sm md:text-[17px]">Rejected ({stats.notified})</span>
                             </div>
                         </div>
                     </div>

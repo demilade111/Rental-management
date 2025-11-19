@@ -14,7 +14,9 @@ export default function LeasesPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="px-4 md:px-8 py-4 flex-shrink-0">
-        <PageHeader title="Leases" subtitle="Per property" total={displayTotal} />
+        <div className="hidden md:block">
+          <PageHeader title="Leases" subtitle="Per property" total={displayTotal} />
+        </div>
         <LeaseTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
       

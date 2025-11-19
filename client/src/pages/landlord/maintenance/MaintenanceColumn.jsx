@@ -9,7 +9,7 @@ const ColumnSkeleton = () => (
     {Array.from({ length: 4 }).map((_, idx) => (
       <div
         key={idx}
-        className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3"
+        className="bg-card border border-gray-200 rounded-2xl p-4 space-y-3"
       >
         <div className="flex items-center justify-between gap-3">
           <Skeleton className="h-4 w-32" />

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Trash2, Share2, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -91,21 +92,21 @@ const InvoicesTable = ({ maintenanceRequestId, refreshTrigger, maintenanceReques
                 {Array.from({ length: 3 }).map((_, idx) => (
                     <Card
                         key={`invoice-skeleton-${idx}`}
-                        className="border border-gray-200 p-3 animate-pulse"
+                        className="border border-gray-200 p-3"
                     >
                         <div className="grid grid-cols-[1fr_120px_80px_80px] gap-4 items-center">
                             <div className="space-y-2">
-                                <div className="h-3 w-32 bg-gray-200 rounded-full" />
-                                <div className="h-3 w-48 bg-gray-100 rounded-full" />
+                                <Skeleton className="h-3 w-32 rounded-full" />
+                                <Skeleton className="h-3 w-48 rounded-full" />
                             </div>
                             <div className="border-l border-gray-200 pl-4">
-                                <div className="h-4 w-16 bg-gray-200 rounded-full" />
+                                <Skeleton className="h-4 w-16 rounded-full" />
                             </div>
                             <div className="border-l border-gray-200 pl-4 flex justify-center">
-                                <div className="h-4 w-4 bg-gray-200 rounded-full" />
+                                <Skeleton className="h-4 w-4 rounded-full" />
                             </div>
                             <div className="border-l border-gray-200 pl-4 flex justify-center">
-                                <div className="h-8 w-8 bg-gray-100 rounded-xl" />
+                                <Skeleton className="h-8 w-8 rounded-xl" />
                             </div>
                         </div>
                     </Card>

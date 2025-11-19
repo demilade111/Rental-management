@@ -165,8 +165,8 @@ const LightboxImage = ({ imageData, alt }) => {
 
     if (!rawSrc || errored) {
         return (
-            <div className="flex items-center justify-center bg-gray-800 rounded-lg w-[900px] h-[600px]">
-                <Home className="w-24 h-24 text-gray-400" />
+            <div className="flex items-center justify-center bg-gray-800 rounded-lg w-full max-w-[900px] h-[200px] sm:h-[400px] md:h-[600px]">
+                <Home className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 text-gray-400" />
             </div>
         );
     }
@@ -174,7 +174,7 @@ const LightboxImage = ({ imageData, alt }) => {
     const isLoading = urlLoading || !imageLoaded;
 
     return (
-        <div className="relative w-[900px] h-[600px] flex items-center justify-center">
+        <div className="relative w-full max-w-[900px] h-[200px] sm:h-[400px] md:h-[600px] flex items-center justify-center">
             {/* Shimmer shown while loading */}
             {isLoading && (
                 <div className="shimmer-container absolute inset-0 bg-gray-800 rounded-lg">
@@ -295,40 +295,40 @@ const PropertyImages = ({ images = [] }) => {
       {totalCount > 0 && (
         <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
           <DialogContent 
-            className="sm:max-w-[1100px] bg-black/85 border-0 p-10 pb-12 rounded-xl"
+            className="w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] sm:w-full sm:max-w-[1100px] bg-black/85 border-0 p-4 sm:p-6 md:p-10 pb-6 sm:pb-8 md:pb-12 rounded-xl"
             showCloseButton={false}
           >
-            <div className="flex flex-col items-center gap-4" onKeyDown={handleKeyDown}>
+            <div className="flex flex-col items-center gap-2 sm:gap-4" onKeyDown={handleKeyDown}>
               {/* Top controls */}
               <div className="flex items-center justify-between w-full">
                 {/* Image counter */}
-                <div className="bg-white/10 text-white px-4 py-2 rounded-full text-sm font-medium">
+                <div className="bg-white/10 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium">
                   {currentImageIndex + 1} / {totalCount}
                 </div>
                 
                 {/* Close button */}
                 <button
                   onClick={() => setShowLightbox(false)}
-                  className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors"
+                  className="bg-white/10 hover:bg-white/20 text-white p-1.5 sm:p-2 rounded-full transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-4 h-4 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
               {/* Image area with navigation */}
-              <div className="flex items-center justify-center gap-4 w-full">
+              <div className="flex items-center justify-center gap-2 sm:gap-4 w-full">
                 {/* Previous button */}
                 {totalCount > 1 && (
                   <button
                     onClick={handlePrevImage}
-                    className="flex-shrink-0 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors"
+                    className="flex-shrink-0 bg-white/10 hover:bg-white/20 text-white p-2 sm:p-3 rounded-full transition-colors"
                   >
-                    <ChevronLeft className="w-8 h-8" />
+                    <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8" />
                   </button>
                 )}
 
                 {/* Current image */}
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center min-w-0">
                   <LightboxImage
                     imageData={allImages[currentImageIndex]}
                     alt={`Property image ${currentImageIndex + 1}`}
@@ -339,9 +339,9 @@ const PropertyImages = ({ images = [] }) => {
                 {totalCount > 1 && (
                   <button
                     onClick={handleNextImage}
-                    className="flex-shrink-0 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors"
+                    className="flex-shrink-0 bg-white/10 hover:bg-white/20 text-white p-2 sm:p-3 rounded-full transition-colors"
                   >
-                    <ChevronRight className="w-8 h-8" />
+                    <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8" />
                   </button>
                 )}
               </div>

@@ -269,11 +269,13 @@ const RentalInfo = () => {
   if (isLoading) {
     return (
       <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
-        <PageHeader
-          title="Rental Information"
-          subtitle="View your current and past rental details"
-          total={leases.length}
-        />
+        <div className="hidden md:block">
+          <PageHeader
+            title="Rental Information"
+            subtitle="View your current and past rental details"
+            total={leases.length}
+          />
+        </div>
         <div className="flex-1 overflow-y-auto">
           <RentalInfoSkeleton />
         </div>
@@ -284,11 +286,13 @@ const RentalInfo = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden px-4 md:px-8 py-4">
       <div className="flex-1 overflow-y-auto">
-        <PageHeader
-          title="Rental Information"
-          subtitle="View your current and past rental details"
-          total={leases.length}
-        />
+        <div className="hidden md:block">
+          <PageHeader
+            title="Rental Information"
+            subtitle="View your current and past rental details"
+            total={leases.length}
+          />
+        </div>
 
         {/* Current Rental Section */}
         {currentLease ? (

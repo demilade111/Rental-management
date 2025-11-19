@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
@@ -14,17 +14,21 @@ import LoadingState from '@/components/shared/LoadingState';
 const chartConfig = {
     expiring_leases: {
         label: "Expiring Leases",
+        mobileLabel: ["Expiring", "Leases"],
     },
     draft: {
         label: "Draft Leases",
+        mobileLabel: ["Draft", "Leases"],
         color: "var(--chart-1)",
     },
     active: {
         label: "Active Leases",
+        mobileLabel: ["Active", "Leases"],
         color: "var(--chart-2)",
     },
     expiring_soon: {
         label: "Expiring Leases",
+        mobileLabel: ["Expiring", "Leases"],
         color: "var(--chart-3)",
     },
 };
@@ -38,6 +42,17 @@ const filters = [
 
 const ExpiringLeasesCard = () => {
     const [activeFilter, setActiveFilter] = useState('all');
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768); // md breakpoint
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Fetch standard leases
     const { data: standardLeases = [], isLoading: isLoadingStandard, isFetched: isFetchedStandard } = useQuery({
@@ -148,7 +163,7 @@ const ExpiringLeasesCard = () => {
 
     return (
         <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
-            <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-6 text-primary">Expiring Leases</h3>
+            <h3 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-6 text-primary">Expiring Leases</h3>
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-3 justify-start flex-shrink-0">
                 {filters.map((filter) => (
@@ -189,18 +204,64 @@ const ExpiringLeasesCard = () => {
                             data={chartData}
                             layout="vertical"
                             barCategoryGap="5%"
-                            margin={{ top: 10, right: 0, bottom: 10, left: 50 }}
+                            margin={{ top: 10, right: 0, bottom: 10, left: 35 }}
                         >
                             <YAxis
                                 dataKey="browser"
                                 type="category"
                                 tickLine={false}
-                                tickMargin={150}
+                                tickMargin={isMobile ? 60 : 120}
                                 axisLine={true}
-                                width={140}
-                                tickFormatter={(value) => chartConfig[value]?.label}
-                                tick={{ fontSize: 16, textAnchor: 'start' }}
-                                style={{ fill: '#000' }}
+                                width={isMobile ? 60 : 120}
+                                tick={(props) => {
+                                    const { x, y, payload } = props;
+                                    const config = chartConfig[payload.value];
+                                    if (!config) return null;
+                                    
+                                    if (isMobile) {
+                                        // Two-line labels for mobile
+                                        return (
+                                            <g transform={`translate(${x},${y})`}>
+                                                <text
+                                                    x={0}
+                                                    y={0}
+                                                    dy={-2}
+                                                    textAnchor="start"
+                                                    fill="#000"
+                                                    fontSize={12}
+                                                >
+                                                    {config.mobileLabel?.[0] || config.label.split(' ')[0]}
+                                                </text>
+                                                <text
+                                                    x={0}
+                                                    y={0}
+                                                    dy={10}
+                                                    textAnchor="start"
+                                                    fill="#000"
+                                                    fontSize={12}
+                                                >
+                                                    {config.mobileLabel?.[1] || config.label.split(' ')[1] || ''}
+                                                </text>
+                                            </g>
+                                        );
+                                    } else {
+                                        // Single-line labels for desktop
+                                        return (
+                                            <g transform={`translate(${x},${y})`}>
+                                                <text
+                                                    x={0}
+                                                    y={0}
+                                                    dy={4}
+                                                    textAnchor="start"
+                                                    fill="#000"
+                                                    fontSize={14}
+                                                >
+                                                    {config.label}
+                                                </text>
+                                            </g>
+                                        );
+                                    }
+                                }}
                             />
                             <XAxis dataKey="render_value" type="number" hide />
                             <ChartTooltip
