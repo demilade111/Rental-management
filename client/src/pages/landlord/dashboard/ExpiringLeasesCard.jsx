@@ -9,6 +9,8 @@ import {
 import api from '@/lib/axios';
 import API_ENDPOINTS from '@/lib/apiEndpoints';
 import LoadingState from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FileCheck } from 'lucide-react';
 
 // Chart config
 const chartConfig = {
@@ -40,7 +42,7 @@ const filters = [
     { id: 'all', label: 'All' }
 ];
 
-const ExpiringLeasesCard = () => {
+const ExpiringLeasesCard = ({ showSkeleton = false }) => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [isMobile, setIsMobile] = useState(false);
 
@@ -180,12 +182,23 @@ const ExpiringLeasesCard = () => {
                 ))}
             </div>
 
-            {showLoading ? (
+            {showSkeleton ? (
+                <div className="flex-1 min-h-[220px] max-h-[220px] overflow-hidden">
+                    <div className="h-full flex flex-col gap-4">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="flex items-center gap-4">
+                                <Skeleton className="h-6 w-24" />
+                                <Skeleton className="h-6 flex-1" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ) : showLoading ? (
                 <div className="flex-1 flex items-center justify-center min-h-[220px]">
                     <LoadingState message="Loading leases..." compact={true} />
                 </div>
             ) : chartData.length === 0 ? (
-                <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center min-h-[220px]">
+                <div className="text-center text-sm text-gray-500 flex-1 flex flex-col items-center justify-center min-h-[220px]">
                     {isLoading && !isFetched ? (
                         <div className="animate-pulse w-full space-y-3">
                             {[1, 2, 3].map((i) => (
@@ -193,7 +206,10 @@ const ExpiringLeasesCard = () => {
                             ))}
                         </div>
                     ) : (
-                        'No leases expiring in this period'
+                        <>
+                            <FileCheck className="w-8 h-8 text-gray-400 mb-2" />
+                            <span>No leases expiring in this period</span>
+                        </>
                     )}
                 </div>
             ) : (

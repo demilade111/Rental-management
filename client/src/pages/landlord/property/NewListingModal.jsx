@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -95,6 +95,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
   const [cities, setCities] = useState([]);
   const [showAddAmenityInput, setShowAddAmenityInput] = useState(false);
   const [newAmenity, setNewAmenity] = useState("");
+  const lastDemoFillRef = useRef({ presetIndex: -1, locationIndex: -1 });
 
   useEffect(() => {
     setCountries(Country.getAllCountries());
@@ -122,7 +123,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
         country: CANADA_CODE,
         state: DEFAULT_STATE,
         city: DEFAULT_CITY,
-        zipCode: prev.zipCode || DEFAULT_POSTAL_CODE,
+        zipCode: "",
       }));
     }
   }, [isOpen, isEditMode, user]);
@@ -170,10 +171,16 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
         setCities(stateCities);
       }
 
-      // Extract amenity names
-      const amenityNames = initialData.amenities?.map(a => 
-        typeof a === 'string' ? a : a.name
-      ) || [];
+      // Extract amenity names and normalize to match predefined amenities
+      const amenityNames = initialData.amenities?.map(a => {
+        const name = typeof a === 'string' ? a : a.name;
+        // Find matching predefined amenity (case-insensitive)
+        const matchingPredefined = PREDEFINED_AMENITIES.find(
+          predefined => predefined.toLowerCase() === name.toLowerCase()
+        );
+        // Use predefined format if match found, otherwise use original name
+        return matchingPredefined || name;
+      }) || [];
 
       // Extract image URLs
       const imageUrls = initialData.images?.map(img => 
@@ -220,7 +227,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
     state: DEFAULT_STATE,
     city: DEFAULT_CITY,
     streetAddress: "",
-    zipCode: DEFAULT_POSTAL_CODE,
+    zipCode: "",
     rentCycle: "",
     rentAmount: "",
     securityDeposit: "",
@@ -426,7 +433,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
       state: DEFAULT_STATE,
       city: DEFAULT_CITY,
       streetAddress: "",
-      zipCode: DEFAULT_POSTAL_CODE,
+      zipCode: "",
       rentCycle: "",
       rentAmount: "",
       securityDeposit: "",
@@ -446,8 +453,29 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
 
   const handleDemoPrefill = () => {
     const ownerName = getOwnerName();
-    const preset = randomFromArray(DEMO_PROPERTY_PRESETS);
-    const location = randomFromArray(CANADIAN_LOCATIONS);
+    
+    // Randomly select a different preset than the last one
+    let presetIndex;
+    do {
+      presetIndex = Math.floor(Math.random() * DEMO_PROPERTY_PRESETS.length);
+    } while (
+      presetIndex === lastDemoFillRef.current.presetIndex && 
+      DEMO_PROPERTY_PRESETS.length > 1
+    );
+    const preset = DEMO_PROPERTY_PRESETS[presetIndex];
+    
+    // Randomly select a different location than the last one
+    let locationIndex;
+    do {
+      locationIndex = Math.floor(Math.random() * CANADIAN_LOCATIONS.length);
+    } while (
+      locationIndex === lastDemoFillRef.current.locationIndex && 
+      CANADIAN_LOCATIONS.length > 1
+    );
+    const location = CANADIAN_LOCATIONS[locationIndex];
+    
+    // Update the last used indices
+    lastDemoFillRef.current = { presetIndex, locationIndex };
 
     const rentValue = Number(preset.rent);
     const depositValue = Math.round(rentValue * 0.5);

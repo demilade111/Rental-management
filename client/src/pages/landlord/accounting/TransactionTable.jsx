@@ -3,8 +3,9 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, ChevronDown, ChevronUp, User, Home, Calendar, Tag, DollarSign } from 'lucide-react';
+import { FileText, ChevronDown, ChevronUp, User, Home, Calendar, Tag, DollarSign, Mail } from 'lucide-react';
 import InvoiceDetailsModal from '@/components/shared/InvoiceDetailsModal';
+import { useAuthStore } from '@/store/authStore';
 
 const getStatusBadgeClass = (status) => {
   const baseClasses = 'px-3 py-1 rounded-md text-[14px] font-medium';
@@ -35,6 +36,7 @@ const getStatusText = (status, dueDate) => {
 
 const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { user } = useAuthStore();
   const tenant = payment.tenant;
   const listing = payment.lease?.listing || payment.customLease?.listing;
   const status = getStatusText(payment.status, payment.dueDate);
@@ -59,6 +61,47 @@ const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
 
   const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'N/A';
   const propertyTitle = listing?.title || (payment.type === 'MAINTENANCE' && payment.notes ? 'Property Maintenance' : 'N/A');
+  
+  // Check if payment is overdue
+  const isOverdue = payment.status === 'PENDING' && payment.dueDate && new Date(payment.dueDate) < new Date();
+  const tenantEmail = tenant?.email || '';
+  
+  // Handle send reminder email
+  const handleSendReminder = (e) => {
+    e.stopPropagation();
+    if (!tenantEmail) {
+      alert('Tenant email not available');
+      return;
+    }
+    
+    const paymentType = payment.type === 'RENT' ? 'rent' : payment.type === 'UTILITIES' ? 'utilities' : payment.type === 'MAINTENANCE' ? 'maintenance' : 'payment';
+    const dueDateFormatted = format(new Date(payment.dueDate), 'MMMM d, yyyy');
+    const amountFormatted = `$${payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    
+    const subject = encodeURIComponent(`Payment Reminder: ${paymentType.charAt(0).toUpperCase() + paymentType.slice(1)} Payment Due`);
+    const landlordName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Property Manager';
+    
+    const body = encodeURIComponent(`Dear ${tenantName},
+
+This is a friendly reminder that your ${paymentType} payment is overdue.
+
+Payment Details:
+- Type: ${payment.type}
+- Amount: ${amountFormatted}
+- Due Date: ${dueDateFormatted}
+${propertyTitle ? `- Property: ${propertyTitle}` : ''}
+
+Please submit your payment at your earliest convenience. If you have already made this payment, please disregard this reminder.
+
+If you have any questions or concerns, please don't hesitate to contact me.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+${landlordName}`);
+    
+    window.location.href = `mailto:${tenantEmail}?subject=${subject}&body=${body}`;
+  };
 
   return (
     <Card className="border border-gray-300 hover:shadow-md cursor-default transition-shadow mb-1 p-0 md:p-3">
@@ -220,27 +263,31 @@ const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
             {/* Actions */}
             <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-300">
               {payment.proofUrl ? (
-                isPaid ? (
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewProof(payment);
-                    }}
-                    className="text-xs px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-                  >
-                    View Receipt
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewProof(payment);
-                    }}
-                    className="text-xs px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-medium"
-                  >
-                    Review Receipt
-                  </Button>
-                )
+                // Has receipt - always show View Receipt for paid, Review Receipt for unpaid
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewProof(payment);
+                  }}
+                  className={`text-xs px-4 py-2 rounded-xl font-medium ${
+                    isPaid 
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isPaid ? 'View Receipt' : 'Review Receipt'}
+                </Button>
+              ) : isPaid ? (
+                // Payment is paid but no receipt uploaded
+                <span className="text-xs text-gray-500 px-4 py-2">Payment completed</span>
+              ) : isOverdue ? (
+                <Button
+                  onClick={handleSendReminder}
+                  className="text-xs px-4 py-2 rounded-xl bg-orange-600 text-white hover:bg-orange-700 font-medium"
+                >
+                  <Mail className="w-3 h-3 mr-1.5" />
+                  Send Reminder
+                </Button>
               ) : (
                 <span className="text-xs text-gray-400 px-4 py-2">Awaiting payment</span>
               )}
@@ -338,26 +385,36 @@ const TransactionRow = ({ payment, onViewProof, onViewInvoice, isLoading }) => {
         {/* Action */}
         <div className="flex justify-center mr-auto border-l border-gray-300 pl-4">
           {payment.proofUrl ? (
-            // Has receipt uploaded
-            isPaid ? (
-              // Already approved
-              <button
-                onClick={() => onViewProof(payment)}
-                className="text-gray-900 hover:text-gray-700 text-[14px] font-medium"
-              >
-                View Receipt
-              </button>
-            ) : (
-              // Awaiting review
-              <button
-                onClick={() => onViewProof(payment)}
-                className="text-blue-600 hover:text-blue-800 text-[14px] font-medium"
-              >
-                Review Receipt
-              </button>
-            )
+            // Has receipt - always show View Receipt for paid, Review Receipt for unpaid
+            <button
+              onClick={() => onViewProof(payment)}
+              className={`text-[14px] font-medium ${
+                isPaid 
+                  ? 'text-gray-900 hover:text-gray-700' 
+                  : 'text-blue-600 hover:text-blue-800'
+              }`}
+            >
+              {isPaid ? 'View Receipt' : 'Review Receipt'}
+            </button>
+          ) : isPaid ? (
+            // Payment is paid but no receipt uploaded
+            <span className="text-gray-500 text-[14px]">
+              Payment completed
+            </span>
+          ) : isOverdue ? (
+            // Overdue - show send reminder button
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSendReminder(e);
+              }}
+              className="text-orange-600 hover:text-orange-800 text-[14px] font-medium flex items-center gap-1"
+            >
+              <Mail className="w-4 h-4" />
+              Send Reminder
+            </button>
           ) : (
-            // No receipt yet
+            // No receipt yet and not overdue
             <span className="text-gray-400 text-[14px]">
               Awaiting payment
             </span>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,119 +14,178 @@ import { useAuthStore } from "@/store/authStore";
 const NotificationDropdown = () => {
   const { user, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const intervalRef = useRef(null);
-  const initializedUserIdRef = useRef(null);
-  const isLoadingRef = useRef(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertNotification, setAlertNotification] = useState(null);
+  const prevNotificationIdsRef = useRef(new Set());
+  const isInitializedRef = useRef(false);
 
-  const loadNotifications = useCallback(async () => {
-    if (!user?.id) {
-      setNotifications([]);
-      setUnreadCount(0);
-      isLoadingRef.current = false;
-      return;
-    }
-
-    // Prevent multiple simultaneous loads
-    if (isLoadingRef.current) {
-      return;
-    }
-    
-    isLoadingRef.current = true;
-    
-    try {
-      // Fetch notifications from backend
+  // Fetch notifications with React Query - automatically polls every 2.5 seconds
+  const {
+    data: notificationsData,
+    isLoading: isLoadingNotifications,
+    error: notificationsError,
+  } = useQuery({
+    queryKey: ["notifications", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { notifications: [], total: 0 };
       const response = await notificationApi.getAll({ limit: 50 });
       const data = response.data || response;
+      
+      console.log(`🔔 API Response:`, {
+        hasData: !!data,
+        hasNotifications: !!data.notifications,
+        notificationsIsArray: Array.isArray(data.notifications),
+        notificationsLength: data.notifications?.length,
+        total: data.total,
+        fullResponse: data,
+      });
+      
       const notificationsList = Array.isArray(data.notifications) ? data.notifications : [];
       
-      setNotifications(notificationsList);
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-      // On error, don't clear existing notifications - keep what we have
-    } finally {
-      isLoadingRef.current = false;
-    }
-  }, [user?.id]);
+      return {
+        notifications: notificationsList,
+        total: data.total || 0,
+      };
+    },
+    enabled: !!user?.id && !authLoading, // Only fetch when user is available
+    refetchInterval: 2000, // Poll every 2.5 seconds (between 2-3 seconds)
+    refetchIntervalInBackground: true, // Continue polling even when tab is in background
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
+    cacheTime: 0, // Don't cache to always get fresh data
+  });
 
-  const loadUnreadCount = useCallback(async () => {
-    if (!user?.id) {
-      setUnreadCount(0);
-      return;
-    }
-
-    try {
+  // Fetch unread count separately
+  const {
+    data: unreadCountData,
+  } = useQuery({
+    queryKey: ["notifications", "unread-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { count: 0 };
       const response = await notificationApi.getUnreadCount();
       const data = response.data || response;
-      const count = data.count || 0;
-      setUnreadCount(count);
-    } catch (error) {
-      console.error("Error loading unread count:", error);
-    }
-  }, [user?.id]);
+      return { count: data.count || 0 };
+    },
+    enabled: !!user?.id && !authLoading,
+    refetchInterval: 2000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+    cacheTime: 0,
+  });
 
-  // Initialize notifications when user is ready
+  // Extract notifications and calculate unread count
+  const notifications = notificationsData?.notifications || [];
+  const unreadCountFromAPI = unreadCountData?.count ?? 0;
+  
+  // Debug: Log notifications being fetched
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading === true) {
-      return;
+    if (notifications.length > 0) {
+      console.log(`🔔 Notifications fetched: ${notifications.length} total`);
+      
+      // Check for APPLICATION_STATUS notifications specifically
+      const applicationNotifications = notifications.filter(n => n.type === 'APPLICATION_STATUS');
+      console.log(`🔔 APPLICATION_STATUS notifications: ${applicationNotifications.length}`, applicationNotifications);
+      
+      // Log all unique notification types
+      const uniqueTypes = [...new Set(notifications.map(n => n.type))];
+      console.log(`🔔 Unique notification types:`, uniqueTypes);
+      
+      // Log first few notifications with their types
+      const notificationTypes = notifications.slice(0, 5).map(n => ({
+        id: n.id?.substring(0, 10) || 'no-id',
+        type: n.type || 'no-type',
+        title: n.title || 'no-title',
+        isRead: n.isRead,
+        userId: n.userId,
+        createdAt: n.createdAt,
+      }));
+      console.log(`🔔 First 5 notifications:`, notificationTypes);
     }
+  }, [notifications]);
+  
+  // Calculate unread count from notifications list as well (more reliable)
+  const calculatedUnreadCount = useMemo(() => {
+    return notifications.filter(n => {
+      return n.isRead === false || n.isRead === undefined || n.isRead === null;
+    }).length;
+  }, [notifications]);
 
-    // If no user, clear and return
-    if (!user?.id) {
-      setNotifications([]);
-      setUnreadCount(0);
-      initializedUserIdRef.current = null;
-      // Clear interval if exists
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
+  // Use calculated count if available, otherwise fall back to API count
+  const unreadCount = calculatedUnreadCount > 0 ? calculatedUnreadCount : unreadCountFromAPI;
 
-    // Only initialize once per user ID (prevents multiple intervals)
-    if (initializedUserIdRef.current === user.id) {
-      return;
-    }
-
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    // Mark as initialized for this user
-    initializedUserIdRef.current = user.id;
-
-    // Load notifications and unread count immediately when user is available
-    loadNotifications();
-    loadUnreadCount();
-
-    // Set up interval for auto-refresh (every 7 seconds)
-    intervalRef.current = setInterval(() => {
-      loadNotifications();
-      loadUnreadCount();
-    }, 7000);
-
-    // Cleanup on unmount or when user changes
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [user?.id, authLoading, loadNotifications, loadUnreadCount]);
-
-  // Reload notifications when popover opens
+  // Detect new notifications and show alert
   useEffect(() => {
-    if (open && user?.id && !isLoadingRef.current) {
-      loadNotifications();
-      loadUnreadCount();
+    // Initialize on first load - don't show alert for existing notifications
+    if (!isInitializedRef.current && notifications.length > 0) {
+      prevNotificationIdsRef.current = new Set(notifications.map(n => n.id));
+      isInitializedRef.current = true;
+      return;
     }
-  }, [open, user?.id, loadNotifications, loadUnreadCount]);
+
+    if (!notifications.length) {
+      prevNotificationIdsRef.current.clear();
+      return;
+    }
+
+    // Get current notification IDs
+    const currentNotificationIds = new Set(notifications.map(n => n.id));
+    const prevNotificationIds = prevNotificationIdsRef.current;
+    
+    // Find new unread notifications
+    const newUnreadNotifications = notifications.filter(n => 
+      !prevNotificationIds.has(n.id) && !n.isRead
+    );
+    
+    // Show alert for the latest new notification
+    if (newUnreadNotifications.length > 0 && isInitializedRef.current) {
+      const latestNotification = newUnreadNotifications[0];
+      setAlertNotification(latestNotification);
+      setShowAlert(true);
+      
+      // Auto-dismiss after 5 seconds
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+      }, 5000);
+      
+      // Update previous notification IDs
+      prevNotificationIdsRef.current = new Set(currentNotificationIds);
+      
+      return () => clearTimeout(timer);
+    }
+    
+    // Update previous notification IDs
+    prevNotificationIdsRef.current = new Set(currentNotificationIds);
+  }, [notifications]);
+
+  // Mark notification as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId) => {
+      return await notificationApi.markAsRead(notificationId);
+    },
+    onSuccess: () => {
+      // Invalidate queries to refetch
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  // Mark all as read mutation
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      return await notificationApi.markAllAsRead();
+    },
+    onSuccess: () => {
+      // Invalidate queries to refetch
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  // Refetch when popover opens
+  useEffect(() => {
+    if (open && user?.id) {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }
+  }, [open, user?.id, queryClient]);
 
   const handleNotificationClick = async (notification, e) => {
     // Prevent event propagation to avoid double-firing
@@ -136,12 +196,7 @@ const NotificationDropdown = () => {
     
     // Mark notification as read
     try {
-      await notificationApi.markAsRead(notification.id);
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => n.id === notification.id ? { ...n, isRead: true, readAt: new Date() } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      await markAsReadMutation.mutateAsync(notification.id);
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -157,10 +212,28 @@ const NotificationDropdown = () => {
       "INSURANCE_REJECTED"
     ];
     
+    const paymentTypes = [
+      "PAYMENT_RECEIPT_UPLOADED",
+      "PAYMENT_DUE",
+      "PAYMENT_RECEIVED"
+    ];
+    
+    const applicationTypes = [
+      "APPLICATION_STATUS"
+    ];
+    
     if (insuranceTypes.includes(notification.type)) {
       // Navigate to insurance page
       const insurancePath = user?.role === "ADMIN" ? "/landlord/insurance" : "/tenant/insurance";
       navigate(insurancePath);
+    } else if (paymentTypes.includes(notification.type)) {
+      // Navigate to accounting page
+      const accountingPath = user?.role === "ADMIN" ? "/landlord/accounting" : "/tenant/accounting";
+      navigate(accountingPath);
+    } else if (applicationTypes.includes(notification.type)) {
+      // Navigate to applications page
+      const applicationsPath = user?.role === "ADMIN" ? "/landlord/applications" : "/tenant/applications";
+      navigate(applicationsPath);
     } else {
       // Default to maintenance page for maintenance notifications
       const maintenancePath = user?.role === "ADMIN" ? "/landlord/maintenance" : "/tenant/maintenance";
@@ -170,15 +243,7 @@ const NotificationDropdown = () => {
 
   const handleReadAll = async () => {
     try {
-      // Mark all as read via API
-      await notificationApi.markAllAsRead();
-      
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, isRead: true, readAt: new Date() }))
-      );
-      setUnreadCount(0);
-      
+      await markAllAsReadMutation.mutateAsync();
       // Close popover
       setOpen(false);
     } catch (error) {
@@ -202,8 +267,77 @@ const NotificationDropdown = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleAlertClick = () => {
+    if (alertNotification) {
+      handleNotificationClick(alertNotification, null);
+      setShowAlert(false);
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <>
+      {/* Notification Alert */}
+      {showAlert && alertNotification && (
+        <div
+          className="fixed top-4 right-4 z-[60] animate-in slide-in-from-top-5 fade-in duration-300"
+          style={{
+            maxWidth: '90%',
+            width: '320px'
+          }}
+        >
+          <div
+            className="bg-black/60 backdrop-blur-md rounded-lg p-4 border border-white/20 shadow-lg cursor-pointer hover:bg-black/70 transition-colors"
+            onClick={handleAlertClick}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <svg
+                  viewBox="0 0 31 31"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 text-white"
+                >
+                  <path
+                    d="M15.5001 3.1C13.0335 3.1 10.6681 4.07982 8.92397 5.82391C7.17988 7.56799 6.20006 9.93349 6.20006 12.4V17.9583L5.10421 19.0541C4.88751 19.2709 4.73994 19.5471 4.68016 19.8477C4.62038 20.1483 4.65107 20.4599 4.76836 20.7431C4.88565 21.0263 5.08426 21.2684 5.3391 21.4387C5.59393 21.609 5.89355 21.6999 6.20006 21.7H24.8001C25.1066 21.6999 25.4062 21.609 25.661 21.4387C25.9159 21.2684 26.1145 21.0263 26.2318 20.7431C26.349 20.4599 26.3797 20.1483 26.32 19.8477C26.2602 19.5471 26.1126 19.2709 25.8959 19.0541L24.8001 17.9583V12.4C24.8001 9.93349 23.8202 7.56799 22.0762 5.82391C20.3321 4.07982 17.9666 3.1 15.5001 3.1ZM15.5001 27.9C14.2668 27.9 13.0841 27.4101 12.212 26.538C11.34 25.666 10.8501 24.4833 10.8501 23.25H20.1501C20.1501 24.4833 19.6602 25.666 18.7881 26.538C17.9161 27.4101 16.7333 27.9 15.5001 27.9Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white mb-1">
+                  {alertNotification.title}
+                </p>
+                <p className="text-xs text-white/80 line-clamp-2">
+                  {alertNotification.body}
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAlert(false);
+                }}
+                className="flex-shrink-0 text-white/60 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -229,6 +363,7 @@ const NotificationDropdown = () => {
             {unreadCount > 0 && (
               <span
                 className="absolute top-0 right-0 h-5 w-5 min-w-[20px] bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+                style={{ zIndex: 10 }}
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
@@ -242,7 +377,15 @@ const NotificationDropdown = () => {
             <h3 className="font-semibold text-sm">Notifications</h3>
           </div>
           <div className="max-h-[400px] overflow-y-auto">
-            {notifications.length === 0 ? (
+            {isLoadingNotifications ? (
+              <div className="px-4 py-8 text-center text-sm text-gray-500">
+                Loading...
+              </div>
+            ) : notificationsError ? (
+              <div className="px-4 py-8 text-center text-sm text-red-500">
+                Error loading notifications
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-gray-500">
                 No notifications
               </div>
@@ -282,14 +425,16 @@ const NotificationDropdown = () => {
                 size="sm"
                 className="w-full text-xs"
                 onClick={handleReadAll}
+                disabled={markAllAsReadMutation.isPending}
               >
-                Read All
+                {markAllAsReadMutation.isPending ? "Marking..." : "Read All"}
               </Button>
             </div>
           )}
         </div>
       </PopoverContent>
     </Popover>
+    </>
   );
 };
 

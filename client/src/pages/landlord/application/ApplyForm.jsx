@@ -522,8 +522,18 @@ const ApplyForm = () => {
 
   const handleAddDocument = (files) => {
     const fileArray = Array.isArray(files) ? files : [files];
+    const MAX_FILES = 3;
+    const currentCount = form.documents?.length || 0;
+    const remainingSlots = MAX_FILES - currentCount;
+    
+    if (remainingSlots <= 0) {
+      // Already at max, don't add more
+      return;
+    }
+
+    const filesToAdd = fileArray.slice(0, remainingSlots);
     setForm((s) => {
-      const newDocs = [...(s.documents || []), ...fileArray];
+      const newDocs = [...(s.documents || []), ...filesToAdd];
       return { ...s, documents: newDocs };
     });
   };
@@ -1111,6 +1121,16 @@ const ApplyForm = () => {
                   {form.documents.length === 0 && (
                     <p className="text-red-500 text-sm">At least one document is required</p>
                   )}
+                  {form.documents.length > 0 && form.documents.length < 3 && (
+                    <p className="text-xs text-gray-500 mb-1">
+                      {form.documents.length} of 3 documents uploaded
+                    </p>
+                  )}
+                  {form.documents.length >= 3 && (
+                    <p className="text-xs text-gray-500 mb-1">
+                      Maximum of 3 documents reached
+                    </p>
+                  )}
                   <input
                     ref={documentInputRef}
                     type="file"
@@ -1124,14 +1144,14 @@ const ApplyForm = () => {
                       }
                     }}
                   />
-                  {form.documents.length === 0 && (
+                  {form.documents.length < 3 && (
                     <label
                       htmlFor="document-input"
                       className={`block border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-gray-50 text-center mt-2 ${form.documents.length === 0 ? "border-red-500" : ""}`}
                       onClick={() => documentInputRef.current?.click()}
                     >
                       <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                      <span className="text-sm text-gray-600">Click to upload documents</span>
+                      <span className="text-sm text-gray-600">Click to upload documents (Max 3)</span>
                       <p className="text-xs text-gray-500 mt-1">
                         Supports images and PDF files
                       </p>

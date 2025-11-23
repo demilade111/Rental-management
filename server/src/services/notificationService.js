@@ -6,6 +6,14 @@ import { prisma } from "../prisma/client.js";
 async function createNotification(data) {
   const { userId, type, title, body, relatedId, metadata } = data;
 
+  console.log(`📧 Creating notification:`, {
+    userId,
+    type,
+    title,
+    body: body?.substring(0, 50),
+    relatedId,
+  });
+
   const notification = await prisma.Notification.create({
     data: {
       userId,
@@ -25,6 +33,13 @@ async function createNotification(data) {
         },
       },
     },
+  });
+
+  console.log(`✅ Notification created successfully:`, {
+    id: notification.id,
+    userId: notification.userId,
+    type: notification.type,
+    title: notification.title,
   });
 
   return notification;
@@ -228,6 +243,153 @@ async function createMaintenanceMessageNotification(
   });
 }
 
+/**
+ * Create maintenance status update notification
+ */
+async function createMaintenanceStatusUpdateNotification(
+  request,
+  recipientUserId,
+  oldStatus,
+  newStatus
+) {
+  const listingName =
+    request.listing?.streetAddress || request.listing?.title || "Property";
+
+  // Determine notification message based on status change
+  let statusMessage = "";
+  if (newStatus === "IN_PROGRESS") {
+    statusMessage = "has been accepted and is now in progress";
+  } else if (newStatus === "COMPLETED") {
+    statusMessage = "has been completed";
+  } else {
+    statusMessage = `status changed from ${oldStatus} to ${newStatus}`;
+  }
+
+  const title = request.title;
+  const body = `Maintenance request "${title}" at ${listingName} ${statusMessage}`;
+
+  return createNotification({
+    userId: recipientUserId,
+    type: "MAINTENANCE_MESSAGE", // Using MAINTENANCE_MESSAGE type for status updates
+    title,
+    body,
+    relatedId: request.id,
+    metadata: {
+      listingId: request.listingId,
+      listingName,
+      oldStatus,
+      newStatus,
+      statusUpdate: true,
+    },
+  });
+}
+
+/**
+ * Create application submitted notification (notify landlord)
+ */
+async function createApplicationSubmittedNotification(application, landlordId) {
+  const listingName =
+    application.listing?.streetAddress || application.listing?.title || "Property";
+  const applicantName = application.fullName || "Applicant";
+
+  const title = "New Application Submitted";
+  const body = `${applicantName} has submitted an application for ${listingName}`;
+
+  return createNotification({
+    userId: landlordId,
+    type: "APPLICATION_STATUS",
+    title,
+    body,
+    relatedId: application.id,
+    metadata: {
+      applicationId: application.id,
+      listingId: application.listingId,
+      listingName,
+      applicantName,
+      applicantEmail: application.email,
+      status: application.status,
+    },
+  });
+}
+
+/**
+ * Create lease signed notification (notify landlord)
+ */
+async function createLeaseSignedNotification(lease, landlordId, tenantName) {
+  const listingName =
+    lease.listing?.streetAddress || 
+    lease.listing?.title || 
+    lease.propertyAddress || 
+    "Property";
+
+  const title = "Lease Signed";
+  const body = `${tenantName} has successfully signed the lease for ${listingName}`;
+
+  console.log("📧 Creating lease signed notification:", {
+    userId: landlordId,
+    type: "APPLICATION_STATUS",
+    title,
+    body: body.substring(0, 50),
+    relatedId: lease.id,
+    listingName,
+    tenantName,
+  });
+
+  return createNotification({
+    userId: landlordId,
+    type: "APPLICATION_STATUS", // Using APPLICATION_STATUS type for lease signing
+    title,
+    body,
+    relatedId: lease.id,
+    metadata: {
+      leaseId: lease.id,
+      listingId: lease.listingId,
+      listingName,
+      tenantName,
+      leaseStatus: lease.leaseStatus || "ACTIVE",
+      leaseType: lease.leaseType || "STANDARD",
+    },
+  });
+}
+
+/**
+ * Create payment receipt uploaded notification
+ */
+async function createPaymentReceiptUploadedNotification(payment, recipientUserId) {
+  const tenantName =
+    payment.tenant?.firstName && payment.tenant?.lastName
+      ? `${payment.tenant.firstName} ${payment.tenant.lastName}`
+      : payment.tenant?.email || "Tenant";
+
+  const listing = payment.lease?.listing || payment.customLease?.listing;
+  const propertyName =
+    listing?.streetAddress || listing?.title || "Property";
+
+  const paymentType = payment.type === 'RENT' ? 'rent' : 
+                      payment.type === 'UTILITIES' ? 'utilities' : 
+                      payment.type === 'MAINTENANCE' ? 'maintenance' : 
+                      'payment';
+
+  const title = "Payment Receipt Uploaded";
+  const body = `${tenantName} uploaded a receipt for ${paymentType} payment ($${payment.amount.toFixed(2)}) at ${propertyName}`;
+
+  return createNotification({
+    userId: recipientUserId,
+    type: "PAYMENT_RECEIPT_UPLOADED",
+    title,
+    body,
+    relatedId: payment.id,
+    metadata: {
+      paymentId: payment.id,
+      tenantName,
+      propertyName,
+      amount: payment.amount,
+      paymentType: payment.type,
+      listingId: listing?.id,
+    },
+  });
+}
+
 async function createInsuranceExpiringNotification(insurance, recipientUserId) {
   const tenantName =
     insurance.tenant?.firstName && insurance.tenant?.lastName
@@ -359,6 +521,10 @@ export {
   deleteAllRead,
   createMaintenanceRequestNotification,
   createMaintenanceMessageNotification,
+  createMaintenanceStatusUpdateNotification,
+  createApplicationSubmittedNotification,
+  createLeaseSignedNotification,
+  createPaymentReceiptUploadedNotification,
   createInsuranceExpiringNotification,
   createInsuranceExpiredNotification,
   createInsuranceVerifiedNotification,

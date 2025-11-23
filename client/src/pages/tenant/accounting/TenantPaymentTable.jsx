@@ -184,6 +184,14 @@ const TenantPaymentRow = ({
                 {/* Expanded Content */}
                 {isExpanded && (
                     <div className="px-4 pb-4 border-gray-200 border-t space-y-4 pt-4 bg-gray-50/50">
+                        {/* Status - Above Note */}
+                        <div className="mb-4 flex items-center gap-1.5">
+                            <span className="text-[10px] text-gray-600 font-medium">Status:</span>
+                            <span style={{fontSize: '10px'}} className={`${getStatusBadgeClass(payment.status, payment.dueDate, hasReceipt)}`}>
+                                {status}
+                            </span>
+                        </div>
+
                         {/* Two Column Layout */}
                         <div className="grid grid-cols-2 gap-4">
                             {/* Left Column: Note & Category */}

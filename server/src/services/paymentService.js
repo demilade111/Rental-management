@@ -1,4 +1,5 @@
 import { prisma } from '../prisma/client.js';
+import { createPaymentReceiptUploadedNotification } from './notificationService.js';
 
 const ACTIVE_RENT_LEASE_STATUSES = ['ACTIVE'];
 const DEFAULT_PAYMENT_FREQUENCY = 'MONTHLY';
@@ -914,19 +915,63 @@ export const uploadPaymentProof = async (paymentId, proofUrl, tenantId) => {
       // Keep status as PENDING - landlord needs to approve
     },
     include: {
-      tenant: true,
+      tenant: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      landlord: {
+        select: {
+          id: true,
+        },
+      },
       lease: {
         include: {
-          listing: true,
+          listing: {
+            select: {
+              id: true,
+              title: true,
+              streetAddress: true,
+            },
+          },
         },
       },
       customLease: {
         include: {
-          listing: true,
+          listing: {
+            select: {
+              id: true,
+              title: true,
+              streetAddress: true,
+            },
+          },
         },
       },
     },
   });
+
+  // Create notification for landlord about receipt upload
+  try {
+    // Get landlordId from the payment (it's a direct field, not a relation)
+    const landlordId = payment.landlordId;
+    if (!landlordId) {
+      console.error("Error: No landlordId found for payment", paymentId);
+      return updatedPayment;
+    }
+    console.log("📧 Creating payment receipt notification for landlord:", landlordId, "Payment ID:", paymentId);
+    const notification = await createPaymentReceiptUploadedNotification(updatedPayment, landlordId);
+    console.log("✅ Payment receipt notification created successfully:", notification?.id);
+  } catch (error) {
+    // Log error but don't fail the payment update
+    console.error("❌ Error creating payment receipt notification:", error);
+    console.error("Error details:", error.message);
+    if (error.stack) {
+      console.error("Stack trace:", error.stack);
+    }
+  }
 
   return updatedPayment;
 };

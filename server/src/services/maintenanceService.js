@@ -2,6 +2,7 @@ import { prisma } from "../prisma/client.js";
 import {
   createMaintenanceRequestNotification,
   createMaintenanceMessageNotification,
+  createMaintenanceStatusUpdateNotification,
 } from "./notificationService.js";
 
 const dedupe = (arr) => Array.from(new Set(arr));
@@ -97,7 +98,16 @@ async function createMaintenanceRequest(userId, userRole, data) {
     },
     include: {
       user: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
-      listing: { select: { id: true, title: true, streetAddress: true, city: true, state: true } },
+      listing: { 
+        select: { 
+          id: true, 
+          title: true, 
+          streetAddress: true, 
+          city: true, 
+          state: true,
+          landlordId: true // Ensure landlordId is included for notifications
+        } 
+      },
       images: true,
       ...(leaseId && { lease: { include: { tenant: true } } }),
       ...(customLeaseId && { customLease: true }),
@@ -108,7 +118,14 @@ async function createMaintenanceRequest(userId, userRole, data) {
   try {
     if (userRole === "TENANT") {
       // Notify landlord about new maintenance request
-      await createMaintenanceRequestNotification(maintenanceRequest, maintenanceRequest.listing.landlordId);
+      const landlordId = maintenanceRequest.listing?.landlordId;
+      if (landlordId) {
+        console.log(`📧 Creating maintenance request notification for landlord: ${landlordId}`);
+        const notification = await createMaintenanceRequestNotification(maintenanceRequest, landlordId);
+        console.log(`✅ Maintenance request notification created successfully for landlord: ${landlordId}, notificationId: ${notification?.id}`);
+      } else {
+        console.error("⚠️ No landlordId found for maintenance request notification");
+      }
     } else if (userRole === "ADMIN") {
       // Notify tenant(s) about new maintenance request from landlord
       // Get all active tenants for this listing
@@ -135,14 +152,22 @@ async function createMaintenanceRequest(userId, userRole, data) {
         ...activeCustomLeases.map(l => l.tenantId),
       ])];
 
+      console.log(`📧 Creating maintenance request notifications for ${tenantIds.length} tenant(s):`, tenantIds);
+
       // Create notifications for all tenants
       for (const tenantId of tenantIds) {
-        await createMaintenanceRequestNotification(maintenanceRequest, tenantId);
+        try {
+          const notification = await createMaintenanceRequestNotification(maintenanceRequest, tenantId);
+          console.log(`✅ Maintenance request notification created successfully for tenant: ${tenantId}, notificationId: ${notification?.id}`);
+        } catch (error) {
+          console.error(`❌ Error creating notification for tenant ${tenantId}:`, error);
+        }
       }
     }
   } catch (error) {
     // Log error but don't fail the request creation
     console.error("Error creating maintenance request notification:", error);
+    console.error("Error stack:", error.stack);
   }
 
   return maintenanceRequest;
@@ -384,6 +409,7 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
           title: true,
           streetAddress: true,
           city: true,
+          landlordId: true,
         },
       },
       lease: {
@@ -392,9 +418,82 @@ async function updateMaintenanceRequest(requestId, userId, userRole, updates) {
           tenantId: true,
         },
       },
+      customLease: {
+        select: {
+          id: true,
+          tenantId: true,
+        },
+      },
       images: true,
     },
   });
+
+  // Create notification for status changes (ACCEPTED/IN_PROGRESS or COMPLETED/FINISHED)
+  try {
+    const oldStatus = existingRequest.status;
+    const newStatus = updatedRequest.status;
+
+    // Only notify if status actually changed
+    if (oldStatus !== newStatus) {
+      console.log(`📧 Maintenance request status changed: ${oldStatus} -> ${newStatus}`);
+
+      // Determine recipients based on who made the change
+      if (userRole === "ADMIN" && (newStatus === "IN_PROGRESS" || newStatus === "COMPLETED")) {
+        // Landlord accepted/finished - notify tenant(s)
+        const tenantIds = [];
+        
+        if (updatedRequest.lease?.tenantId) {
+          tenantIds.push(updatedRequest.lease.tenantId);
+        }
+        if (updatedRequest.customLease?.tenantId) {
+          tenantIds.push(updatedRequest.customLease.tenantId);
+        }
+
+        // Also check for active tenants on the listing
+        const activeLeases = await prisma.lease.findMany({
+          where: { listingId: updatedRequest.listingId, leaseStatus: "ACTIVE" },
+          select: { tenantId: true },
+        });
+        const activeCustomLeases = await prisma.customLease.findMany({
+          where: { listingId: updatedRequest.listingId, leaseStatus: "ACTIVE" },
+          select: { tenantId: true },
+        });
+        
+        const allTenantIds = [...new Set([
+          ...tenantIds,
+          ...activeLeases.map(l => l.tenantId),
+          ...activeCustomLeases.map(l => l.tenantId),
+        ])];
+
+        console.log(`📧 Notifying ${allTenantIds.length} tenant(s) about status change:`, allTenantIds);
+
+        for (const tenantId of allTenantIds) {
+          try {
+            await createMaintenanceStatusUpdateNotification(updatedRequest, tenantId, oldStatus, newStatus);
+            console.log(`✅ Status update notification created for tenant: ${tenantId}`);
+          } catch (error) {
+            console.error(`❌ Error creating status notification for tenant ${tenantId}:`, error);
+          }
+        }
+      } else if (userRole === "TENANT" && (newStatus === "IN_PROGRESS" || newStatus === "COMPLETED")) {
+        // Tenant marked as in progress/completed - notify landlord
+        const landlordId = updatedRequest.listing?.landlordId;
+        if (landlordId) {
+          console.log(`📧 Notifying landlord about status change: ${landlordId}`);
+          try {
+            await createMaintenanceStatusUpdateNotification(updatedRequest, landlordId, oldStatus, newStatus);
+            console.log(`✅ Status update notification created for landlord: ${landlordId}`);
+          } catch (error) {
+            console.error(`❌ Error creating status notification for landlord:`, error);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Log error but don't fail the update
+    console.error("Error creating maintenance status update notification:", error);
+    console.error("Error stack:", error.stack);
+  }
 
   return updatedRequest;
 }
@@ -538,11 +637,13 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
 
   // Create notification for the other party
   try {
-    // Get all messages to determine unread count
+    // Get all messages to determine unread count (after the new message is created)
     const allMessages = await prisma.maintenanceMessage.findMany({
       where: { maintenanceRequestId: requestId },
       select: { senderId: true },
     });
+    
+    console.log(`📨 Maintenance message created. Total messages: ${allMessages.length}, Sender: ${userId}, UserRole: ${userRole}`);
 
     // Determine recipients (landlord or tenant(s))
     const recipients = [];
@@ -571,25 +672,47 @@ async function addMaintenanceMessage(requestId, userId, userRole, body) {
       recipients.push(...allTenantIds);
     } else {
       // Tenant sent message, notify landlord
-      recipients.push(req.listing.landlordId);
+      const landlordId = req.listing.landlordId;
+      console.log(`📧 Tenant (${userId}) sent message. Notifying landlord: ${landlordId}`);
+      if (landlordId) {
+        recipients.push(landlordId);
+      }
     }
 
     // Remove sender from recipients
-    const uniqueRecipients = [...new Set(recipients.filter(id => id !== userId))];
+    const uniqueRecipients = [...new Set(recipients.filter(id => id !== userId && id))];
+    console.log(`📧 Recipients after filtering:`, uniqueRecipients);
+
+    // Fetch full request data for notification (do this once outside the loop)
+    const requestWithData = await prisma.maintenanceRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        listing: true,
+        user: true,
+      },
+    });
 
     // Get unread count for each recipient (messages not from them)
     for (const recipientId of uniqueRecipients) {
+      if (!recipientId) {
+        console.log(`⚠️ Skipping notification - recipientId is null/undefined`);
+        continue;
+      }
+      
       const unreadCount = allMessages.filter(m => m.senderId !== recipientId).length;
+      console.log(`📧 Creating maintenance message notification for recipient: ${recipientId}, unreadCount: ${unreadCount}, totalMessages: ${allMessages.length}`);
+      
+      // Always create notification when a new message is sent (unreadCount should be > 0 after new message)
       if (unreadCount > 0) {
-        // Fetch full request data for notification
-        const requestWithData = await prisma.maintenanceRequest.findUnique({
-          where: { id: requestId },
-          include: {
-            listing: true,
-            user: true,
-          },
-        });
-        await createMaintenanceMessageNotification(requestWithData, recipientId, unreadCount);
+        try {
+          const notification = await createMaintenanceMessageNotification(requestWithData, recipientId, unreadCount);
+          console.log(`✅ Maintenance message notification created successfully for recipient: ${recipientId}, notificationId: ${notification?.id}`);
+        } catch (error) {
+          console.error(`❌ Error creating maintenance message notification for ${recipientId}:`, error);
+          console.error(`Error stack:`, error.stack);
+        }
+      } else {
+        console.log(`⚠️ Skipping notification for ${recipientId} - unreadCount is 0 (this shouldn't happen after sending a message)`);
       }
     }
   } catch (error) {

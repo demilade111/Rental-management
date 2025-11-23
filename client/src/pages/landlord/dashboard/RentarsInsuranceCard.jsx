@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { getAllInsurances } from '@/services/insuranceService';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const RentersInsuranceCard = () => {
+const RentersInsuranceCard = ({ showSkeleton = false }) => {
     const [insurances, setInsurances] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -136,7 +136,7 @@ const RentersInsuranceCard = () => {
             1
           );
 
-    if (loading) {
+    if (showSkeleton || loading) {
         return (
             <div className="bg-card rounded-2xl p-5 md:p-6 h-full flex flex-col overflow-hidden min-h-[350px]">
                 <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Renters Insurance</h2>

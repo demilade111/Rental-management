@@ -9,6 +9,8 @@ import {
 import api from '@/lib/axios';
 import { API_ENDPOINTS } from '@/lib/apiEndpoints';
 import LoadingState from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FileText } from 'lucide-react';
 
 // Chart config for accounting data
 const accountingChartConfig = {
@@ -29,7 +31,7 @@ const accountingChartConfig = {
     },
 };
 
-const AccountingCard = () => {
+const AccountingCard = ({ showSkeleton = false }) => {
 // Fetch payment summary
     const { data: summary, isLoading, isFetched } = useQuery({
         queryKey: ['payment-summary-dashboard'],
@@ -70,19 +72,41 @@ const AccountingCard = () => {
     return (
         <div className="bg-card rounded-2xl p-5 md:p-6 h-full overflow-hidden flex flex-col min-h-[350px]">
             <h3 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 flex-shrink-0 text-primary">Accounting</h3>
-            {showLoading ? (
+            {showSkeleton ? (
+                <div className="flex flex-row items-center gap-3 md:gap-6 flex-1 min-h-0">
+                    {/* Legend Skeleton - Left Side */}
+                    <div className="w-auto flex-shrink-0 space-y-4">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="flex items-center">
+                                <Skeleton className="w-4 h-4 rounded-full mr-3" />
+                                <div>
+                                    <Skeleton className="h-5 w-32 mb-2" />
+                                    <Skeleton className="h-4 w-24" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    {/* Chart Skeleton - Right Side */}
+                    <div className="flex-1 flex justify-center items-center">
+                        <Skeleton className="w-48 h-48 rounded-full" />
+                    </div>
+                </div>
+            ) : showLoading ? (
                 <div className="flex-1 flex items-center justify-center min-h-[280px]">
                     <LoadingState message="Loading accounting data..." compact={true} />
                 </div>
             ) : accountingData.length === 0 || accountingData.every(d => d.value === 0) ? (
-                <div className="text-center py-4 text-gray-500 flex-1 flex items-center justify-center min-h-[280px]">
+                <div className="text-center text-sm text-gray-500 flex-1 flex flex-col items-center justify-center min-h-[280px] w-full">
                     {isLoading ? (
                         <div className="animate-pulse">
                             <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
                             <div className="h-3 bg-gray-200 rounded w-24"></div>
                         </div>
                     ) : (
-                        'No payment data available'
+                        <div className="flex flex-col items-center mb-6">
+                            <FileText className="w-8 h-8 text-gray-400 mb-2" />
+                            <span>No payment data available</span>
+                        </div>
                     )}
                 </div>
             ) : (

@@ -85,17 +85,38 @@ const MaintenanceForm = ({
       return;
     }
 
-    setSelectedFiles(files);
+    // Limit to maximum 3 files
+    const MAX_FILES = 3;
+    const currentCount = selectedFiles.length;
+    const remainingSlots = MAX_FILES - currentCount;
+    
+    if (remainingSlots <= 0) {
+      // Already at max, don't add more
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
+      return;
+    }
+
+    const filesToAdd = files.slice(0, remainingSlots);
+    const newFiles = [...selectedFiles, ...filesToAdd];
+
+    setSelectedFiles(newFiles);
     // Forward all files to parent under `images`
-    onChange?.({ target: { name: "images", files } });
+    onChange?.({ target: { name: "images", files: newFiles } });
 
     // Build previews for all selected files
-    const urls = files.map((file) => ({ url: URL.createObjectURL(file), name: file.name }));
+    const urls = newFiles.map((file) => ({ url: URL.createObjectURL(file), name: file.name }));
     // Revoke old urls before replacing
     setPreviewUrls((prev) => {
       prev.forEach((p) => URL.revokeObjectURL(p.url));
       return urls;
     });
+
+    // Reset input
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
   };
 
   const removePreview = (url) => {
@@ -294,8 +315,18 @@ const MaintenanceForm = ({
               {previewUrls.length === 0 && (
                 <label htmlFor="maintenance-image-input" className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-muted/10 bg-card">
                   <Upload className="w-6 h-6 mb-2" />
-                  <span className="text-sm text-muted-foreground">Upload image(s)</span>
+                  <span className="text-sm text-muted-foreground">Upload image(s) (Max 3)</span>
                 </label>
+              )}
+              {previewUrls.length > 0 && previewUrls.length < 3 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {previewUrls.length} of 3 uploaded. Click images to add more.
+                </p>
+              )}
+              {previewUrls.length >= 3 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum of 3 images reached.
+                </p>
               )}
 
               {previewUrls.length > 0 && (

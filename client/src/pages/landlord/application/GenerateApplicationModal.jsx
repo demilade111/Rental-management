@@ -181,7 +181,7 @@ const GenerateApplicationDialog = ({
 
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full text-left">
+                                    <Button variant="outline" className="w-full text-left bg-primary-foreground">
                                         {expirationDate
                                             ? format(expirationDate, "PPP")
                                             : "Select expiration date"}

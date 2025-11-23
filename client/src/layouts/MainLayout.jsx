@@ -25,6 +25,7 @@ import RentalInformation from "@/pages/tenant/rentalinfo/RentalInformation";
 import Account from "@/pages/account/Account";
 import LandlordInsurance from "@/pages/landlord/insurance/LandlordInsurance";
 import TenantInsurance from "@/pages/tenant/insurance/TenantInsurance";
+import HelpSupport from "@/pages/HelpSupport";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -74,6 +75,10 @@ const MainLayout = () => {
     (location.pathname === "/landlord/account" ||
     location.pathname === "/tenant/account"
       ? "account"
+      : location.pathname === "/help-support" ||
+        location.pathname === "/landlord/help-support" ||
+        location.pathname === "/tenant/help-support"
+      ? "help-support"
       : "dashboard");
 
   const handleNavChange = (id) => {
@@ -121,6 +126,10 @@ const MainLayout = () => {
             <Route path="/tenant/accounting" element={<TenantAccounting />} />
             <Route path="/tenant/account" element={<Account />} />
             <Route path="/tenant/insurance" element={<TenantInsurance />} />
+
+            <Route path="/help-support" element={<HelpSupport />} />
+            <Route path="/landlord/help-support" element={<HelpSupport />} />
+            <Route path="/tenant/help-support" element={<HelpSupport />} />
 
             <Route
               path="*"

@@ -76,6 +76,16 @@ export async function submitPublicApplicationController(req, res) {
 
     const application = await prisma.RequestApplication.findUnique({
       where: { publicId },
+      include: {
+        listing: {
+          select: {
+            id: true,
+            title: true,
+            streetAddress: true,
+            landlordId: true,
+          },
+        },
+      },
     });
 
     if (!application) {
@@ -123,6 +133,18 @@ export async function submitPublicApplicationController(req, res) {
         references: data.references || null,
         status: ApplicationStatus.NEW,
       },
+      include: {
+        listing: {
+          select: {
+            id: true,
+            title: true,
+            streetAddress: true,
+            city: true,
+            state: true,
+            landlordId: true,
+          },
+        },
+      },
     });
 
     // Optionally, create employmentInfo if provided
@@ -142,6 +164,45 @@ export async function submitPublicApplicationController(req, res) {
           })
         )
       );
+    }
+
+    // Create notification for landlord about application submission
+    try {
+      console.log(`📧 Application submitted - Application ID: ${updatedApplication.id}`);
+      console.log(`📧 Application data:`, {
+        id: updatedApplication.id,
+        fullName: updatedApplication.fullName,
+        email: updatedApplication.email,
+        listingId: updatedApplication.listingId,
+        listing: updatedApplication.listing ? {
+          id: updatedApplication.listing.id,
+          title: updatedApplication.listing.title,
+          streetAddress: updatedApplication.listing.streetAddress,
+          landlordId: updatedApplication.listing.landlordId,
+        } : null,
+      });
+
+      // Get landlordId from application (it's stored directly on RequestApplication model)
+      const landlordId = application.landlordId || updatedApplication.landlordId;
+      
+      console.log(`📧 Landlord ID from application: ${landlordId}`);
+      
+      if (landlordId) {
+        const { createApplicationSubmittedNotification } = await import("../services/notificationService.js");
+        console.log(`📧 Creating application submitted notification for landlord: ${landlordId}`);
+        const notification = await createApplicationSubmittedNotification(updatedApplication, landlordId);
+        console.log(`✅ Application submitted notification created successfully for landlord: ${landlordId}, notificationId: ${notification?.id}`);
+      } else {
+        console.error("⚠️ No landlordId found for application notification");
+        console.error("⚠️ Application landlordId:", application.landlordId);
+        console.error("⚠️ Updated Application landlordId:", updatedApplication.landlordId);
+        console.error("⚠️ Application listing data:", JSON.stringify(updatedApplication.listing, null, 2));
+      }
+    } catch (error) {
+      // Log error but don't fail the application submission
+      console.error("❌ Error creating application submitted notification:", error);
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
     }
 
     return SuccessResponse(

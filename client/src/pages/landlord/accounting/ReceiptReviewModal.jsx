@@ -96,7 +96,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                             variant="ghost"
                             size="icon"
                             onClick={onClose}
-                            className="h-8 w-8 rounded-full"
+                            className="h-8 w-8 rounded-2xl"
                         >
                             <X className="h-4 w-4" />
                         </Button>
@@ -107,7 +107,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                     {/* Left: Payment Info */}
                     <div className="space-y-4">
                         {/* Payment Details Card */}
-                        <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                        <div className="bg-card p-4 rounded-lg space-y-3">
                             <h3 className="font-semibold text-gray-900 mb-3">Payment Details</h3>
                             
                             <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
 
                         {/* Tenant Info */}
                         {tenant && (
-                            <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="bg-card p-4 rounded-lg">
                                 <h3 className="font-semibold text-gray-900 mb-3">Tenant Information</h3>
                                 <div className="space-y-2">
                                     <p className="text-sm">
@@ -159,7 +159,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
 
                         {/* Property Info */}
                         {listing && (
-                            <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="bg-card p-4 rounded-lg">
                                 <div className="flex items-start gap-3">
                                     <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
                                     <div>
@@ -176,7 +176,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
 
                         {/* Notes */}
                         {payment.notes && (
-                            <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="bg-card p-4 rounded-lg">
                                 <h3 className="font-semibold text-gray-900 mb-2">Notes</h3>
                                 <p className="text-sm text-gray-700">{payment.notes}</p>
                             </div>
@@ -185,7 +185,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
 
                     {/* Right: Receipt Image */}
                     <div className="space-y-4">
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-card p-4 rounded-lg">
                             <h3 className="font-semibold text-gray-900 mb-3">Payment Receipt</h3>
                             
                             {loadingReceipt ? (
@@ -211,7 +211,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                                 size="sm"
                                 onClick={() => window.open(receiptImageUrl, '_blank')}
                                 disabled={!receiptImageUrl}
-                                className="w-full mt-3"
+                                className="w-full mt-3 rounded-2xl"
                             >
                                 Open in New Tab
                             </Button>
@@ -219,7 +219,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
 
                         {/* Rejection Form */}
                         {showRejectForm && (
-                            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                            <div className="bg-card p-4 rounded-lg border border-red-200">
                                 <Label htmlFor="rejection-reason" className="text-sm font-medium text-gray-900 mb-2 block">
                                     Rejection Reason
                                 </Label>
@@ -238,7 +238,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                                             setShowRejectForm(false);
                                             setRejectionReason("");
                                         }}
-                                        className="flex-1"
+                                        className="flex-1 rounded-2xl"
                                     >
                                         Cancel
                                     </Button>
@@ -246,7 +246,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                                         size="sm"
                                         onClick={handleReject}
                                         disabled={isSubmitting}
-                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-2xl"
                                     >
                                         {isSubmitting ? "Rejecting..." : "Confirm Reject"}
                                     </Button>
@@ -262,7 +262,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                         <Button
                             variant="outline"
                             onClick={onClose}
-                            className="px-6"
+                            className="px-6 rounded-2xl"
                         >
                             Close
                         </Button>
@@ -272,7 +272,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                                 variant="outline"
                                 onClick={() => setShowRejectForm(true)}
                                 disabled={isSubmitting}
-                                className="px-6 text-red-600 border-red-600 hover:bg-red-50"
+                                className="px-6 text-red-600 border-red-600 hover:bg-red-50 rounded-2xl"
                             >
                                 <XCircle className="h-4 w-4 mr-2" />
                                 Reject
@@ -280,7 +280,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                             <Button
                                 onClick={handleApprove}
                                 disabled={isSubmitting}
-                                className="px-6 bg-gray-900 hover:bg-gray-800 text-white"
+                                className="px-6 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl"
                             >
                                 <CheckCircle className="h-4 w-4 mr-2" />
                                 {isSubmitting ? "Approving..." : "Approve"}

@@ -4,11 +4,15 @@ import { useAuthStore } from "../../../store/authStore";
 import { maintenanceApi, MAINTENANCE_STATUS, getStatusDisplayName } from "@/lib/maintenanceApi";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
+import { useQuery } from "@tanstack/react-query";
 import RentersInsuranceCard from "./RentarsInsuranceCard";
 import ExpiringLeasesCard from "./ExpiringLeasesCard";
 import AccountingCard from "./AccountingCard";
 import PortfolioCard from "./PortfolioCard";
 import LoadingState from "@/components/shared/LoadingState";
+import OnboardingModal from "@/components/landlord/OnboardingModal";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FileText, Wrench } from "lucide-react";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
@@ -19,6 +23,32 @@ const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [applicationsFetched, setApplicationsFetched] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Fetch listings to check if user has any properties
+  // Use same query key as other listing queries so it updates when listings are created
+  const { data: listings = [], isLoading: isLoadingListings } = useQuery({
+    queryKey: ['listings', user?.id],
+    queryFn: async () => {
+      const response = await api.get(API_ENDPOINTS.LISTINGS.BASE);
+      const data = response.data;
+      return Array.isArray(data) ? data : data.listing || data.data || [];
+    },
+  });
+
+  // Show onboarding modal if user has no listings (new landlord)
+  // Close onboarding modal when user creates their first listing
+  useEffect(() => {
+    if (!isLoadingListings && user?.role === "ADMIN") {
+      const hasListings = listings && listings.length > 0;
+      if (!hasListings) {
+        setShowOnboarding(true);
+      } else {
+        // User now has listings, close onboarding modal
+        setShowOnboarding(false);
+      }
+    }
+  }, [listings, isLoadingListings, user?.role]);
 
   const loadMaintenanceRequests = useCallback(async () => {
     setLoadingMaintenance(true);
@@ -138,10 +168,11 @@ const Dashboard = () => {
 
   return (
     <>
+      <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-0 lg:gap-4 p-4 md:p-6">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden auto-rows-fr">
-          <AccountingCard />
+          <AccountingCard showSkeleton={showOnboarding} />
 
           {/* Applicants */}
           <div className="bg-card rounded-2xl p-5 md:p-6 flex flex-col h-full min-h-[350px] overflow-hidden">
@@ -158,12 +189,22 @@ const Dashboard = () => {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto min-h-0 pr-4 flex items-start">
-              {loadingApplications && applicationsFetched ? (
+              {showOnboarding ? (
+                <div className="w-full space-y-2 min-h-[200px]">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center justify-between py-3 border-b border-gray-200">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : (loadingApplications && applicationsFetched) ? (
                 <div className="w-full flex items-center justify-center min-h-[200px]">
                   <LoadingState message="Loading applications..." compact={true} />
                 </div>
               ) : applications.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500 w-full flex items-center justify-center min-h-[200px]">
+                <div className="text-center text-sm text-gray-500 w-full flex flex-col items-center justify-center min-h-[200px]">
                   {loadingApplications && !applicationsFetched ? (
                     <div className="animate-pulse space-y-2 w-full">
                       {[1, 2, 3].map((i) => (
@@ -171,7 +212,10 @@ const Dashboard = () => {
                       ))}
                     </div>
                   ) : (
-                    'No applications'
+                    <>
+                      <FileText className="w-8 h-8 text-gray-400 mb-2" />
+                      <span>No applications data available</span>
+                    </>
                   )}
                 </div>
               ) : (
@@ -179,7 +223,7 @@ const Dashboard = () => {
                   <tbody className="divide-y divide-gray-300">
                     {applications.slice(0, 5).map((app) => {
                       const listing = app.listing;
-                      const fullAddress = listing?.streetAddress 
+                      const fullAddress = listing?.streetAddress
                         ? `${listing.streetAddress}${listing.city ? `, ${listing.city}` : ""}${listing.state ? `, ${listing.state}` : ""}`
                         : listing?.title || "N/A";
                       // Truncate address for mobile
@@ -190,10 +234,10 @@ const Dashboard = () => {
                       };
                       const address = truncateAddress(fullAddress);
                       const timeAgo = formatTimeAgo(app.createdAt);
-                      
+
                       // Show the exact status from database without transformation
                       const displayStatus = app.status;
-                      
+
                       return (
                         <tr key={app.id} className="border-b border-gray-300">
                           <td className="text-xs sm:text-sm font-semibold text-gray-900 py-3 max-w-[120px] md:max-w-[200px] truncate" title={fullAddress}>
@@ -221,12 +265,12 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <ExpiringLeasesCard />
-          <RentersInsuranceCard />
-          
+          <ExpiringLeasesCard showSkeleton={showOnboarding} />
+          <RentersInsuranceCard showSkeleton={showOnboarding} />
+
           {/* Portfolio Card - Full Width */}
           <div className="md:col-span-2">
-            <PortfolioCard />
+            <PortfolioCard showSkeleton={showOnboarding} />
           </div>
         </div>
 
@@ -239,12 +283,27 @@ const Dashboard = () => {
 
             {/* Scrollable table */}
             <div className="flex-1 overflow-y-auto pr-4">
-              {loadingMaintenance && maintenanceFetched ? (
-                <LoadingState message="Loading maintenance..." compact={true} />
+              {showOnboarding ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="space-y-2 pb-3 border-b border-gray-300">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </div>
+                      <Skeleton className="h-3 w-3/4" />
+                    </div>
+                  ))}
+                </div>
+              ) : (loadingMaintenance && maintenanceFetched) ? (
+                <div className="flex items-center justify-center min-h-[200px]">
+                  <LoadingState message="Loading maintenance..." compact={true} />
+                </div>
               ) : maintenanceRequests.length === 0 ? (
-                <div className="text-center py-4 text-sm text-gray-500">
+                <div className="text-center text-sm text-gray-500 w-full flex flex-col items-center justify-center min-h-[200px]">
                   {loadingMaintenance && !maintenanceFetched ? (
-                    <div className="animate-pulse space-y-2">
+                    <div className="animate-pulse space-y-2 w-full">
                       {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="space-y-1">
                           <div className="h-4 bg-gray-200 rounded"></div>
@@ -253,7 +312,10 @@ const Dashboard = () => {
                       ))}
                     </div>
                   ) : (
-                    'No maintenance requests'
+                    <div className="flex flex-col items-center justify-center mt-12">
+                      <Wrench className="w-8 h-8 text-gray-400 mb-2" />
+                      <span>No maintenance requests</span>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -262,11 +324,11 @@ const Dashboard = () => {
                     {maintenanceRequests.map((request) => {
                       const displayStatus = getStatusForDisplay(request.status);
                       const listing = request.listing;
-                      const address = listing?.streetAddress 
+                      const address = listing?.streetAddress
                         ? `${listing.streetAddress}${listing.city ? `, ${listing.city}` : ""}${listing.state ? `, ${listing.state}` : ""}`
                         : listing?.title || "N/A";
                       const timeAgo = formatTimeAgo(request.createdAt);
-                      
+
                       return (
                         <React.Fragment key={request.id}>
                           <tr className="border-b-0">

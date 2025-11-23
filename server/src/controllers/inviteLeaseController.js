@@ -251,6 +251,53 @@ export const signLeaseController = async (req, res) => {
             });
         }
 
+        // Create notification for landlord about lease signing
+        try {
+            const { createLeaseSignedNotification } = await import("../services/notificationService.js");
+            const landlordId = lease.listing?.landlordId || lease.landlordId;
+            const tenantName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || "Tenant";
+            
+            console.log(`📧 Lease signing notification - Lease ID: ${lease.id}`);
+            console.log(`📧 Lease signing notification - Lease data:`, {
+                id: lease.id,
+                listingId: lease.listingId,
+                listing: lease.listing ? {
+                    id: lease.listing.id,
+                    title: lease.listing.title,
+                    streetAddress: lease.listing.streetAddress,
+                    landlordId: lease.listing.landlordId,
+                } : null,
+                landlordId: lease.landlordId,
+                leaseStatus: updatedLease.leaseStatus, // Use updated status
+                leaseType: invite.leaseType,
+            });
+            console.log(`📧 Landlord ID from lease: ${landlordId}`);
+            
+            if (landlordId) {
+                console.log(`📧 Creating lease signed notification for landlord: ${landlordId}`);
+                const notification = await createLeaseSignedNotification(
+                    { 
+                        ...lease, 
+                        ...updatedLease, // Include updated fields
+                        leaseType: invite.leaseType,
+                        leaseStatus: updatedLease.leaseStatus || "ACTIVE" // Ensure we use the updated status
+                    },
+                    landlordId,
+                    tenantName
+                );
+                console.log(`✅ Lease signed notification created successfully for landlord: ${landlordId}, notificationId: ${notification?.id}`);
+            } else {
+                console.error("⚠️ No landlordId found for lease signed notification");
+                console.error("⚠️ Lease listing data:", JSON.stringify(lease.listing, null, 2));
+                console.error("⚠️ Lease landlordId:", lease.landlordId);
+            }
+        } catch (error) {
+            // Log error but don't fail the lease signing
+            console.error("❌ Error creating lease signed notification:", error);
+            console.error("❌ Error message:", error.message);
+            console.error("❌ Error stack:", error.stack);
+        }
+
         res.json({ message: "Lease signed successfully", lease: updatedLease });
     } catch (err) {
         console.error("Error signing lease:", err);

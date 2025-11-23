@@ -156,25 +156,54 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
 
     const handleSendMessage = useCallback(async () => {
         if (!messageBody.trim() || sending) return;
+        
+        const messageText = messageBody.trim();
+        const tempId = `temp-${Date.now()}`;
+        
+        // Create optimistic message immediately
+        const optimisticMessage = {
+            id: tempId,
+            body: messageText,
+            senderId: currentUserId,
+            createdAt: new Date().toISOString(),
+            sender: {
+                firstName: user?.firstName || '',
+                lastName: user?.lastName || ''
+            }
+        };
+        
+        // Add optimistic message to UI immediately
+        setMessages((prev) => [...prev, optimisticMessage]);
+        setMessageBody("");
+        setSending(true);
+        
         try {
-            setSending(true);
-            const res = await maintenanceApi.sendMessage(request.id, messageBody.trim());
+            // Send message in background
+            const res = await maintenanceApi.sendMessage(request.id, messageText);
             const msg = res.data || res;
-            setMessages((prev) => [...prev, msg]);
-            setMessageBody("");
-        } catch (_) {
+            
+            // Replace optimistic message with real one
+            setMessages((prev) => 
+                prev.map(m => m.id === tempId ? msg : m)
+            );
+        } catch (error) {
+            // On error, remove the optimistic message
+            setMessages((prev) => prev.filter(m => m.id !== tempId));
+            // Optionally restore the message body
+            setMessageBody(messageText);
+            console.error('Error sending message:', error);
         } finally {
             setSending(false);
         }
-    }, [messageBody, sending, request?.id]);
+    }, [messageBody, sending, request?.id, currentUserId, user]);
 
     if (!request) return null;
 
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
-            <DialogContent className="bg-background rounded-xl p-8">
+            <DialogContent className="bg-background rounded-xl p-4 md:p-8">
                 <DialogHeader className="px-2 pt-3">
-                    <DialogTitle className="text-base md:text-lg">Maintenance Details</DialogTitle>
+                    <DialogTitle className="text-base md:text-lg text-left">Maintenance Details</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-4 mt-3 w-full max-w-xl max-h-[90vh] overflow-y-auto px-2">
@@ -324,7 +353,7 @@ const MaintenanceDetailsModal = ({ request, open, onClose }) => {
                                     className="rounded-2xl"
                                 >
                                     <SendIcon className="size-4" />
-                                    {sending ? "Sending..." : "Send"}
+                                    Send
                                 </Button>
                             </div>
                         </div>
