@@ -229,7 +229,7 @@ export default function MaintenanceSearchBar({
                             if (typeof onFilter === "function") onFilter({ priority: "", category: "" });
                             setOpen(false);
                         }}
-                        className="rounded-2xl"
+                        className="rounded-2xl bg-primary-foreground"
                     >
                         Reset
                     </Button>

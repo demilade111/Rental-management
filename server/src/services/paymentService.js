@@ -1,5 +1,9 @@
 import { prisma } from '../prisma/client.js';
-import { createPaymentReceiptUploadedNotification } from './notificationService.js';
+import { 
+  createPaymentReceiptUploadedNotification,
+  createPaymentReceiptApprovedNotification,
+  createPaymentReceiptRejectedNotification,
+} from './notificationService.js';
 
 const ACTIVE_RENT_LEASE_STATUSES = ['ACTIVE'];
 const DEFAULT_PAYMENT_FREQUENCY = 'MONTHLY';
@@ -897,6 +901,15 @@ export const uploadPaymentProof = async (paymentId, proofUrl, tenantId) => {
   // Verify the payment belongs to the tenant
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
+    select: {
+      id: true,
+      landlordId: true,
+      tenantId: true,
+      type: true,
+      amount: true,
+      status: true,
+      proofUrl: true,
+    },
   });
 
   if (!payment) {
@@ -953,24 +966,28 @@ export const uploadPaymentProof = async (paymentId, proofUrl, tenantId) => {
     },
   });
 
-  // Create notification for landlord about receipt upload
+  // Create notification for landlord about receipt upload (similar to maintenance notifications)
   try {
-    // Get landlordId from the payment (it's a direct field, not a relation)
-    const landlordId = payment.landlordId;
-    if (!landlordId) {
-      console.error("Error: No landlordId found for payment", paymentId);
-      return updatedPayment;
+    // Get landlordId from the updated payment (it's a direct field, not a relation)
+    const landlordId = updatedPayment.landlordId || payment.landlordId;
+    
+    if (landlordId) {
+      console.log(`📧 Creating payment receipt uploaded notification for landlord: ${landlordId}`);
+      const notification = await createPaymentReceiptUploadedNotification(updatedPayment, landlordId);
+      console.log(`✅ Payment receipt uploaded notification created successfully for landlord: ${landlordId}, notificationId: ${notification?.id}`);
+    } else {
+      console.error("⚠️ No landlordId found for payment receipt notification");
+      console.error("⚠️ Payment data:", {
+        paymentId,
+        updatedPaymentLandlordId: updatedPayment.landlordId,
+        paymentLandlordId: payment.landlordId,
+      });
     }
-    console.log("📧 Creating payment receipt notification for landlord:", landlordId, "Payment ID:", paymentId);
-    const notification = await createPaymentReceiptUploadedNotification(updatedPayment, landlordId);
-    console.log("✅ Payment receipt notification created successfully:", notification?.id);
   } catch (error) {
     // Log error but don't fail the payment update
-    console.error("❌ Error creating payment receipt notification:", error);
-    console.error("Error details:", error.message);
-    if (error.stack) {
-      console.error("Stack trace:", error.stack);
-    }
+    console.error("❌ Error creating payment receipt uploaded notification:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
   }
 
   return updatedPayment;
@@ -1025,7 +1042,22 @@ export const approvePaymentReceipt = async (paymentId, landlordId) => {
     },
   });
 
-  // TODO: Send notification to tenant about approval
+  // Send notification to tenant about approval (similar to maintenance notifications)
+  try {
+    const tenantId = updatedPayment.tenantId;
+    if (tenantId) {
+      console.log(`📧 Creating payment receipt approved notification for tenant: ${tenantId}`);
+      const notification = await createPaymentReceiptApprovedNotification(updatedPayment, tenantId);
+      console.log(`✅ Payment receipt approved notification created successfully for tenant: ${tenantId}, notificationId: ${notification?.id}`);
+    } else {
+      console.error("⚠️ No tenantId found for payment receipt approved notification");
+    }
+  } catch (error) {
+    // Log error but don't fail the payment update
+    console.error("❌ Error creating payment receipt approved notification:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+  }
 
   return updatedPayment;
 };
@@ -1050,13 +1082,14 @@ export const rejectPaymentReceipt = async (paymentId, landlordId, reason = null)
     throw new Error('No receipt uploaded for this payment');
   }
 
-  // Update payment - remove proof URL and add rejection reason in notes
+  // Update payment - remove proof URL, set status back to PENDING, and add rejection reason in notes
   const updatedPayment = await prisma.payment.update({
     where: { id: paymentId },
     data: {
       proofUrl: null, // Remove rejected receipt
+      status: 'PENDING', // Set status back to PENDING when receipt is rejected
+      paidDate: null, // Clear paid date since payment is no longer considered paid
       notes: reason ? `Receipt rejected: ${reason}` : 'Receipt rejected by landlord',
-      // Keep status as PENDING
     },
     include: {
       tenant: {
@@ -1080,7 +1113,22 @@ export const rejectPaymentReceipt = async (paymentId, landlordId, reason = null)
     },
   });
 
-  // TODO: Send notification to tenant about rejection
+  // Send notification to tenant about rejection (similar to maintenance notifications)
+  try {
+    const tenantId = updatedPayment.tenantId;
+    if (tenantId) {
+      console.log(`📧 Creating payment receipt rejected notification for tenant: ${tenantId}`);
+      const notification = await createPaymentReceiptRejectedNotification(updatedPayment, tenantId, reason);
+      console.log(`✅ Payment receipt rejected notification created successfully for tenant: ${tenantId}, notificationId: ${notification?.id}`);
+    } else {
+      console.error("⚠️ No tenantId found for payment receipt rejected notification");
+    }
+  } catch (error) {
+    // Log error but don't fail the payment update
+    console.error("❌ Error creating payment receipt rejected notification:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+  }
 
   return updatedPayment;
 };

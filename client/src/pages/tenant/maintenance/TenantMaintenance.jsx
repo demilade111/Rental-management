@@ -10,6 +10,7 @@ import {
 } from "@/lib/maintenanceApi";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MaintenanceSearchBar from "@/pages/landlord/maintenance/MaintanenceSearchBar";
 import PageHeader from "@/components/shared/PageHeader";
 import { toast } from "sonner";
@@ -20,8 +21,6 @@ import { isPast } from "date-fns";
 function Maintenance() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [properties, setProperties] = useState([]);
   const [saving, setSaving] = useState(false);
   const [chips, setChips] = useState(["Urgent", "Request in 30 days"]);
@@ -31,6 +30,7 @@ function Maintenance() {
     category: "",
     listingId: "",
   });
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -124,24 +124,18 @@ function Maintenance() {
   }, [token, user?.id, user?.role]);
 
 
-  // Fetch maintenance requests
-  useEffect(() => {
-    const fetchMaintenanceRequests = async () => {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const data = await maintenanceApi.getAllRequests(filters);
-        setMaintenanceRequests(data.data || data);
-      } catch (err) {
-        console.error("Error fetching maintenance requests:", err);
-        toast.error("Failed to fetch maintenance requests.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch maintenance requests using React Query
+  const { data: maintenanceData, isLoading: loading, refetch: refetchMaintenance } = useQuery({
+    queryKey: ['maintenance-requests', user?.id, filters],
+    queryFn: async () => {
+      if (!token) return [];
+      const data = await maintenanceApi.getAllRequests(filters);
+      return data.data || data;
+    },
+    enabled: !!token && !!user?.id,
+  });
 
-    fetchMaintenanceRequests();
-  }, [token, filters]);
+  const maintenanceRequests = maintenanceData || [];
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -195,8 +189,8 @@ function Maintenance() {
 
       await maintenanceApi.updateStatus(requestId, newStatus);
 
-      const updatedRequests = await maintenanceApi.getAllRequests(filters);
-      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+      // Invalidate query to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] });
 
       toast.success(`Request ${newStatus.replace(/_/g, " ").toLowerCase()} successfully!`);
     } catch (error) {
@@ -219,8 +213,8 @@ function Maintenance() {
 
       await maintenanceApi.deleteRequest(requestId);
 
-      const updatedRequests = await maintenanceApi.getAllRequests(filters);
-      setMaintenanceRequests(updatedRequests.data || updatedRequests);
+      // Invalidate query to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] });
 
       toast.success("Request deleted successfully!");
     } catch (error) {

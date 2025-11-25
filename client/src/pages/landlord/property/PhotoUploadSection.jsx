@@ -17,11 +17,11 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
         async function processImages() {
             const processedUrls = await Promise.all(
                 images.map(async (img) => {
-                    if (img instanceof File) {
+            if (img instanceof File) {
                         const objectUrl = URL.createObjectURL(img);
                         objectUrlsToRevoke.push(objectUrl);
                         return { url: objectUrl, file: img, type: 'file' };
-                    } else if (typeof img === 'string') {
+            } else if (typeof img === 'string') {
                         // Check if it's an S3 URL that needs signing
                         try {
                             const u = new URL(img);
@@ -42,7 +42,7 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
                         } catch (error) {
                             // Not a valid URL, use as-is
                         }
-                        return { url: img, file: null, type: 'url' };
+                return { url: img, file: null, type: 'url' };
                     } else if (img && typeof img === 'object') {
                         // Handle image objects with url property
                         const url = img.url || img.fileUrl || img.src;
@@ -239,18 +239,18 @@ export default function PhotoUploadSection({ images = [], onImagesChange, disabl
 
                     {/* Add more photos button */}
                     {previewUrls.length < 3 && (
-                        <div className="mt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => fileInputRef.current?.click()}
+                    <div className="mt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
                                 disabled={disabled || previewUrls.length >= 3}
-                                className="w-full bg-card"
-                            >
-                                <Upload className="w-4 h-4 mr-2" />
+                            className="w-full bg-card"
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
                                 Add More Photos ({previewUrls.length}/3)
-                            </Button>
-                        </div>
+                        </Button>
+                    </div>
                     )}
                     {previewUrls.length >= 3 && (
                         <p className="text-xs text-gray-500 mt-2 text-center">

@@ -13,6 +13,7 @@ import {
 import { extractInsuranceData } from "../services/ocrService.js";
 import { SuccessResponse, HandleError } from "../utils/httpResponse.js";
 import {
+  createInsuranceUploadedNotification,
   createInsuranceVerifiedNotification,
   createInsuranceRejectedNotification,
 } from "../services/notificationService.js";
@@ -80,6 +81,49 @@ export async function createInsuranceController(req, res) {
     };
 
     const insurance = await createInsurance(insuranceData);
+
+    // Create notification for landlord about insurance upload
+    try {
+      // Get landlordId from the insurance (from lease or customLease)
+      const landlordId = insurance.lease?.landlordId || insurance.customLease?.landlordId;
+      
+      if (!landlordId) {
+        console.error("❌ Error: No landlordId found for insurance", insurance.id);
+      } else {
+        console.log("📧 Creating insurance uploaded notification for landlord:", {
+          landlordId,
+          insuranceId: insurance.id,
+          tenantId: insurance.tenantId,
+          hasTenant: !!insurance.tenant,
+          tenantName: insurance.tenant ? `${insurance.tenant.firstName} ${insurance.tenant.lastName}` : 'N/A',
+          hasLease: !!insurance.lease,
+          hasCustomLease: !!insurance.customLease,
+          listingAddress: insurance.lease?.listing?.streetAddress || insurance.customLease?.leaseName || 'N/A',
+          providerName: insurance.providerName,
+          policyNumber: insurance.policyNumber,
+        });
+        
+        const notification = await createInsuranceUploadedNotification(insurance, landlordId);
+        
+        console.log("✅ Insurance uploaded notification created successfully:", {
+          notificationId: notification?.id,
+          userId: notification?.userId,
+          type: notification?.type,
+          title: notification?.title,
+        });
+        
+        if (!notification || !notification.id) {
+          console.error("⚠️ Warning: Notification creation returned null or missing ID");
+        }
+      }
+    } catch (error) {
+      // Log error but don't fail the insurance creation
+      console.error("❌ Error creating insurance uploaded notification:", error);
+      console.error("Error details:", error.message);
+      if (error.stack) {
+        console.error("Stack trace:", error.stack);
+      }
+    }
 
     return SuccessResponse(
       res,
@@ -194,10 +238,40 @@ export async function verifyInsuranceController(req, res) {
       ? `${verifiedInsurance.tenant.firstName} ${verifiedInsurance.tenant.lastName}`
       : "Tenant";
 
-    await createInsuranceVerifiedNotification(
-      verifiedInsurance,
-      verifiedInsurance.tenantId
-    );
+    // Send notification to tenant about verification
+    try {
+      if (verifiedInsurance.tenantId) {
+        console.log("📧 Creating insurance verified notification for tenant:", {
+          tenantId: verifiedInsurance.tenantId,
+          insuranceId: verifiedInsurance.id,
+          tenantName,
+          propertyName: verifiedInsurance.lease?.listing?.streetAddress || verifiedInsurance.customLease?.leaseName || 'N/A',
+        });
+        const notification = await createInsuranceVerifiedNotification(
+          verifiedInsurance,
+          verifiedInsurance.tenantId
+        );
+        console.log("✅ Insurance verified notification created successfully:", {
+          notificationId: notification?.id,
+          userId: notification?.userId,
+          type: notification?.type,
+          title: notification?.title,
+        });
+        
+        if (!notification || !notification.id) {
+          console.error("⚠️ Warning: Notification creation returned null or missing ID");
+        }
+      } else {
+        console.warn("⚠️ No tenantId found for insurance, skipping notification");
+      }
+    } catch (error) {
+      // Log error but don't fail the insurance verification
+      console.error("❌ Error creating insurance verified notification:", error);
+      console.error("Error details:", error.message);
+      if (error.stack) {
+        console.error("Stack trace:", error.stack);
+      }
+    }
 
     // Send email asynchronously - don't fail verification if email fails
     sendInsuranceVerifiedEmail(
@@ -243,10 +317,41 @@ export async function rejectInsuranceController(req, res) {
       ? `${rejectedInsurance.tenant.firstName} ${rejectedInsurance.tenant.lastName}`
       : "Tenant";
 
-    await createInsuranceRejectedNotification(
-      rejectedInsurance,
-      rejectedInsurance.tenantId
-    );
+    // Send notification to tenant about rejection
+    try {
+      if (rejectedInsurance.tenantId) {
+        console.log("📧 Creating insurance rejected notification for tenant:", {
+          tenantId: rejectedInsurance.tenantId,
+          insuranceId: rejectedInsurance.id,
+          tenantName,
+          propertyName: rejectedInsurance.lease?.listing?.streetAddress || rejectedInsurance.customLease?.leaseName || 'N/A',
+          rejectionReason,
+        });
+        const notification = await createInsuranceRejectedNotification(
+          rejectedInsurance,
+          rejectedInsurance.tenantId
+        );
+        console.log("✅ Insurance rejected notification created successfully:", {
+          notificationId: notification?.id,
+          userId: notification?.userId,
+          type: notification?.type,
+          title: notification?.title,
+        });
+        
+        if (!notification || !notification.id) {
+          console.error("⚠️ Warning: Notification creation returned null or missing ID");
+        }
+      } else {
+        console.warn("⚠️ No tenantId found for insurance, skipping notification");
+      }
+    } catch (error) {
+      // Log error but don't fail the insurance rejection
+      console.error("❌ Error creating insurance rejected notification:", error);
+      console.error("Error details:", error.message);
+      if (error.stack) {
+        console.error("Stack trace:", error.stack);
+      }
+    }
 
     // Send email asynchronously - don't fail rejection if email fails
     sendInsuranceRejectedEmail(

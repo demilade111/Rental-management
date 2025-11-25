@@ -444,7 +444,10 @@ const Dashboard = () => {
                     </span>
                   </p>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Provider:</span> {insurance.providerName || 'N/A'}
+                    <span className="font-medium">Provider:</span>{' '}
+                    <span className="inline-block max-w-full truncate md:max-w-none md:inline">
+                      {insurance.providerName || 'N/A'}
+                    </span>
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Policy Number:</span> {insurance.policyNumber || 'N/A'}

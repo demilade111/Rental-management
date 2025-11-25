@@ -94,7 +94,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-card/50 to-background p-4">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: 'url(/images/PropEase_bg.jpg)',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover'
+      }}
+    >
+      {/* Matte filter overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-card/50 to-background backdrop-blur-[1px] z-0"></div>
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
       <div className="w-full max-w-sm rounded-2xl shadow-lg backdrop-blur-md bg-card/80">
         <form
           onSubmit={handleSubmit}
@@ -225,6 +237,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

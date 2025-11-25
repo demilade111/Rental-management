@@ -120,7 +120,7 @@ const Applications = () => {
     const applicationsForAvailability = (applicationsData.applications || [])
         .filter((app) => !terminatedListingIds.includes(app.listingId))
         .filter((app) => !isPlaceholderApplication(app));
-    const availableListings = getAvailableListings(listings, applicationsForAvailability);
+    const availableListings = getAvailableListings(listings, applicationsForAvailability, activeLeaseListingIds);
 
     // Filter applications by search and user filters (backend already filters out active/terminated leases)
     // Backend now handles: excluding listings with active/terminated leases and non-ACTIVE listings

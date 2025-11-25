@@ -95,6 +95,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
   const [cities, setCities] = useState([]);
   const [showAddAmenityInput, setShowAddAmenityInput] = useState(false);
   const [newAmenity, setNewAmenity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const lastDemoFillRef = useRef({ presetIndex: -1, locationIndex: -1 });
 
   useEffect(() => {
@@ -404,6 +405,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
       }
     },
     onSuccess: () => {
+      setIsSubmitting(false); // Reset loading state on success
       toast.success(isEditMode ? "Property updated successfully!" : "Property added successfully!");
       queryClient.invalidateQueries(["listings"]);
       if (isEditMode) {
@@ -519,6 +521,9 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
       return;
     }
 
+    // Set loading state immediately for instant UI feedback
+    setIsSubmitting(true);
+
     try {
       let uploadedUrls = [];
 
@@ -552,6 +557,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
             } catch (uploadErr) {
               console.error("Image upload error:", uploadErr);
               toast.error(`Failed to upload ${file.name}`);
+              setIsSubmitting(false); // Reset loading state on error
               throw uploadErr; // Re-throw to stop the submission
             }
           } else if (typeof file === "string") {
@@ -576,6 +582,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
       if (normalizedPhone && phoneDigits.length > 0 && phoneDigits.length < 6) {
         setFieldErrors((prev) => ({ ...prev, phoneNumber: "Phone number is too short" }));
         toast.error("Please enter a valid phone number");
+        setIsSubmitting(false); // Reset loading state on validation error
         return;
       }
 
@@ -599,6 +606,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
       createListingMutation.mutate(submitData, {
         onError: (error) => {
           console.error("Backend error object:", error);
+          setIsSubmitting(false); // Reset loading state on error
 
           if (error.details) {
             const backendErrors = {};
@@ -616,11 +624,13 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
       });
     } catch (err) {
       console.error("Image upload or listing creation failed:", err);
+      setIsSubmitting(false); // Reset loading state on error
       toast.error(err.message || "Failed to upload images");
     }
   };
 
   const { isPending } = createListingMutation;
+  const isLoading = isSubmitting || isPending;
 
   return (
     <Dialog
@@ -660,7 +670,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               fieldErrors={fieldErrors}
               handleChange={handleChange}
               setFormData={setFormData}
-              isPending={isPending}
+              isPending={isLoading}
             />
 
             <PropertyAddressSection
@@ -674,7 +684,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               handleCountryChange={handleCountryChange}
               handleStateChange={handleStateChange}
               handleCityChange={handleCityChange}
-              isPending={isPending}
+              isPending={isLoading}
             />
 
             <RentalInformationSection
@@ -682,7 +692,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               fieldErrors={fieldErrors}
               handleChange={handleChange}
               setFormData={setFormData}
-              isPending={isPending}
+              isPending={isLoading}
             />
 
             <div className="border-b border-gray-300 space-y-6 pb-8">
@@ -700,7 +710,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
                     : ''
                     }`}
                   placeholder="Describe your property, its features and amenities etc.."
-                  disabled={isPending}
+                  disabled={isLoading}
                 />
                 {fieldErrors.description && (
                   <p className="text-sm text-destructive">
@@ -721,7 +731,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
                       type="button"
                       onClick={() => setShowAddAmenityInput(true)}
                       className="flex items-center gap-1 text-gray-600 text-sm font-medium underline hover:text-blue-800"
-                      disabled={isPending}
+                      disabled={isLoading}
                     >
                       <Plus className="w-4 h-4" />
                       Add Amenity
@@ -735,14 +745,14 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
                         onKeyDown={handleKeyPress}
                         placeholder="Enter amenity name"
                         className="text-sm h-8 w-40"
-                        disabled={isPending}
+                        disabled={isLoading}
                         autoFocus
                       />
                       <Button
                         type="button"
                         size="sm"
                         onClick={handleAddCustomAmenity}
-                        disabled={isPending || !newAmenity.trim()}
+                        disabled={isLoading || !newAmenity.trim()}
                         className="h-8 px-3"
                       >
                         Add
@@ -755,7 +765,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
                           setShowAddAmenityInput(false);
                           setNewAmenity("");
                         }}
-                        disabled={isPending}
+                        disabled={isLoading}
                         className="h-8 w-8 p-0"
                       >
                         <X className="w-4 h-4" />
@@ -767,7 +777,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               <AmenitiesSection
                 selectedAmenities={formData.amenities}
                 onAmenitiesChange={handleAmenitiesChange}
-                disabled={isPending}
+                disabled={isLoading}
               />
               {fieldErrors.amenities && (
                 <p className="mt-1 text-red-500 text-sm">
@@ -781,7 +791,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               <PhotoUploadSection
                 images={formData.images}
                 onImagesChange={handleImagesChange}
-                disabled={isPending}
+                disabled={isLoading}
               />
               {fieldErrors.images && (
                 <p className="mt-1 text-red-500 text-sm">
@@ -795,7 +805,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               fieldErrors={fieldErrors}
               handleChange={handleChange}
               setFormData={setFormData}
-              isPending={isPending}
+              isPending={isLoading}
             />
 
             <div className="space-y-2">
@@ -810,7 +820,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
                     : ''
                   }`}
                 placeholder="Leave a note about this listing that only you can see.."
-                disabled={isPending}
+                disabled={isLoading}
               />
               {fieldErrors.notes && (
                 <p className="text-sm text-destructive">{fieldErrors.notes}</p>
@@ -826,7 +836,7 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               variant="outline"
               onClick={handleClose}
               className="border text-gray-700 shadow-none rounded-2xl"
-              disabled={isPending}
+              disabled={isLoading}
             >
               Discard
             </Button>
@@ -834,9 +844,9 @@ const NewListingModal = ({ isOpen, onClose, initialData = null, propertyId = nul
               type="submit"
               onClick={handleSubmit}
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl"
-              disabled={isPending}
+              disabled={isLoading}
             >
-              {isPending 
+              {isLoading 
                 ? (isEditMode ? "Updating..." : "Adding...") 
                 : (isEditMode ? "Update Property" : "Add Property")
               }

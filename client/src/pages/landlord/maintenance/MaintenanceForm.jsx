@@ -152,10 +152,10 @@ const MaintenanceForm = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 rounded-2xl">
-        <DialogHeader className="p-0 px-10 pt-8">
+      <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg max-h-[90vh] flex flex-col p-0 rounded-2xl">
+        <DialogHeader className="p-0 px-4 md:px-10 pt-4 md:pt-8">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle>New Maintenance Request</DialogTitle>
+            <DialogTitle className="text-left text-base px-2 md:px-0 md:text-lg">New Maintenance Request</DialogTitle>
             <Button
               type="button"
               className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
@@ -193,7 +193,7 @@ const MaintenanceForm = ({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-10 py-6">
+        <div className="flex-1 overflow-y-auto px-6 md:px-10 py-4 md:py-6">
           <form onSubmit={onSubmit} className="space-y-4">
             {/* Title */}
             <div>
@@ -371,7 +371,7 @@ const MaintenanceForm = ({
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
-                  className="text-gray-700 shadow-none rounded-2xl border"
+                  className="text-gray-700 bg-primary-foreground shadow-none rounded-2xl border"
                   disabled={saving}
                 >
                   Close

@@ -262,7 +262,7 @@ const ReceiptReviewModal = ({ open, onClose, payment, onApprove, onReject }) => 
                         <Button
                             variant="outline"
                             onClick={onClose}
-                            className="px-6 rounded-2xl"
+                            className="px-6 rounded-2xl bg-primary-foreground"
                         >
                             Close
                         </Button>

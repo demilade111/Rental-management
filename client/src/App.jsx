@@ -18,6 +18,7 @@ import SignLeasePage from "./pages/landlord/application/SignLeasePage";
 import ThankYouApplyPage from "./pages/landlord/application/ThankYouApplyPage";
 import ThankYouSigningPage from "./pages/landlord/application/ThankYouSigningPage";
 import LandingPage from "./pages/LandingPage";
+import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/home" element={<LandingPage />} />
+          <Route path="/documentation" element={<Documentation />} />
 
           <Route
             path="/login"

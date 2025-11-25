@@ -14,35 +14,63 @@ async function createNotification(data) {
     relatedId,
   });
 
-  const notification = await prisma.Notification.create({
-    data: {
-      userId,
-      type,
-      title,
-      body,
-      relatedId,
-      metadata: metadata || {},
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
+  try {
+    const notification = await prisma.Notification.create({
+      data: {
+        userId,
+        type,
+        title,
+        body,
+        relatedId,
+        metadata: metadata || {},
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  console.log(`✅ Notification created successfully:`, {
-    id: notification.id,
-    userId: notification.userId,
-    type: notification.type,
-    title: notification.title,
-  });
+    console.log(`✅ Notification created successfully:`, {
+      id: notification.id,
+      userId: notification.userId,
+      type: notification.type,
+      title: notification.title,
+    });
 
-  return notification;
+    return notification;
+  } catch (error) {
+    console.error(`❌ Failed to create notification:`, {
+      error: error.message,
+      code: error.code,
+      type,
+      userId,
+      title: title?.substring(0, 50),
+    });
+    
+    // Check for specific Prisma errors
+    if (error.code === 'P2003') {
+      console.error(`❌ Foreign key constraint failed - userId ${userId} may not exist`);
+    } else if (error.message && (error.message.includes('enum') || error.message.includes('NotificationType') || error.message.includes('invalid input value'))) {
+      console.error(`❌ CRITICAL: Enum value '${type}' does not exist in NotificationType enum!`);
+      console.error(`❌ This means migrations have not been applied.`);
+      console.error(`❌ SOLUTION: Run migrations:`);
+      console.error(`❌   cd server`);
+      console.error(`❌   npx prisma migrate deploy`);
+      console.error(`❌   OR for development:`);
+      console.error(`❌   npx prisma migrate dev`);
+    } else if (error.code === 'P2002') {
+      console.error(`❌ Unique constraint violation`);
+    }
+    
+    // Re-throw the error so calling code can handle it
+    throw error;
+  }
 }
 
 /**
@@ -353,7 +381,7 @@ async function createLeaseSignedNotification(lease, landlordId, tenantName) {
 }
 
 /**
- * Create payment receipt uploaded notification
+ * Create payment receipt uploaded notification (notify landlord)
  */
 async function createPaymentReceiptUploadedNotification(payment, recipientUserId) {
   const tenantName =
@@ -386,6 +414,109 @@ async function createPaymentReceiptUploadedNotification(payment, recipientUserId
       amount: payment.amount,
       paymentType: payment.type,
       listingId: listing?.id,
+    },
+  });
+}
+
+/**
+ * Create payment receipt approved notification (notify tenant)
+ */
+async function createPaymentReceiptApprovedNotification(payment, tenantId) {
+  const listing = payment.lease?.listing || payment.customLease?.listing;
+  const propertyName =
+    listing?.streetAddress || listing?.title || "Property";
+
+  const paymentType = payment.type === 'RENT' ? 'rent' : 
+                      payment.type === 'UTILITIES' ? 'utilities' : 
+                      payment.type === 'MAINTENANCE' ? 'maintenance' : 
+                      'payment';
+
+  const title = "Payment Receipt Approved";
+  const body = `Your ${paymentType} payment receipt ($${payment.amount.toFixed(2)}) for ${propertyName} has been approved by your landlord. The payment has been marked as paid.`;
+
+  return createNotification({
+    userId: tenantId,
+    type: "PAYMENT_RECEIPT_APPROVED",
+    title,
+    body,
+    relatedId: payment.id,
+    metadata: {
+      paymentId: payment.id,
+      propertyName,
+      amount: payment.amount,
+      paymentType: payment.type,
+      listingId: listing?.id,
+      paidDate: payment.paidDate,
+    },
+  });
+}
+
+/**
+ * Create payment receipt rejected notification (notify tenant)
+ */
+async function createPaymentReceiptRejectedNotification(payment, tenantId, rejectionReason = null) {
+  const listing = payment.lease?.listing || payment.customLease?.listing;
+  const propertyName =
+    listing?.streetAddress || listing?.title || "Property";
+
+  const paymentType = payment.type === 'RENT' ? 'rent' : 
+                      payment.type === 'UTILITIES' ? 'utilities' : 
+                      payment.type === 'MAINTENANCE' ? 'maintenance' : 
+                      'payment';
+
+  const reasonText = rejectionReason ? ` Reason: ${rejectionReason}` : '';
+  const title = "Payment Receipt Rejected";
+  const body = `Your ${paymentType} payment receipt ($${payment.amount.toFixed(2)}) for ${propertyName} has been rejected by your landlord.${reasonText} Please upload a new receipt with the correct information.`;
+
+  return createNotification({
+    userId: tenantId,
+    type: "PAYMENT_RECEIPT_REJECTED",
+    title,
+    body,
+    relatedId: payment.id,
+    metadata: {
+      paymentId: payment.id,
+      propertyName,
+      amount: payment.amount,
+      paymentType: payment.type,
+      listingId: listing?.id,
+      rejectionReason,
+    },
+  });
+}
+
+/**
+ * Create insurance uploaded notification (notify landlord)
+ */
+async function createInsuranceUploadedNotification(insurance, recipientUserId) {
+  const tenantName =
+    insurance.tenant?.firstName && insurance.tenant?.lastName
+      ? `${insurance.tenant.firstName} ${insurance.tenant.lastName}`
+      : insurance.tenant?.email || "Tenant";
+
+  const propertyName =
+    insurance.lease?.listing?.streetAddress ||
+    insurance.lease?.propertyAddress ||
+    insurance.customLease?.leaseName ||
+    "Property";
+
+  const title = "Renter's Insurance Uploaded";
+  const body = `${tenantName} uploaded renter's insurance for ${propertyName}. Please review and verify or reject the insurance document.`;
+
+  return createNotification({
+    userId: recipientUserId,
+    type: "INSURANCE_UPLOADED",
+    title,
+    body,
+    relatedId: insurance.id,
+    metadata: {
+      insuranceId: insurance.id,
+      tenantName,
+      propertyName,
+      providerName: insurance.providerName,
+      policyNumber: insurance.policyNumber,
+      expiryDate: insurance.expiryDate,
+      listingId: insurance.lease?.listing?.id || insurance.customLease?.listingId,
     },
   });
 }
@@ -492,8 +623,9 @@ async function createInsuranceRejectedNotification(insurance, tenantId) {
     insurance.customLease?.leaseName ||
     "Property";
 
+  const reasonText = insurance.rejectionReason ? ` Reason: ${insurance.rejectionReason}` : '';
   const title = "Renter's Insurance Rejected";
-  const body = `Your renter's insurance for ${propertyName} has been rejected`;
+  const body = `Your renter's insurance for ${propertyName} has been rejected by your landlord.${reasonText} Please upload a new insurance document with the correct information.`;
 
   return createNotification({
     userId: tenantId,
@@ -525,6 +657,9 @@ export {
   createApplicationSubmittedNotification,
   createLeaseSignedNotification,
   createPaymentReceiptUploadedNotification,
+  createPaymentReceiptApprovedNotification,
+  createPaymentReceiptRejectedNotification,
+  createInsuranceUploadedNotification,
   createInsuranceExpiringNotification,
   createInsuranceExpiredNotification,
   createInsuranceVerifiedNotification,

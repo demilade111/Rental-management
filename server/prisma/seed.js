@@ -101,6 +101,7 @@ async function main() {
   await prisma.leaseInvite.deleteMany();
   await prisma.customLease.deleteMany();
   await prisma.lease.deleteMany();
+  await prisma.tenantInsurance.deleteMany();
   await prisma.listingImage.deleteMany();
   await prisma.listingAmenity.deleteMany();
   await prisma.listing.deleteMany();
@@ -175,68 +176,68 @@ async function main() {
 
   console.log("🏠 Creating 30+ listings...");
 
-  // Different property images for each listing type
+  // Different property images for each listing type (3 images per listing)
   const propertyImages = [
     // 0 - Modern Apartment
-    ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267", "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"],
+    ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267", "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
     // 1 - Suburban House
-    ["https://images.unsplash.com/photo-1568605114967-8130f3a36994", "https://images.unsplash.com/photo-1570129477492-45c003edd2be"],
+    ["https://images.unsplash.com/photo-1568605114967-8130f3a36994", "https://images.unsplash.com/photo-1570129477492-45c003edd2be", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"],
     // 2 - Luxury Condo
-    ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750"],
+    ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
     // 3 - Victorian Townhouse
-    ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"],
+    ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
     // 4 - Studio
-    ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688", "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1"],
+    ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688", "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1", "https://images.unsplash.com/photo-1586023492125-27b2c045efd7"],
     // 5 - Loft
-    ["https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
+    ["https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1600573472550-8090b5e0745e"],
     // 6 - Family Home
-    ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
+    ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-c7171b42498b", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
     // 7 - Beachfront Condo
-    ["https://images.unsplash.com/photo-1600607687920-4e2a09cf159d", "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3"],
+    ["https://images.unsplash.com/photo-1600607687920-4e2a09cf159d", "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde"],
     // 8 - Garden Apartment
-    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1560440021-33f9b867899d"],
+    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1560440021-33f9b867899d", "https://images.unsplash.com/photo-1600585154526-990dced4db0d"],
     // 9 - High-rise Condo
-    ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
+    ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1600607687644-c7171b42498b", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"],
     // 10 - Penthouse
-    ["https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea", "https://images.unsplash.com/photo-1600573472592-401b489837a2"],
+    ["https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea", "https://images.unsplash.com/photo-1600573472592-401b489837a2", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb"],
     // 11 - Cottage
-    ["https://images.unsplash.com/photo-1600585154526-990dced4db0d", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
+    ["https://images.unsplash.com/photo-1600585154526-990dced4db0d", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"],
     // 12 - Downtown Loft
-    ["https://images.unsplash.com/photo-1600573472550-8090b5e0745e", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb"],
+    ["https://images.unsplash.com/photo-1600573472550-8090b5e0745e", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb", "https://images.unsplash.com/photo-1536376072261-38c75010e6c9"],
     // 13 - Townhome
-    ["https://images.unsplash.com/photo-1600585154363-67eb9e2e2099", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
+    ["https://images.unsplash.com/photo-1600585154363-67eb9e2e2099", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"],
     // 14 - Ranch House
-    ["https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"],
+    ["https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6"],
     // 15 - Urban Apartment
-    ["https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
+    ["https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688", "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"],
     // 16 - Country Home
-    ["https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6"],
+    ["https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0"],
     // 17 - Modern Loft
-    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1536376072261-38c75010e6c9"],
+    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600573472550-8090b5e0745e"],
     // 18 - Duplex
-    ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"],
+    ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9", "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099"],
     // 19 - Executive Suite
-    ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"],
+    ["https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00", "https://images.unsplash.com/photo-1512917774080-9991f1c4c750"],
     // 20 - Modern Studio
-    ["https://images.unsplash.com/photo-1586023492125-27b2c045efd7", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
+    ["https://images.unsplash.com/photo-1586023492125-27b2c045efd7", "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688", "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1"],
     // 21 - Spacious Apartment
-    ["https://images.unsplash.com/photo-1600607687644-c7171b42498b", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
+    ["https://images.unsplash.com/photo-1600607687644-c7171b42498b", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d", "https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c"],
     // 22 - Luxury Apartment
-    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde"],
+    ["https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde", "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"],
     // 23 - Cozy Condo
-    ["https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c"],
+    ["https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3", "https://images.unsplash.com/photo-1600573472549-e4c4f7d9b87c", "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde"],
     // 24 - Modern Townhouse
-    ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"],
+    ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9", "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099"],
     // 25 - Elegant Home
-    ["https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0", "https://images.unsplash.com/photo-1600585154526-990dced4db0d"],
+    ["https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0", "https://images.unsplash.com/photo-1600585154526-990dced4db0d", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6"],
     // 26 - Contemporary Apartment
-    ["https://images.unsplash.com/photo-1600573472550-8090b5e0745e", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb"],
+    ["https://images.unsplash.com/photo-1600573472550-8090b5e0745e", "https://images.unsplash.com/photo-1600047509358-9dc75507daeb", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
     // 27 - Classic Condo
-    ["https://images.unsplash.com/photo-1600585154363-67eb9e2e2099", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"],
+    ["https://images.unsplash.com/photo-1600585154363-67eb9e2e2099", "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d", "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3"],
     // 28 - Modern Family Home
-    ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-c7171b42498b"],
+    ["https://images.unsplash.com/photo-1564013799919-ab600027ffc6", "https://images.unsplash.com/photo-1600607687644-c7171b42498b", "https://images.unsplash.com/photo-1600607687644-afd7c1e5d2f0"],
     // 29 - Urban Loft
-    ["https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"],
+    ["https://images.unsplash.com/photo-1536376072261-38c75010e6c9", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c", "https://images.unsplash.com/photo-1600573472550-8090b5e0745e"],
   ];
 
   const listings = [];
@@ -246,7 +247,7 @@ async function main() {
       title: "Modern Downtown Apartment",
       type: "APARTMENT",
       beds: 2, baths: 2, sqft: 1200, year: 2020,
-      street: "123 Main St, Apt 4B", city: "San Francisco", state: "California", zip: "94102",
+      street: "123 Main St, Apt 4B", city: "Vancouver", state: "BC", zip: "V6B 1S2",
       rent: 3500, deposit: 3500, petDeposit: 500,
       status: "RENTED",
       desc: "Beautiful modern apartment in downtown with stunning city views. Features include hardwood floors, granite countertops, and stainless steel appliances. Walking distance to shops, restaurants, and public transit.",
@@ -257,7 +258,7 @@ async function main() {
       title: "Cozy Suburban House",
       type: "SINGLE_FAMILY",
       beds: 3, baths: 2, sqft: 1800, year: 2015,
-      street: "456 Oak Ave", city: "Oakland", state: "California", zip: "94601",
+      street: "456 Oak Ave", city: "Toronto", state: "ON", zip: "M5V 2Y1",
       rent: 4200, deposit: 4200, petDeposit: 0,
       status: "ACTIVE",
       desc: "Spacious family home in quiet neighborhood with large backyard and modern updates. Perfect for families with children or pets. Recently renovated kitchen and bathrooms.",
@@ -268,7 +269,7 @@ async function main() {
       title: "Luxury Condo with Bay View",
       type: "CONDO",
       beds: 2, baths: 2.5, sqft: 1400, year: 2021,
-      street: "789 Bay View Blvd, Unit 12", city: "San Francisco", state: "California", zip: "94105",
+      street: "789 Bay View Blvd, Unit 12", city: "Vancouver", state: "BC", zip: "V6B 1S2",
       rent: 4800, deposit: 4800, petDeposit: 0,
       status: "ACTIVE",
       desc: "Stunning luxury condo with panoramic bay views. Floor-to-ceiling windows, high-end finishes, and access to building amenities including concierge service.",
@@ -279,7 +280,7 @@ async function main() {
       title: "Charming Victorian Townhouse",
       type: "TOWNHOUSE",
       beds: 3, baths: 2.5, sqft: 2000, year: 1905,
-      street: "321 Heritage Lane", city: "San Francisco", state: "California", zip: "94110",
+      street: "321 Heritage Lane", city: "Montréal", state: "QC", zip: "H3G 0A2",
       rent: 5200, deposit: 5200, petDeposit: 750,
       status: "RENTED",
       desc: "Historic Victorian townhouse with original details and modern amenities. Three stories with hardwood floors, crown molding, and a private patio.",
@@ -287,13 +288,13 @@ async function main() {
     },
     {
       landlord: landlord2,
-      title: "Studio in Mission District",
+      title: "Studio in Downtown Core",
       type: "STUDIO",
       beds: 0, baths: 1, sqft: 500, year: 2018,
-      street: "555 Mission St, #203", city: "San Francisco", state: "California", zip: "94103",
+      street: "555 Main St, #203", city: "Toronto", state: "ON", zip: "M5V 2Y1",
       rent: 2200, deposit: 2200, petDeposit: 0,
       status: "ACTIVE",
-      desc: "Efficient studio in the heart of Mission District. Perfect for young professionals. Recently renovated with modern appliances.",
+      desc: "Efficient studio in the heart of downtown. Perfect for young professionals. Recently renovated with modern appliances.",
       amenities: ["In-unit Laundry", "Hardwood Floors", "Air Conditioning"],
     },
     {
@@ -301,7 +302,7 @@ async function main() {
       title: "Spacious 4BR Family Home",
       type: "SINGLE_FAMILY",
       beds: 4, baths: 3, sqft: 2500, year: 2010,
-      street: "890 Elm Street", city: "Berkeley", state: "California", zip: "94702",
+      street: "890 Elm Street", city: "Calgary", state: "AB", zip: "T2P 0Y3",
       rent: 5500, deposit: 5500, petDeposit: 1000,
       status: "RENTED",
       desc: "Large family home with spacious rooms, updated kitchen, and beautiful backyard. Close to schools and parks.",
@@ -309,10 +310,10 @@ async function main() {
     },
     {
       landlord: landlord1,
-      title: "Modern Loft in SOMA",
+      title: "Modern Loft in Downtown",
       type: "APARTMENT",
       beds: 1, baths: 1, sqft: 900, year: 2019,
-      street: "234 Howard St, #5A", city: "San Francisco", state: "California", zip: "94105",
+      street: "234 King St, #5A", city: "Toronto", state: "ON", zip: "M5V 2Y1",
       rent: 3800, deposit: 3800, petDeposit: 0,
       status: "ACTIVE",
       desc: "Industrial-style loft with exposed brick, high ceilings, and modern finishes. Perfect for creative professionals.",
@@ -323,7 +324,7 @@ async function main() {
       title: "Penthouse Suite Downtown",
       type: "APARTMENT",
       beds: 3, baths: 3, sqft: 2200, year: 2022,
-      street: "100 Market St, Penthouse", city: "San Francisco", state: "California", zip: "94111",
+      street: "100 Bay St, Penthouse", city: "Toronto", state: "ON", zip: "M5J 2S4",
       rent: 7500, deposit: 7500, petDeposit: 0,
       status: "ACTIVE",
       desc: "Luxurious penthouse with 360-degree city views. Top-floor living with premium finishes and private elevator access.",
@@ -334,7 +335,7 @@ async function main() {
       title: "Garden Apartment with Patio",
       type: "APARTMENT",
       beds: 1, baths: 1, sqft: 750, year: 2017,
-      street: "678 Green St, #1A", city: "San Francisco", state: "California", zip: "94133",
+      street: "678 Green St, #1A", city: "Vancouver", state: "BC", zip: "V6B 1S2",
       rent: 2800, deposit: 2800, petDeposit: 500,
       status: "RENTED",
       desc: "Ground-floor apartment with private patio and garden access. Pet-friendly and quiet location.",
@@ -342,13 +343,13 @@ async function main() {
     },
     {
       landlord: landlord1,
-      title: "Renovated 2BR in Sunset",
+      title: "Renovated 2BR in Kitsilano",
       type: "APARTMENT",
       beds: 2, baths: 1, sqft: 1000, year: 2016,
-      street: "456 Sunset Blvd, #3B", city: "San Francisco", state: "California", zip: "94122",
+      street: "456 West 4th Ave, #3B", city: "Vancouver", state: "BC", zip: "V6J 1M5",
       rent: 3200, deposit: 3200, petDeposit: 0,
       status: "ACTIVE",
-      desc: "Freshly renovated 2-bedroom in quiet Sunset neighborhood. New kitchen and bathroom, hardwood floors throughout.",
+      desc: "Freshly renovated 2-bedroom in quiet Kitsilano neighborhood. New kitchen and bathroom, hardwood floors throughout.",
       amenities: ["Hardwood Floors", "Updated Kitchen", "Storage", "Laundry in Building"],
     },
     {
@@ -356,7 +357,7 @@ async function main() {
       title: "Executive Condo in Financial District",
       type: "CONDO",
       beds: 2, baths: 2, sqft: 1300, year: 2020,
-      street: "200 Pine St, Unit 25", city: "San Francisco", state: "California", zip: "94104",
+      street: "200 Bay St, Unit 25", city: "Toronto", state: "ON", zip: "M5J 2J4",
       rent: 5000, deposit: 5000, petDeposit: 0,
       status: "RENTED",
       desc: "High-end condo perfect for executives. Walking distance to major offices and public transit.",
@@ -364,24 +365,24 @@ async function main() {
     },
     {
       landlord: landlord3,
-      title: "Duplex with Ocean View",
+      title: "Duplex with Water View",
       type: "MULTI_FAMILY",
       beds: 3, baths: 2, sqft: 1900, year: 2012,
-      street: "789 Ocean Ave", city: "San Francisco", state: "California", zip: "94112",
+      street: "789 Marine Dr", city: "Vancouver", state: "BC", zip: "V6P 1A1",
       rent: 4500, deposit: 4500, petDeposit: 750,
       status: "ACTIVE",
-      desc: "Beautiful duplex with ocean views. Two-level living with private entrance and garage.",
-      amenities: ["Ocean View", "Garage", "Backyard", "Fireplace", "Storage"],
+      desc: "Beautiful duplex with water views. Two-level living with private entrance and garage.",
+      amenities: ["Water View", "Garage", "Backyard", "Fireplace", "Storage"],
     },
     {
       landlord: landlord1,
       title: "Budget-Friendly Studio",
       type: "STUDIO",
       beds: 0, baths: 1, sqft: 400, year: 2015,
-      street: "111 Valencia St, #12", city: "San Francisco", state: "California", zip: "94110",
+      street: "111 Main St, #12", city: "Montréal", state: "QC", zip: "H3G 0A2",
       rent: 1800, deposit: 1800, petDeposit: 0,
       status: "ACTIVE",
-      desc: "Affordable studio perfect for students or young professionals. Close to BART and nightlife.",
+      desc: "Affordable studio perfect for students or young professionals. Close to metro and nightlife.",
       amenities: ["Laundry in Building", "Bike Storage"],
     },
     {
@@ -389,7 +390,7 @@ async function main() {
       title: "Contemporary Loft with Skylights",
       type: "APARTMENT",
       beds: 2, baths: 2, sqft: 1600, year: 2021,
-      street: "345 Folsom St, #8C", city: "San Francisco", state: "California", zip: "94107",
+      street: "345 Yonge St, #8C", city: "Toronto", state: "ON", zip: "M5B 1R8",
       rent: 4300, deposit: 4300, petDeposit: 0,
       status: "ACTIVE",
       desc: "Bright and airy loft with skylights and modern design. Open floor plan perfect for entertaining.",
@@ -397,35 +398,35 @@ async function main() {
     },
     {
       landlord: landlord3,
-      title: "Classic 1BR in Nob Hill",
+      title: "Classic 1BR in Downtown",
       type: "APARTMENT",
       beds: 1, baths: 1, sqft: 700, year: 1960,
-      street: "987 California St, #4D", city: "San Francisco", state: "California", zip: "94108",
+      street: "987 Granville St, #4D", city: "Vancouver", state: "BC", zip: "V6Z 1L3",
       rent: 2600, deposit: 2600, petDeposit: 0,
       status: "RENTED",
-      desc: "Classic apartment in prestigious Nob Hill. Well-maintained building with doorman service.",
-      amenities: ["Doorman", "Elevator", "Laundry in Building", "Storage"],
+      desc: "Classic apartment in prestigious downtown area. Well-maintained building with concierge service.",
+      amenities: ["Concierge", "Elevator", "Laundry in Building", "Storage"],
     },
     {
       landlord: landlord1,
       title: "Waterfront Condo",
       type: "CONDO",
       beds: 2, baths: 2, sqft: 1250, year: 2018,
-      street: "567 Embarcadero, #15B", city: "San Francisco", state: "California", zip: "94111",
+      street: "567 Harbourfront Dr, #15B", city: "Vancouver", state: "BC", zip: "V6B 1A1",
       rent: 5200, deposit: 5200, petDeposit: 0,
       status: "ACTIVE",
-      desc: "Stunning waterfront condo with bay views. Premium building with resort-style amenities.",
-      amenities: ["Bay Views", "Gym", "Pool", "Concierge", "Parking", "In-unit Laundry", "Storage"],
+      desc: "Stunning waterfront condo with ocean views. Premium building with resort-style amenities.",
+      amenities: ["Ocean Views", "Gym", "Pool", "Concierge", "Parking", "In-unit Laundry", "Storage"],
     },
     {
       landlord: landlord2,
-      title: "Family House in Presidio Heights",
+      title: "Family House in Westmount",
       type: "SINGLE_FAMILY",
       beds: 4, baths: 3.5, sqft: 3000, year: 2005,
-      street: "432 Presidio Ave", city: "San Francisco", state: "California", zip: "94115",
+      street: "432 Westmount Ave", city: "Montréal", state: "QC", zip: "H3Y 1A1",
       rent: 8500, deposit: 8500, petDeposit: 1500,
       status: "RENTED",
-      desc: "Elegant family home in exclusive Presidio Heights. Large rooms, gourmet kitchen, and manicured garden.",
+      desc: "Elegant family home in exclusive Westmount. Large rooms, gourmet kitchen, and manicured garden.",
       amenities: ["Garden", "Garage", "Fireplace", "Central AC", "Updated Kitchen", "Hardwood Floors"],
     },
     {
@@ -433,7 +434,7 @@ async function main() {
       title: "Converted Warehouse Loft",
       type: "APARTMENT",
       beds: 2, baths: 2, sqft: 1800, year: 2017,
-      street: "890 Brannan St, #3", city: "San Francisco", state: "California", zip: "94103",
+      street: "890 King St W, #3", city: "Toronto", state: "ON", zip: "M5V 1J5",
       rent: 4600, deposit: 4600, petDeposit: 500,
       status: "ACTIVE",
       desc: "Unique warehouse conversion with industrial charm. High ceilings, exposed beams, and modern amenities.",
@@ -441,13 +442,13 @@ async function main() {
     },
     {
       landlord: landlord1,
-      title: "Affordable 2BR in Richmond",
+      title: "Affordable 2BR in East End",
       type: "APARTMENT",
       beds: 2, baths: 1, sqft: 950, year: 2010,
-      street: "234 Clement St, #2F", city: "San Francisco", state: "California", zip: "94121",
+      street: "234 Commercial Dr, #2F", city: "Vancouver", state: "BC", zip: "V5L 3X1",
       rent: 2900, deposit: 2900, petDeposit: 0,
       status: "ACTIVE",
-      desc: "Affordable 2-bedroom in family-friendly Richmond District. Close to parks, shops, and restaurants.",
+      desc: "Affordable 2-bedroom in family-friendly East End. Close to parks, shops, and restaurants.",
       amenities: ["Laundry in Building", "Storage", "Parking Available"],
     },
     {
@@ -455,7 +456,7 @@ async function main() {
       title: "Designer Townhouse",
       type: "TOWNHOUSE",
       beds: 3, baths: 3, sqft: 2200, year: 2019,
-      street: "567 Castro St", city: "San Francisco", state: "California", zip: "94114",
+      street: "567 Church St", city: "Toronto", state: "ON", zip: "M4Y 2E5",
       rent: 6500, deposit: 6500, petDeposit: 1000,
       status: "RENTED",
       desc: "Beautifully designed townhouse with high-end finishes. Private rooftop deck with city views.",
@@ -466,7 +467,7 @@ async function main() {
       title: "Modern Studio Apartment",
       type: "STUDIO",
       beds: 0, baths: 1, sqft: 450, year: 2020,
-      street: "123 Market St, #101", city: "San Francisco", state: "California", zip: "94102",
+      street: "123 Yonge St, #101", city: "Toronto", state: "ON", zip: "M5C 1W4",
       rent: 2100, deposit: 2100, petDeposit: 0,
       status: "ACTIVE",
       desc: "Sleek modern studio with smart home features. Perfect for professionals seeking convenience.",
@@ -477,7 +478,7 @@ async function main() {
       title: "Spacious 3BR Apartment",
       type: "APARTMENT",
       beds: 3, baths: 2, sqft: 1500, year: 2018,
-      street: "456 Geary Blvd, #5C", city: "San Francisco", state: "California", zip: "94118",
+      street: "456 Robson St, #5C", city: "Vancouver", state: "BC", zip: "V6B 1A9",
       rent: 4800, deposit: 4800, petDeposit: 600,
       status: "ACTIVE",
       desc: "Large 3-bedroom apartment with modern amenities. Great for families or roommates.",
@@ -488,7 +489,7 @@ async function main() {
       title: "Luxury 2BR Apartment",
       type: "APARTMENT",
       beds: 2, baths: 2, sqft: 1350, year: 2021,
-      street: "789 Post St, #12A", city: "San Francisco", state: "California", zip: "94109",
+      street: "789 Bloor St W, #12A", city: "Toronto", state: "ON", zip: "M6G 1L3",
       rent: 5500, deposit: 5500, petDeposit: 0,
       status: "ACTIVE",
       desc: "Premium apartment with high-end finishes and stunning city views. Building amenities included.",
@@ -499,7 +500,7 @@ async function main() {
       title: "Cozy 1BR Condo",
       type: "CONDO",
       beds: 1, baths: 1, sqft: 800, year: 2016,
-      street: "321 Fillmore St, Unit 8", city: "San Francisco", state: "California", zip: "94117",
+      street: "321 Ste-Catherine St, Unit 8", city: "Montréal", state: "QC", zip: "H3B 1A1",
       rent: 3200, deposit: 3200, petDeposit: 400,
       status: "ACTIVE",
       desc: "Charming one-bedroom condo in vibrant neighborhood. Recently updated with modern fixtures.",
@@ -510,7 +511,7 @@ async function main() {
       title: "Modern 2BR Townhouse",
       type: "TOWNHOUSE",
       beds: 2, baths: 2.5, sqft: 1800, year: 2019,
-      street: "654 Divisadero St", city: "San Francisco", state: "California", zip: "94117",
+      street: "654 Davie St", city: "Vancouver", state: "BC", zip: "V6E 1M6",
       rent: 5200, deposit: 5200, petDeposit: 800,
       status: "ACTIVE",
       desc: "Contemporary townhouse with private entrance and modern design. Perfect for professionals.",
@@ -521,7 +522,7 @@ async function main() {
       title: "Elegant 4BR Family Home",
       type: "SINGLE_FAMILY",
       beds: 4, baths: 3, sqft: 2800, year: 2012,
-      street: "987 Pacific Ave", city: "San Francisco", state: "California", zip: "94109",
+      street: "987 Rosedale Valley Rd", city: "Toronto", state: "ON", zip: "M4T 1R2",
       rent: 7200, deposit: 7200, petDeposit: 1200,
       status: "ACTIVE",
       desc: "Beautiful family home with spacious rooms and large backyard. Ideal for families with children.",
@@ -532,7 +533,7 @@ async function main() {
       title: "Contemporary 2BR Apartment",
       type: "APARTMENT",
       beds: 2, baths: 1, sqft: 1100, year: 2017,
-      street: "147 Union St, #3B", city: "San Francisco", state: "California", zip: "94133",
+      street: "147 Queen St W, #3B", city: "Toronto", state: "ON", zip: "M5H 2M9",
       rent: 4100, deposit: 4100, petDeposit: 0,
       status: "ACTIVE",
       desc: "Stylish two-bedroom apartment with modern design. Close to restaurants and shopping.",
@@ -543,7 +544,7 @@ async function main() {
       title: "Classic 1BR Condo",
       type: "CONDO",
       beds: 1, baths: 1, sqft: 750, year: 2014,
-      street: "258 Broadway, Unit 15", city: "San Francisco", state: "California", zip: "94133",
+      street: "258 Broadway, Unit 15", city: "Vancouver", state: "BC", zip: "V5K 0A1",
       rent: 3000, deposit: 3000, petDeposit: 0,
       status: "ACTIVE",
       desc: "Well-maintained one-bedroom condo in historic building. Great location with character.",
@@ -554,7 +555,7 @@ async function main() {
       title: "Modern 3BR Family Home",
       type: "SINGLE_FAMILY",
       beds: 3, baths: 2.5, sqft: 2100, year: 2016,
-      street: "369 Lombard St", city: "San Francisco", state: "California", zip: "94133",
+      street: "369 Mount Pleasant Rd", city: "Toronto", state: "ON", zip: "M4S 2L8",
       rent: 6800, deposit: 6800, petDeposit: 1000,
       status: "ACTIVE",
       desc: "Spacious family home with modern updates and large yard. Perfect for growing families.",
@@ -565,7 +566,7 @@ async function main() {
       title: "Urban 1BR Loft",
       type: "APARTMENT",
       beds: 1, baths: 1, sqft: 950, year: 2015,
-      street: "741 Mission St, #4A", city: "San Francisco", state: "California", zip: "94103",
+      street: "741 St-Laurent Blvd, #4A", city: "Montréal", state: "QC", zip: "H2Z 1Y4",
       rent: 3600, deposit: 3600, petDeposit: 0,
       status: "ACTIVE",
       desc: "Industrial-style loft with high ceilings and exposed brick. Perfect for creative professionals.",
@@ -584,7 +585,7 @@ async function main() {
         bathrooms: data.baths,
         totalSquareFeet: data.sqft,
         yearBuilt: data.year,
-        country: "USA",
+        country: "Canada",
         state: data.state,
         city: data.city,
         streetAddress: data.street,
@@ -607,6 +608,7 @@ async function main() {
           create: [
             { url: propertyImages[i][0], isPrimary: true },
             { url: propertyImages[i][1], isPrimary: false },
+            { url: propertyImages[i][2], isPrimary: false },
           ],
         },
       },
@@ -1474,6 +1476,180 @@ async function main() {
 
   console.log(`Created ${invoiceCount} invoices with linked payments`);
 
+  console.log("\n🛡️ Creating Renters Insurance data...");
+
+  // Get active leases with tenants for insurance
+  const activeStandardLeases = leases.filter(l => l.leaseStatus === "ACTIVE" && l.tenantId);
+  const activeCustomLeases = customLeases.filter(l => l.leaseStatus === "ACTIVE" && l.tenantId);
+
+  // Create insurance records with different statuses
+  const insuranceProviders = [
+    "State Farm",
+    "Allstate",
+    "Geico",
+    "Progressive",
+    "Lemonade",
+    "Liberty Mutual",
+    "Farmers Insurance",
+    "USAA",
+  ];
+
+  const insuranceData = [];
+
+  // Create insurance for tenants with active standard leases
+  for (let i = 0; i < activeStandardLeases.length && i < 5; i++) {
+    const lease = activeStandardLeases[i];
+    const tenant = tenants.find(t => t.id === lease.tenantId);
+    if (!tenant) continue;
+
+    const provider = insuranceProviders[i % insuranceProviders.length];
+    const policyNumber = `POL-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    const startDate = new Date(lease.startDate.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days before lease start
+
+    // Create different statuses for different tenants
+    let status, expiryDate, verifiedBy, verifiedAt, rejectionReason;
+
+    if (i === 0) {
+      // Expiring in 30 days (EXPIRING_SOON)
+      status = "EXPIRING_SOON";
+      expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    } else if (i === 1) {
+      // Not expiring soon (VERIFIED)
+      status = "VERIFIED";
+      expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    } else if (i === 2) {
+      // Pending (PENDING)
+      status = "PENDING";
+      expiryDate = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000); // 6 months from now
+      verifiedBy = null;
+      verifiedAt = null;
+    } else if (i === 3) {
+      // Rejected (REJECTED)
+      status = "REJECTED";
+      expiryDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 3 months from now
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+      rejectionReason = "Document quality is insufficient. Please upload a clearer copy of your insurance certificate.";
+    } else {
+      // Another VERIFIED (not expiring soon)
+      status = "VERIFIED";
+      expiryDate = new Date(Date.now() + 300 * 24 * 60 * 60 * 1000); // ~10 months from now
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    }
+
+    const documentUrl = `https://example.com/insurance-docs/${tenant.id}-insurance.pdf`;
+    const documentKey = `insurance/${tenant.id}/${policyNumber}.pdf`;
+
+    const insurance = await prisma.tenantInsurance.create({
+      data: {
+        tenantId: tenant.id,
+        leaseId: lease.id,
+        customLeaseId: null,
+        providerName: provider,
+        policyNumber: policyNumber,
+        coverageType: "Renters Insurance",
+        coverageAmount: 100000 + Math.floor(Math.random() * 50000), // $100k - $150k
+        monthlyCost: 15 + Math.floor(Math.random() * 20), // $15 - $35/month
+        startDate: startDate,
+        expiryDate: expiryDate,
+        documentUrl: documentUrl,
+        documentKey: documentKey,
+        status: status,
+        verifiedBy: verifiedBy,
+        verifiedAt: verifiedAt,
+        rejectionReason: rejectionReason,
+        notes: status === "VERIFIED" ? "Insurance verified and up to date." : null,
+      },
+    });
+
+    insuranceData.push(insurance);
+  }
+
+  // Create insurance for tenants with active custom leases (if any)
+  for (let i = 0; i < activeCustomLeases.length && insuranceData.length < 5; i++) {
+    const lease = activeCustomLeases[i];
+    const tenant = tenants.find(t => t.id === lease.tenantId);
+    if (!tenant) continue;
+
+    const provider = insuranceProviders[insuranceData.length % insuranceProviders.length];
+    const policyNumber = `POL-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    const startDate = new Date(lease.startDate.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days before lease start
+
+    // Create different statuses for different tenants
+    let status, expiryDate, verifiedBy, verifiedAt, rejectionReason;
+
+    if (insuranceData.length === 0) {
+      // Expiring in 30 days (EXPIRING_SOON)
+      status = "EXPIRING_SOON";
+      expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    } else if (insuranceData.length === 1) {
+      // Not expiring soon (VERIFIED)
+      status = "VERIFIED";
+      expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    } else if (insuranceData.length === 2) {
+      // Pending (PENDING)
+      status = "PENDING";
+      expiryDate = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000); // 6 months from now
+      verifiedBy = null;
+      verifiedAt = null;
+    } else if (insuranceData.length === 3) {
+      // Rejected (REJECTED)
+      status = "REJECTED";
+      expiryDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 3 months from now
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+      rejectionReason = "Document quality is insufficient. Please upload a clearer copy of your insurance certificate.";
+    } else {
+      // Another VERIFIED (not expiring soon)
+      status = "VERIFIED";
+      expiryDate = new Date(Date.now() + 300 * 24 * 60 * 60 * 1000); // ~10 months from now
+      verifiedBy = lease.landlordId;
+      verifiedAt = new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    }
+
+    const documentUrl = `https://example.com/insurance-docs/${tenant.id}-insurance.pdf`;
+    const documentKey = `insurance/${tenant.id}/${policyNumber}.pdf`;
+
+    const insurance = await prisma.tenantInsurance.create({
+      data: {
+        tenantId: tenant.id,
+        leaseId: null,
+        customLeaseId: lease.id,
+        providerName: provider,
+        policyNumber: policyNumber,
+        coverageType: "Renters Insurance",
+        coverageAmount: 100000 + Math.floor(Math.random() * 50000), // $100k - $150k
+        monthlyCost: 15 + Math.floor(Math.random() * 20), // $15 - $35/month
+        startDate: startDate,
+        expiryDate: expiryDate,
+        documentUrl: documentUrl,
+        documentKey: documentKey,
+        status: status,
+        verifiedBy: verifiedBy,
+        verifiedAt: verifiedAt,
+        rejectionReason: rejectionReason,
+        notes: status === "VERIFIED" ? "Insurance verified and up to date." : null,
+      },
+    });
+
+    insuranceData.push(insurance);
+  }
+
+  console.log(`Created ${insuranceData.length} insurance records with different statuses:`);
+  console.log(`  - ${insuranceData.filter(i => i.status === "EXPIRING_SOON").length} Expiring in 30 days`);
+  console.log(`  - ${insuranceData.filter(i => i.status === "VERIFIED").length} Not expiring soon (Verified)`);
+  console.log(`  - ${insuranceData.filter(i => i.status === "PENDING").length} Pending`);
+  console.log(`  - ${insuranceData.filter(i => i.status === "REJECTED").length} Rejected`);
+
   console.log("\n✅ Seeding completed successfully!");
   console.log(`
 ==========================================
@@ -1490,6 +1666,7 @@ Created:
 - 40+ Rent Payments
 - 25+ Maintenance Requests
 - ${invoiceCount} Invoices with Payments
+- ${insuranceData.length} Renters Insurance Records
 
 📋 TENANT LEASE ASSIGNMENTS:
 ──────────────────────────────────────

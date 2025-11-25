@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,22 +31,36 @@ const NotificationDropdown = () => {
     queryFn: async () => {
       if (!user?.id) return { notifications: [], total: 0 };
       const response = await notificationApi.getAll({ limit: 50 });
-      const data = response.data || response;
+      
+      // Handle different response structures
+      // Backend returns: { success: true, message: "...", data: { notifications: [...], total: ... } }
+      // notificationApi.getAll() returns response.data, so response is already the API response object
+      // We need response.data to get the inner data object
+      const apiData = response?.data || response;
+      const notificationsList = Array.isArray(apiData?.notifications) 
+        ? apiData.notifications 
+        : Array.isArray(apiData) 
+          ? apiData 
+          : [];
+      const total = apiData?.total || notificationsList.length;
       
       console.log(`🔔 API Response:`, {
-        hasData: !!data,
-        hasNotifications: !!data.notifications,
-        notificationsIsArray: Array.isArray(data.notifications),
-        notificationsLength: data.notifications?.length,
-        total: data.total,
-        fullResponse: data,
+        hasResponse: !!response,
+        hasData: !!apiData,
+        hasNotifications: !!apiData?.notifications,
+        notificationsIsArray: Array.isArray(notificationsList),
+        notificationsLength: notificationsList.length,
+        total: total,
+        responseStructure: {
+          response: typeof response,
+          responseData: typeof response?.data,
+          apiData: typeof apiData,
+        },
       });
-      
-      const notificationsList = Array.isArray(data.notifications) ? data.notifications : [];
       
       return {
         notifications: notificationsList,
-        total: data.total || 0,
+        total: total,
       };
     },
     enabled: !!user?.id && !authLoading, // Only fetch when user is available
@@ -64,8 +78,13 @@ const NotificationDropdown = () => {
     queryFn: async () => {
       if (!user?.id) return { count: 0 };
       const response = await notificationApi.getUnreadCount();
-      const data = response.data || response;
-      return { count: data.count || 0 };
+      // Handle different response structures
+      // Backend returns: { success: true, message: "...", data: { count: ... } }
+      // notificationApi.getUnreadCount() returns response.data, so response is already the API response object
+      // We need response.data to get the inner data object
+      const apiData = response?.data || response;
+      const count = apiData?.count || 0;
+      return { count: count };
     },
     enabled: !!user?.id && !authLoading,
     refetchInterval: 2000,
@@ -114,6 +133,57 @@ const NotificationDropdown = () => {
   // Use calculated count if available, otherwise fall back to API count
   const unreadCount = calculatedUnreadCount > 0 ? calculatedUnreadCount : unreadCountFromAPI;
 
+  // Helper function to invalidate queries based on notification type
+  const invalidateQueriesForNotification = useCallback((notification) => {
+    const insuranceTypes = [
+      "INSURANCE_UPLOADED",
+      "INSURANCE_EXPIRING",
+      "INSURANCE_EXPIRED",
+      "INSURANCE_VERIFIED",
+      "INSURANCE_REJECTED"
+    ];
+    
+    const paymentTypes = [
+      "PAYMENT_RECEIPT_UPLOADED",
+      "PAYMENT_RECEIPT_APPROVED",
+      "PAYMENT_RECEIPT_REJECTED",
+      "PAYMENT_DUE",
+      "PAYMENT_RECEIVED"
+    ];
+    
+    const applicationTypes = [
+      "APPLICATION_STATUS"
+    ];
+    
+    const maintenanceTypes = [
+      "MAINTENANCE_REQUEST",
+      "MAINTENANCE_MESSAGE"
+    ];
+    
+    if (insuranceTypes.includes(notification.type)) {
+      // Invalidate insurance queries
+      if (user?.role === "ADMIN") {
+        queryClient.invalidateQueries({ queryKey: ["insurances"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["tenant-all-leases"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-insurances"] });
+      }
+    } else if (paymentTypes.includes(notification.type)) {
+      // Invalidate payment/accounting queries
+      if (user?.role === "ADMIN") {
+        queryClient.invalidateQueries({ queryKey: ["payments"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["tenant-payments"] });
+      }
+    } else if (applicationTypes.includes(notification.type)) {
+      // Invalidate applications queries
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    } else if (maintenanceTypes.includes(notification.type)) {
+      // Invalidate maintenance queries
+      queryClient.invalidateQueries({ queryKey: ["maintenance-requests"] });
+    }
+  }, [user?.role, queryClient]);
+
   // Detect new notifications and show alert
   useEffect(() => {
     // Initialize on first load - don't show alert for existing notifications
@@ -137,6 +207,13 @@ const NotificationDropdown = () => {
       !prevNotificationIds.has(n.id) && !n.isRead
     );
     
+    // Automatically invalidate queries for all new notifications
+    if (newUnreadNotifications.length > 0 && isInitializedRef.current) {
+      newUnreadNotifications.forEach(notification => {
+        invalidateQueriesForNotification(notification);
+      });
+    }
+    
     // Show alert for the latest new notification
     if (newUnreadNotifications.length > 0 && isInitializedRef.current) {
       const latestNotification = newUnreadNotifications[0];
@@ -156,7 +233,7 @@ const NotificationDropdown = () => {
     
     // Update previous notification IDs
     prevNotificationIdsRef.current = new Set(currentNotificationIds);
-  }, [notifications]);
+  }, [notifications, invalidateQueriesForNotification]);
 
   // Mark notification as read mutation
   const markAsReadMutation = useMutation({
@@ -206,6 +283,7 @@ const NotificationDropdown = () => {
     
     // Navigate based on notification type
     const insuranceTypes = [
+      "INSURANCE_UPLOADED",
       "INSURANCE_EXPIRING",
       "INSURANCE_EXPIRED",
       "INSURANCE_VERIFIED",
@@ -214,6 +292,8 @@ const NotificationDropdown = () => {
     
     const paymentTypes = [
       "PAYMENT_RECEIPT_UPLOADED",
+      "PAYMENT_RECEIPT_APPROVED",
+      "PAYMENT_RECEIPT_REJECTED",
       "PAYMENT_DUE",
       "PAYMENT_RECEIVED"
     ];
@@ -222,20 +302,43 @@ const NotificationDropdown = () => {
       "APPLICATION_STATUS"
     ];
     
+    const maintenanceTypes = [
+      "MAINTENANCE_REQUEST",
+      "MAINTENANCE_MESSAGE"
+    ];
+    
+    // Invalidate relevant queries based on notification type
     if (insuranceTypes.includes(notification.type)) {
+      // Invalidate insurance queries
+      if (user?.role === "ADMIN") {
+        queryClient.invalidateQueries({ queryKey: ["insurances"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["tenant-all-leases"] });
+        queryClient.invalidateQueries({ queryKey: ["tenant-insurances"] });
+      }
       // Navigate to insurance page
       const insurancePath = user?.role === "ADMIN" ? "/landlord/insurance" : "/tenant/insurance";
       navigate(insurancePath);
     } else if (paymentTypes.includes(notification.type)) {
+      // Invalidate payment/accounting queries
+      if (user?.role === "ADMIN") {
+        queryClient.invalidateQueries({ queryKey: ["payments"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["tenant-payments"] });
+      }
       // Navigate to accounting page
       const accountingPath = user?.role === "ADMIN" ? "/landlord/accounting" : "/tenant/accounting";
       navigate(accountingPath);
     } else if (applicationTypes.includes(notification.type)) {
+      // Invalidate applications queries
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
       // Navigate to applications page
       const applicationsPath = user?.role === "ADMIN" ? "/landlord/applications" : "/tenant/applications";
       navigate(applicationsPath);
-    } else {
-      // Default to maintenance page for maintenance notifications
+    } else if (maintenanceTypes.includes(notification.type)) {
+      // Invalidate maintenance queries
+      queryClient.invalidateQueries({ queryKey: ["maintenance-requests"] });
+      // Navigate to maintenance page
       const maintenancePath = user?.role === "ADMIN" ? "/landlord/maintenance" : "/tenant/maintenance";
       navigate(maintenancePath);
     }
@@ -285,6 +388,8 @@ const NotificationDropdown = () => {
             width: '320px'
           }}
         >
+          {/* Transparent top spacing */}
+          <div className="h-14 bg-transparent"></div>
           <div
             className="bg-black/60 backdrop-blur-md rounded-lg p-4 border border-white/20 shadow-lg cursor-pointer hover:bg-black/70 transition-colors"
             onClick={handleAlertClick}

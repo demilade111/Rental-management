@@ -149,7 +149,9 @@ const InsuranceStatusCard = () => {
 
       {insurance && (
         <div className="mb-4 text-xs text-gray-500">
-          <p>Provider: {insurance.providerName}</p>
+          <p className="truncate max-w-full">
+            Provider: <span className="inline-block max-w-[150px] truncate md:max-w-none md:inline">{insurance.providerName}</span>
+          </p>
           <p>Policy: {insurance.policyNumber}</p>
         </div>
       )}

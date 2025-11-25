@@ -273,12 +273,12 @@ const HelpSupport = () => {
                 {/* Header Section */}
                 <div className="text-center mb-12">
                     <div className="flex items-center justify-center gap-3 mb-4">
-                        <HelpCircle className="w-12 h-12 text-primary" />
-                        <h1 className="text-4xl md:text-5xl font-bold text-primary leading-relaxed">
+                        <HelpCircle className="w-8 h-8 md:w-12 md:h-12 text-primary" />
+                        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-primary leading-relaxed">
                             Help & Support
                         </h1>
                     </div>
-                    <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-base md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                         Find answers to common questions and learn how to use our rental management platform
                     </p>
                 </div>
@@ -292,7 +292,7 @@ const HelpSupport = () => {
                             placeholder="Search for help articles..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-12 pr-4 py-6 text-lg rounded-2xl border-gray-200 focus:border-primary bg-primary-foreground"
+                            className="pl-12 pr-4 py-4 md:py-6 text-sm md:text-lg rounded-2xl border-gray-200 focus:border-primary bg-primary-foreground"
                         />
                     </div>
                 </div>
@@ -302,16 +302,16 @@ const HelpSupport = () => {
                     <Card className="shadow-none hover:shadow-lg rounded-3xl transition-shadow cursor-pointer min-h-[180px] flex flex-col p-6">
                         <CardHeader className="flex-1 p-0 mb-4">
                             <div className="flex items-center gap-3">
-                                <MessageCircle className="w-8 h-8 text-primary" />
-                                <CardTitle className="text-lg">Contact Support</CardTitle>
+                                <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                                <CardTitle className="text-base md:text-lg">Contact Support</CardTitle>
                             </div>
-                            <CardDescription className="text-base leading-relaxed">
+                            <CardDescription className="text-sm md:text-base leading-relaxed">
                                 Get in touch with our support team for personalized assistance.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 p-0">
                             <Button 
-                                className="bg-primary text-primary-foreground hover:opacity-90 rounded-2xl py-6 px-6 text-md"
+                                className="bg-primary text-primary-foreground hover:opacity-90 rounded-2xl py-4 md:py-6 px-4 md:px-6 text-sm md:text-md"
                                 onClick={() => window.open('/#contact', '_blank')}
                             >
                                 Contact Us
@@ -322,17 +322,17 @@ const HelpSupport = () => {
                     <Card className="shadow-none hover:shadow-lg rounded-3xl transition-shadow cursor-pointer min-h-[180px] flex flex-col p-6">
                         <CardHeader className="flex-1 p-0 mb-4">
                             <div className="flex items-center gap-3">
-                                <Mail className="w-8 h-8 text-primary" />
-                                <CardTitle className="text-lg">Email Support</CardTitle>
+                                <Mail className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                                <CardTitle className="text-base md:text-lg">Email Support</CardTitle>
                             </div>
-                            <CardDescription className="text-base leading-relaxed">
+                            <CardDescription className="text-sm md:text-base leading-relaxed">
                                 Send us an email and we'll get back to you within 24 hours.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 p-0">
                             <Button 
                                 variant="outline" 
-                                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-2xl py-6 px-6 text-md"
+                                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-2xl py-4 md:py-6 px-4 md:px-6 text-sm md:text-md"
                                 onClick={() => {
                                     const subject = encodeURIComponent('Help & Support Request');
                                     const body = encodeURIComponent('Hello,\n\nI need help with:\n\n\n\nThank you!');
@@ -358,23 +358,23 @@ const HelpSupport = () => {
                                 onClick={() => toggleCategory(category.id)}
                             >
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-8">
-                                        <div className="p-3 text-primary w-10 h-10">
+                                    <div className="flex items-center gap-4 md:gap-8">
+                                        <div className="p-2 md:p-3 text-primary w-8 h-8 md:w-10 md:h-10">
                                             {category.icon}
                                         </div>
                                         <div>
-                                            <CardTitle className="text-xl text-primary leading-relaxed">
+                                            <CardTitle className="text-base md:text-xl text-primary leading-relaxed">
                                                 {category.title}
                                             </CardTitle>
-                                            <CardDescription className="text-base leading-relaxed">
+                                            <CardDescription className="text-sm md:text-base leading-relaxed">
                                                 {category.description}
                                             </CardDescription>
                                         </div>
                                     </div>
                                     {expandedCategory === category.id ? (
-                                        <ChevronUp className="w-6 h-6 text-primary" />
+                                        <ChevronUp className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                                     ) : (
-                                        <ChevronDown className="w-6 h-6 text-primary" />
+                                        <ChevronDown className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                                     )}
                                 </div>
                             </CardHeader>
@@ -390,17 +390,17 @@ const HelpSupport = () => {
                                                 onClick={() => toggleArticle(article.id)}
                                                 className="w-full text-left flex items-center justify-between group"
                                             >
-                                                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors leading-relaxed">
+                                                <h3 className="text-base md:text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors leading-relaxed">
                                                     {article.title}
                                                 </h3>
                                                 {expandedArticle === article.id ? (
-                                                    <ChevronUp className="w-5 h-5 text-primary flex-shrink-0 ml-4" />
+                                                    <ChevronUp className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0 ml-4" />
                                                 ) : (
-                                                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0 ml-4" />
+                                                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0 ml-4" />
                                                 )}
                                             </button>
                                             {expandedArticle === article.id && (
-                                                <div className="mt-3 text-gray-600 leading-relaxed pr-8">
+                                                <div className="mt-3 text-sm md:text-base text-gray-600 leading-relaxed pr-4 md:pr-8">
                                                     {article.content}
                                                 </div>
                                             )}
@@ -415,9 +415,9 @@ const HelpSupport = () => {
                 {/* No Results Message */}
                 {searchQuery && filteredCategories.length === 0 && (
                     <div className="text-center py-12">
-                        <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-2xl font-semibold text-gray-700 mb-2">No results found</h3>
-                        <p className="text-gray-500">
+                        <FileText className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl md:text-2xl font-semibold text-gray-700 mb-2">No results found</h3>
+                        <p className="text-sm md:text-base text-gray-500">
                             Try searching with different keywords or browse our categories above
                         </p>
                     </div>
@@ -426,21 +426,21 @@ const HelpSupport = () => {
                 {/* Footer Help Section */}
                 <div className="mt-16 pt-8 pb-20 border-t-2 border-gray-200">
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-primary mb-4 leading-relaxed">
+                        <h2 className="text-xl md:text-2xl font-bold text-primary mb-4 leading-relaxed">
                             Still need help?
                         </h2>
-                        <p className="text-gray-600 mb-6 leading-relaxed">
+                        <p className="text-sm md:text-base text-gray-600 mb-6 leading-relaxed">
                             Our support team is here to assist you with any questions or issues
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Button
-                                className="bg-primary text-primary-foreground hover:opacity-90 rounded-full text-lg flex items-center gap-3"
+                                className="bg-primary text-primary-foreground hover:opacity-90 rounded-full text-sm md:text-lg flex items-center gap-3"
                                 style={{ 
-                                    paddingTop: '1.5rem', 
-                                    paddingBottom: '1.5rem', 
-                                    paddingLeft: '2rem', 
-                                    paddingRight: '2rem',
-                                    minWidth: '220px'
+                                    paddingTop: '1rem', 
+                                    paddingBottom: '1rem', 
+                                    paddingLeft: '1.5rem', 
+                                    paddingRight: '1.5rem',
+                                    minWidth: '180px'
                                 }}
                                 onClick={() => {
                                     const subject = encodeURIComponent('Help & Support Request');
@@ -449,7 +449,7 @@ const HelpSupport = () => {
                                     window.location.href = mailtoLink;
                                 }}
                             >
-                                <Mail className="w-5 h-5" style={{ width: '20px', height: '20px' }} />
+                                <Mail className="w-4 h-4 md:w-5 md:h-5" />
                                 Email Support
                             </Button>
                         </div>
