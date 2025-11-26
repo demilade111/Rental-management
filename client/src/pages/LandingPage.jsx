@@ -78,7 +78,7 @@ const LandingPage = () => {
             ></div>
             {/* Filter overlay - darkens and adds blur */}
             <div
-                className="fixed inset-0 z-0 bg-black/85 backdrop-blur-sm"
+                className="fixed inset-0 z-0 bg-black/75 backdrop-blur-sm"
                 style={{
                     WebkitBackdropFilter: 'blur(2px)',
                 }}
