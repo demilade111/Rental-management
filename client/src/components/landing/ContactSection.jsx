@@ -33,8 +33,6 @@ const ContactSection = ({ sectionRef }) => {
 
     return (
         <section id="contact" className="pt-8 py-16 sm:pt-16 sm:py-32 px-4 sm:px-6 lg:px-8 scroll-mt-24 relative overflow-hidden">
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
             <div className="max-w-7xl mx-auto relative z-10">
                 <div className="text-left mb-6 sm:mb-12 md:mb-16" ref={sectionRef}>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-2 leading-relaxed">
@@ -63,7 +61,7 @@ const ContactSection = ({ sectionRef }) => {
                                     required
                                     value={contactForm.name}
                                     onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-primary/60"
+                                    className="w-full px-4 py-3 rounded-lg border border-black/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-primary/60"
                                     placeholder="Your name"
                                 />
                             </div>
@@ -78,7 +76,7 @@ const ContactSection = ({ sectionRef }) => {
                                     required
                                     value={contactForm.email}
                                     onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-primary/60"
+                                    className="w-full px-4 py-3 rounded-lg border border-black/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-primary/60"
                                     placeholder="your.email@example.com"
                                 />
                             </div>
@@ -93,7 +91,7 @@ const ContactSection = ({ sectionRef }) => {
                                     rows={5}
                                     value={contactForm.message}
                                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none placeholder:text-primary/60"
+                                    className="w-full px-4 py-3 rounded-lg border border-black/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none placeholder:text-primary/60"
                                     placeholder="Your message..."
                                 ></textarea>
                             </div>

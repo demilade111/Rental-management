@@ -23,17 +23,8 @@ const LandingHeader = () => {
 
     return (
         <header
-            className="sticky top-0 z-50 shadow-lg shadow-primary-foreground/5"
-            style={{
-                backgroundImage: 'url(/images/bg-banner.jpg)',
-                backgroundAttachment: 'fixed',
-                backgroundPosition: 'bottom',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'cover'
-            }}
+            className="top-0 z-50 shadow-lg"
         >
-            {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/65 dark:bg-gray-950/90 z-0 backdrop-blur-xs overflow-hidden"></div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="flex justify-between items-center h-24">
                     {/* Logo */}

@@ -63,44 +63,53 @@ const LandingPage = () => {
 
     return (
         <div className="min-h-screen relative">
-            {/* Background Image - Using fixed position for better mobile support */}
-            <div 
+            {/* Background Image - Fixed positioning (works on mobile) */}
+            {/* Note: background-attachment: fixed doesn't work on mobile, but fixed positioning does */}
+            <div
                 className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: 'url(/images/PropEase_bg.jpg)',
+                    backgroundImage: 'url(/images/bg-banner.jpg)',
+                    // Fixed attachment for desktop parallax effect
+                    // On mobile, the fixed div itself keeps the background in place
                     backgroundAttachment: 'fixed',
                     WebkitBackgroundAttachment: 'fixed',
                     willChange: 'transform',
                 }}
             ></div>
-            {/* Matte filter overlay with backdrop blur - mobile compatible */}
-            <div 
-                className="fixed inset-0 bg-primary/10 z-0"
+            {/* Filter overlay - darkens and adds blur */}
+            <div
+                className="fixed inset-0 z-0 bg-black/85 backdrop-blur-sm"
                 style={{
-                    backdropFilter: 'blur(1px)',
-                    WebkitBackdropFilter: 'blur(1px)',
+                    WebkitBackdropFilter: 'blur(2px)',
                 }}
             ></div>
             <div className="relative z-10">
-            <LandingStyles />
-            <LandingHeader />
-            <HeroSection />
-            <FeaturesSection 
-                sectionRef={featuresRef} 
-            />
-            <DashboardImageSection 
-                sectionRef={dashboardRef} 
-            />
-            <PricingSection 
-                sectionRef={pricingRef}
-            />
-            <ContactSection 
-                sectionRef={contactRef}
-            />
-            <TeamSection 
-                sectionRef={teamRef}
-            />
-            <LandingFooter />
+                <LandingStyles />
+                <LandingHeader />
+                <HeroSection />
+                {/* Sections after HeroSection with gradient background - defined once here */}
+                <div className="relative z-20" style={{ position: 'relative' }}>
+                    {/* Gradient Background - Applied to all sections except HeroSection */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-card via-teal-50 to-pink-50 z-0"></div>
+                    <div className="relative z-10">
+                        <FeaturesSection
+                            sectionRef={featuresRef}
+                        />
+                        <DashboardImageSection
+                            sectionRef={dashboardRef}
+                        />
+                        <PricingSection
+                            sectionRef={pricingRef}
+                        />
+                        <ContactSection
+                            sectionRef={contactRef}
+                        />
+                        <TeamSection
+                            sectionRef={teamRef}
+                        />
+                        <LandingFooter />
+                    </div>
+                </div>
             </div>
 
             {/* Scroll to Top Button */}
