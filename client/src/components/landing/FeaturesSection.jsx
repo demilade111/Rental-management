@@ -7,15 +7,15 @@ const FeaturesSection = ({ sectionRef }) => {
     const navigate = useNavigate();
 
     return (
-        <section id="features" className="py-32 px-4 sm:px-6 lg:px-8 scroll-mt-16 relative overflow-hidden">
+        <section id="features" className="py-16 sm:py-32 px-4 sm:px-6 lg:px-8 scroll-mt-16 relative overflow-hidden">
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
             <div className="max-w-7xl mx-auto relative z-10">
-                <div className="text-center mb-16" ref={sectionRef}>
-                    <h2 className="text-5xl font-bold text-primary mb-8 leading-relaxed">
+                <div className="text-center mb-6 sm:mb-12 md:mb-16" ref={sectionRef}>
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4 sm:mb-6 md:mb-8 leading-relaxed">
                         Powerful Modules
                     </h2>
-                    <p className="text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         Everything you need to manage your rental properties efficiently
                     </p>
                 </div>
@@ -68,14 +68,14 @@ const FeaturesSection = ({ sectionRef }) => {
                 </div>
 
                 {/* Secondary Button */}
-                <div className="flex justify-center mt-16">
+                <div className="flex justify-center mt-6 sm:mt-12 md:mt-16">
                     <Button
                         onClick={() => navigate("/login")}
-                        style={{ padding: '30px 35px', minWidth: '200px', border: '1px solid #53848F', boxShadow: '0 3px 0px rgba(254, 255, 248, 0.1), 0 3px 7px rgba(254, 255, 248, 0.1)' }}
-                        className="text-primary bg-primary-foreground hover:opacity-90 hover:text-primary-foreground rounded-3xl text-2xl flex items-center gap-3"
+                        style={{ border: '1px solid #53848F', boxShadow: '0 3px 0px rgba(254, 255, 248, 0.1), 0 3px 7px rgba(254, 255, 248, 0.1)' }}
+                        className="text-primary bg-primary-foreground hover:opacity-90 hover:text-primary-foreground rounded-2xl sm:rounded-4xl text-base sm:text-xl md:text-2xl lg:text-3xl px-6 py-6 sm:px-8 sm:py-6 md:px-12 md:py-6 lg:px-16 lg:py-10 min-w-[200px] sm:min-w-[220px] md:min-w-[250px] flex items-center justify-center gap-2 sm:gap-2"
                     >
                         <span>Get Started</span>
-                        <ArrowRight className="hero-btn-icon" />
+                        <ArrowRight className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-8" />
                     </Button>
                 </div>
             </div>

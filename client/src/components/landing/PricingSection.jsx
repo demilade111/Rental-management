@@ -5,15 +5,15 @@ import { Check, X } from "lucide-react";
 const PricingSection = ({ sectionRef }) => {
 
     return (
-        <section id="pricing" className="pt-16 py-32 px-4 sm:px-6 lg:px-8 scroll-mt-24 relative overflow-hidden">
+        <section id="pricing" className="pt-8 py-16 sm:pt-16 sm:py-32 px-4 sm:px-6 lg:px-8 scroll-mt-24 relative overflow-hidden">
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
             <div className="max-w-7xl mx-auto relative z-10">
-                <div className="text-center mb-16" ref={sectionRef}>
-                    <h2 className="text-5xl font-bold text-primary mb-8 leading-relaxed">
+                <div className="text-center mb-6 sm:mb-12 md:mb-16" ref={sectionRef}>
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4 sm:mb-6 md:mb-8 leading-relaxed">
                         Choose Your Plan
                     </h2>
-                    <p className="text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         Flexible pricing options to suit your property management needs
                     </p>
                 </div>
@@ -56,7 +56,7 @@ const PricingSection = ({ sectionRef }) => {
                             <Button
                                 onClick={() => window.open("/login", "_blank")}
                                 style={{ backgroundColor: '#53848F', color: 'white' }}
-                                className="w-full py-6 px-6 rounded-xl text-lg font-semibold transition-colors duration-300 hover:opacity-90 mt-auto"
+                                className="w-full py-3 sm:py-4 md:py-6 px-4 sm:px-5 md:px-6 rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg font-semibold transition-colors duration-300 hover:opacity-90 mt-auto"
                             >
                                 Get Started
                             </Button>
@@ -95,7 +95,7 @@ const PricingSection = ({ sectionRef }) => {
 
                             <Button
                                 onClick={() => window.open("/login", "_blank")}
-                                className="w-full py-6 px-6 rounded-xl bg-white text-primary text-lg font-semibold transition-colors duration-300 hover:bg-white/90 mt-auto"
+                                className="w-full py-3 sm:py-4 md:py-6 px-4 sm:px-5 md:px-6 rounded-lg sm:rounded-xl bg-white text-primary text-sm sm:text-base md:text-lg font-semibold transition-colors duration-300 hover:bg-white/90 mt-auto"
                             >
                                 Get Started
                             </Button>
@@ -130,7 +130,7 @@ const PricingSection = ({ sectionRef }) => {
 
                             <Button
                                 onClick={() => window.open("/login", "_blank")}
-                                className="w-full py-6 px-6 rounded-xl bg-white text-primary text-lg font-semibold transition-colors duration-300 hover:bg-white/90 mt-auto"
+                                className="w-full py-3 sm:py-4 md:py-6 px-4 sm:px-5 md:px-6 rounded-lg sm:rounded-xl bg-white text-primary text-sm sm:text-base md:text-lg font-semibold transition-colors duration-300 hover:bg-white/90 mt-auto"
                             >
                                 Get Started
                             </Button>

@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText } from "lucide-react";
+import { FileText, Github } from "lucide-react";
 
 const LandingFooter = () => {
     return (
@@ -70,6 +70,17 @@ const LandingFooter = () => {
                                 >
                                     <FileText className="w-4 h-4" />
                                     Proposal
+                                </a>
+                            </li>
+                            <li>
+                                <a 
+                                    href="https://github.com" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+                                >
+                                    <Github className="w-4 h-4" />
+                                    GitHub
                                 </a>
                             </li>
                         </ul>

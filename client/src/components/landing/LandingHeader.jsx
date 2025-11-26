@@ -162,15 +162,6 @@ const LandingHeader = () => {
                                     </a>
                                 </div>
                             </div>
-                            <Button
-                                onClick={() => {
-                                    setMobileMenuOpen(false);
-                                    navigate("/login");
-                                }}
-                                className="bg-background text-primary hover:bg-background/90 rounded-2xl w-full"
-                            >
-                                Get Started
-                            </Button>
                         </nav>
                     </div>
                 )}
