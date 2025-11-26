@@ -85,17 +85,38 @@ const MaintenanceForm = ({
       return;
     }
 
-    setSelectedFiles(files);
+    // Limit to maximum 3 files
+    const MAX_FILES = 3;
+    const currentCount = selectedFiles.length;
+    const remainingSlots = MAX_FILES - currentCount;
+    
+    if (remainingSlots <= 0) {
+      // Already at max, don't add more
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
+      return;
+    }
+
+    const filesToAdd = files.slice(0, remainingSlots);
+    const newFiles = [...selectedFiles, ...filesToAdd];
+
+    setSelectedFiles(newFiles);
     // Forward all files to parent under `images`
-    onChange?.({ target: { name: "images", files } });
+    onChange?.({ target: { name: "images", files: newFiles } });
 
     // Build previews for all selected files
-    const urls = files.map((file) => ({ url: URL.createObjectURL(file), name: file.name }));
+    const urls = newFiles.map((file) => ({ url: URL.createObjectURL(file), name: file.name }));
     // Revoke old urls before replacing
     setPreviewUrls((prev) => {
       prev.forEach((p) => URL.revokeObjectURL(p.url));
       return urls;
     });
+
+    // Reset input
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
   };
 
   const removePreview = (url) => {
@@ -131,10 +152,10 @@ const MaintenanceForm = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 rounded-2xl">
-        <DialogHeader className="p-0 px-10 pt-8">
+      <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg max-h-[90vh] flex flex-col p-0 rounded-2xl">
+        <DialogHeader className="p-0 px-4 md:px-10 pt-4 md:pt-8">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle>New Maintenance Request</DialogTitle>
+            <DialogTitle className="text-left text-base px-2 md:px-0 md:text-lg">New Maintenance Request</DialogTitle>
             <Button
               type="button"
               className="rounded-full px-4 bg-blue-50/70 text-blue-700 border border-blue-100 hover:bg-blue-100"
@@ -172,7 +193,7 @@ const MaintenanceForm = ({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-10 py-6">
+        <div className="flex-1 overflow-y-auto px-6 md:px-10 py-4 md:py-6">
           <form onSubmit={onSubmit} className="space-y-4">
             {/* Title */}
             <div>
@@ -294,8 +315,18 @@ const MaintenanceForm = ({
               {previewUrls.length === 0 && (
                 <label htmlFor="maintenance-image-input" className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center h-32 cursor-pointer hover:bg-muted/10 bg-card">
                   <Upload className="w-6 h-6 mb-2" />
-                  <span className="text-sm text-muted-foreground">Upload image(s)</span>
+                  <span className="text-sm text-muted-foreground">Upload image(s) (Max 3)</span>
                 </label>
+              )}
+              {previewUrls.length > 0 && previewUrls.length < 3 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {previewUrls.length} of 3 uploaded. Click images to add more.
+                </p>
+              )}
+              {previewUrls.length >= 3 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum of 3 images reached.
+                </p>
               )}
 
               {previewUrls.length > 0 && (
@@ -340,7 +371,7 @@ const MaintenanceForm = ({
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
-                  className="text-gray-700 shadow-none rounded-2xl border"
+                  className="text-gray-700 bg-primary-foreground shadow-none rounded-2xl border"
                   disabled={saving}
                 >
                   Close

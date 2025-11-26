@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Eye, Send, Trash2, X, Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Eye, Send, Trash2, X, Copy, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,11 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 const getStatusColor = (status) => {
     switch (status) {
@@ -46,9 +51,17 @@ const ApplicationCard = ({
     const [isConfirming, setIsConfirming] = useState(false);
     const [pendingAction, setPendingAction] = useState(null); // "APPROVE" | "REJECT" | "DELETE"
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const isPlaceholderApp = app.fullName === "N/A" && app.email === "na@example.com" && !app.tenantId;
     const canDeleteApplication = app.status === "REJECTED" || (app.status === "NEW" && isPlaceholderApp);
+
+    // Reset dropdown state when pending action changes or component updates
+    useEffect(() => {
+        if (!pendingAction) {
+            setIsDropdownOpen(false);
+        }
+    }, [pendingAction]);
 
     // Truncate text for mobile
     const truncateText = (text, maxLength = 35) => {
@@ -173,7 +186,8 @@ const ApplicationCard = ({
 
                         {/* Actions */}
                         <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
-                            {["PENDING", "NEW", "APPROVED"].includes(app.status) && (
+                            {/* View button - hide for NEW status on mobile (will show in View+Approve+Reject row) */}
+                            {["PENDING", "APPROVED"].includes(app.status) && (
                                 <>
                                     <Button
                                         onClick={handleViewClick}
@@ -199,10 +213,20 @@ const ApplicationCard = ({
                                 </>
                             )}
 
+                            {/* View button for NEW status - desktop only */}
+                            {app.status === "NEW" && (
+                                <Button
+                                    onClick={handleViewClick}
+                                    className="hidden md:flex text-xs px-3 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                                >
+                                    <Eye className="w-3 h-3 mr-1" /> View
+                                </Button>
+                            )}
+
                             {app.status === "APPROVED" && (
                                 <Button
                                     onClick={handleSendLeaseClick}
-                                    className="text-xs px-3 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                                    className="text-xs px-3 py-1.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/90 border border-border"
                                     disabled={isSending}
                                 >
                                     <Send className="w-3 h-3 mr-1" />
@@ -223,29 +247,110 @@ const ApplicationCard = ({
                                 </Button>
                             )}
 
-                            {app.status !== "APPROVED" && app.status !== "REJECTED" && app.status !== "PENDING" && (
+                            {/* Approve/Reject buttons - for NEW status and other non-final statuses */}
+                            {(app.status === "NEW" || (app.status !== "APPROVED" && app.status !== "REJECTED" && app.status !== "PENDING")) && (
                                 <>
-                                    <Button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPendingAction({ type: "APPROVE", id: app.id });
-                                        }}
-                                        className="text-xs px-3 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-                                        disabled={isConfirming}
-                                    >
-                                        <Check className="w-3 h-3 mr-1" /> Approve
-                                    </Button>
+                                    {/* Mobile: View + Approve + Reject on one line */}
+                                    <div className="flex gap-2 md:hidden w-full">
+                                        <Button
+                                            onClick={handleViewClick}
+                                            className="text-xs px-3 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                                        >
+                                            <Eye className="w-3 h-3 mr-1" /> View
+                                        </Button>
+                                        <Button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPendingAction({ type: "APPROVE", id: app.id });
+                                            }}
+                                            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-2 rounded-xl text-white shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                            style={{ backgroundColor: '#008733' }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#006b28'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#008733'}
+                                            disabled={isConfirming}
+                                        >
+                                            <Check className="w-3.5 h-3.5" />
+                                            Approve
+                                        </Button>
 
-                                    <Button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPendingAction({ type: "REJECT", id: app.id });
-                                        }}
-                                        className="text-xs px-3 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white"
-                                        disabled={isConfirming}
-                                    >
-                                        <X className="w-3 h-3 mr-1" /> Reject
-                                    </Button>
+                                        <Button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPendingAction({ type: "REJECT", id: app.id });
+                                            }}
+                                            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                            disabled={isConfirming}
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                            Reject
+                                        </Button>
+                                    </div>
+
+                                    {/* Desktop: Dropdown menu */}
+                                    <div className="hidden md:block relative">
+                                        <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                    }}
+                                                    className="flex items-center gap-2 w-32 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={isConfirming}
+                                                >
+                                                    <MoreVertical />
+                                                    Actions
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent 
+                                                className="w-48 p-2 z-[9999]" 
+                                                align="end"
+                                                side="bottom"
+                                                sideOffset={8}
+                                                onOpenAutoFocus={(e) => e.preventDefault()}
+                                                onEscapeKeyDown={() => setIsDropdownOpen(false)}
+                                                onInteractOutside={(e) => {
+                                                    // Allow closing on outside click
+                                                }}
+                                            >
+                                                <div className="flex flex-col gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsDropdownOpen(false);
+                                                            setTimeout(() => {
+                                                                setPendingAction({ type: "APPROVE", id: app.id });
+                                                            }, 0);
+                                                        }}
+                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left rounded-md hover:bg-green-50 active:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                        style={{ color: '#008733' }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.color = '#006b28'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.color = '#008733'}
+                                                        disabled={isConfirming}
+                                                    >
+                                                        <Check className="w-4 h-4" />
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsDropdownOpen(false);
+                                                            setTimeout(() => {
+                                                                setPendingAction({ type: "REJECT", id: app.id });
+                                                            }, 0);
+                                                        }}
+                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left rounded-md hover:bg-red-50 active:bg-red-100 text-red-700 hover:text-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                        disabled={isConfirming}
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -254,7 +359,7 @@ const ApplicationCard = ({
             </div>
 
             {/* Desktop: Original Layout */}
-            <div className="hidden md:grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 items-center">
+            <div className="hidden md:grid grid-cols-[auto_1fr_1fr_1fr_1fr_auto] gap-4 items-center">
                 {/* Checkbox for bulk selection */}
                 <div className="flex items-center justify-center">
                     <Checkbox
@@ -309,7 +414,7 @@ const ApplicationCard = ({
                 </div>
 
                 {/* Column 5: Actions */}
-                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4">
+                <div className="flex gap-6 justify-center mr-auto border-l border-gray-300 pl-4 min-w-[280px]">
                     <div className="flex gap-3 justify-center">
                         {["PENDING", "NEW", "APPROVED"].includes(app.status) && (
                             <>
@@ -340,7 +445,7 @@ const ApplicationCard = ({
                         {app.status === "APPROVED" && (
                             <Button
                                 onClick={handleSendLeaseClick}
-                                className="flex items-center gap-2 sm:w-32 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                                className="flex items-center gap-2 sm:w-32 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/90 border border-border"
                                 disabled={isSending}
                             >
                                 <Send />
@@ -362,47 +467,66 @@ const ApplicationCard = ({
                         )}
 
                         {app.status !== "APPROVED" && app.status !== "REJECTED" && app.status !== "PENDING" && (
-                            <>
-                                <Button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setPendingAction({ type: "APPROVE", id: app.id });
-                                    }}
-                                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-6 transition disabled:opacity-70"
-                                    disabled={isConfirming}
-                                    title="Approve"
+                            <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="flex items-center gap-2 sm:w-32 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={isConfirming}
+                                    >
+                                        <MoreVertical />
+                                        Actions
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent 
+                                    className="w-48 p-2" 
+                                    align="end"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    <Check className="w-6 h-6" />
-                                </Button>
-
-                                <Button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setPendingAction({ type: "REJECT", id: app.id });
-                                    }}
-                                    className="text-white rounded-2xl px-6 transition bg-red-500 hover:bg-red-500 disabled:opacity-70"
-                                    disabled={isConfirming}
-                                    title="Reject"
-                                >
-                                    <X className="w-6 h-6" />
-                                </Button>
-                            </>
+                                    <div className="flex flex-col gap-1">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsDropdownOpen(false);
+                                                setPendingAction({ type: "APPROVE", id: app.id });
+                                            }}
+                                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left rounded-md hover:bg-green-50 text-green-700 hover:text-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={isConfirming}
+                                        >
+                                            <Check className="w-4 h-4" />
+                                            Approve
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsDropdownOpen(false);
+                                                setPendingAction({ type: "REJECT", id: app.id });
+                                            }}
+                                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left rounded-md hover:bg-red-50 text-red-700 hover:text-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={isConfirming}
+                                        >
+                                            <X className="w-4 h-4" />
+                                            Reject
+                                        </button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         )}
                     </div>
                 </div>
             </div>
 
             <AlertDialog open={!!pendingAction} onOpenChange={(open) => !open && !isConfirming && setPendingAction(null)}>
-                <AlertDialogContent>
+                <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] sm:w-full sm:max-w-lg rounded-2xl sm:rounded-lg">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
+                        <AlertDialogTitle className="text-base sm:text-lg">
                             {pendingAction?.type === "APPROVE"
                                 ? "Approve Application"
                                 : pendingAction?.type === "DELETE"
                                 ? isPlaceholderApp ? "Remove Application Link" : "Delete Application"
                                 : "Reject Application"}
                         </AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogDescription className="text-sm">
                             {pendingAction?.type === "DELETE"
                                 ? isPlaceholderApp
                                     ? "This will remove the generated application link so you can create a new one."
@@ -413,13 +537,17 @@ const ApplicationCard = ({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isConfirming} className="rounded-2xl">
+                        <AlertDialogCancel disabled={isConfirming} className="rounded-2xl text-xs sm:text-sm">
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                             disabled={isConfirming}
-                            className={`rounded-2xl ${
-                                pendingAction?.type === "APPROVE" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-red-600 hover:bg-red-600"
+                            className={`rounded-2xl text-xs sm:text-sm ${
+                                pendingAction?.type === "APPROVE" 
+                                    ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                                    : pendingAction?.type === "REJECT"
+                                    ? "bg-red-600 hover:bg-red-700 text-white"
+                                    : "bg-red-600 hover:bg-red-700 text-white"
                             }`}
                             onClick={() => {
                                 if (!pendingAction) return;

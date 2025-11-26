@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../../store/authStore';
+import { useLocation } from 'react-router-dom';
 import PropertyTabs from './PropertyTabs';
 import PropertySearchBar from './PropertySearchBar';
 import PropertyList from './PropertyList';
@@ -18,10 +19,21 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 
 const PropertyPortfolio = () => {
+  const location = useLocation();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("listings");
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuthStore();
+
+  // Check if we should open the modal from navigation state
+  useEffect(() => {
+    if (location.state?.openListingModal) {
+      setIsModalOpen(true);
+      // Clear the state to prevent reopening on re-render
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const {
     data: properties = [],
@@ -98,6 +110,8 @@ const PropertyPortfolio = () => {
       }
       toast.success('Listings deleted');
       setSelectedItems(new Set());
+      // Invalidate queries to refresh the table
+      queryClient.invalidateQueries(['listings']);
     } catch (e) {
       toast.error('Failed to delete listings');
     }

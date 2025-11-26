@@ -146,7 +146,7 @@ const FilterStandardLeaseDialog = ({ open, onClose, filters, onApply }) => {
                     <Button
                         variant="outline"
                         onClick={resetFilters}
-                        className="w-1/2 rounded-xl"
+                        className="w-1/2 rounded-xl bg-primary-foreground"
                     >
                         Reset
                     </Button>

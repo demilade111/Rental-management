@@ -140,7 +140,7 @@ const FilterDialog = ({ open, onOpenChange, filters, onApplyFilters, tenants = [
           <Button
             variant="outline"
             onClick={handleReset}
-            className="w-1/2 rounded-xl"
+            className="w-1/2 rounded-xl bg-primary-foreground"
           >
             Reset
           </Button>

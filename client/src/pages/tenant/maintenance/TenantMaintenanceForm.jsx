@@ -98,7 +98,7 @@ const TenantMaintenanceForm = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4">New Maintenance Request</h2>
+        <h2 className="text-xl font-semibold mb-4 text-left md:text-center">New Maintenance Request</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium">Title</label>

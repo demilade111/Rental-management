@@ -116,11 +116,11 @@ const InsuranceDetailsModal = ({ insurance, onClose }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-        <div className="bg-background rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto pt-8">
+        <div className="bg-background rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
           {/* Header */}
           <div className="sticky top-0 bg-background px-6 pb-4 flex items-center justify-between z-10">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-gray-900 pt-8">
                 {getTenantName()}'s Insurance Policy Details
               </h2>
               <p className="text-sm text-gray-600 mt-1">

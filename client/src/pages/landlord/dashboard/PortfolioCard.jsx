@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import API_ENDPOINTS from '@/lib/apiEndpoints';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Home } from 'lucide-react';
 
-const PortfolioCard = () => {
+const PortfolioCard = ({ showSkeleton = false }) => {
     // Fetch all listings
     const { data: listings = [], isLoading } = useQuery({
         queryKey: ['listings-dashboard'],
@@ -40,7 +41,7 @@ const PortfolioCard = () => {
     const totalProperties = totalListed + totalOccupied;
     const hasData = !isLoading && totalProperties > 0;
 
-    if (isLoading) {
+    if (showSkeleton || isLoading) {
         return (
             <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
                 <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Portfolio</h2>
@@ -87,17 +88,18 @@ const PortfolioCard = () => {
 
     if (!hasData) {
         return (
-            <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start">
+            <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start min-h-[200px]">
                 <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Portfolio</h2>
-                <div className="text-center py-4 text-gray-500">
-                    No properties in portfolio
+                <div className="text-center text-sm text-gray-500 flex-1 flex flex-col items-center justify-center">
+                    <Home className="w-8 h-8 text-gray-400 mb-2" />
+                    <span>No properties in portfolio</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-5 flex flex-col self-start fade-in">
+        <div className="bg-card rounded-2xl p-5 md:p-6 pb-4 md:pb-8 flex flex-col self-start fade-in">
             <h2 className="text-3xl md:text-3xl lg:text-[32px] font-bold mb-2 text-primary">Portfolio</h2>
             
             {/* Category Labels with Markers */}

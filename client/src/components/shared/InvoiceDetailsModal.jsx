@@ -73,7 +73,7 @@ const InvoiceDetailsModal = ({ open, onClose, payment }) => {
 
                     {/* Property Information */}
                     {listing && (
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-card p-4 rounded-lg">
                             <div className="flex items-start gap-3">
                                 <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
                                 <div>
@@ -90,7 +90,7 @@ const InvoiceDetailsModal = ({ open, onClose, payment }) => {
 
                     {/* Maintenance Request Info */}
                     {maintenanceRequest && (
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-card p-4 rounded-lg">
                             <div className="flex items-start gap-3">
                                 <Wrench className="h-5 w-5 text-gray-400 mt-0.5" />
                                 <div className="flex-1">
@@ -113,7 +113,7 @@ const InvoiceDetailsModal = ({ open, onClose, payment }) => {
                     {/* Invoice Description */}
                     <div>
                         <p className="text-sm font-medium text-gray-700 mb-2">Description</p>
-                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="bg-card border border-gray-200 rounded-lg p-4">
                             <p className="text-sm text-gray-900 whitespace-pre-wrap">
                                 {invoice.description}
                             </p>
@@ -144,7 +144,7 @@ const InvoiceDetailsModal = ({ open, onClose, payment }) => {
 
                 {/* Footer */}
                 <div className="flex justify-end pt-4 border-t">
-                    <Button onClick={onClose} variant="outline" className="px-6">
+                    <Button onClick={onClose} variant="outline" className="px-6 rounded-2xl">
                         Close
                     </Button>
                 </div>

@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Bell, Check, FileText, Eye } from "lucide-react";
+import { Upload, Bell, Check, FileText, Eye, CheckCircle } from "lucide-react";
 import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
 import { getAllInsurances } from "@/services/insuranceService";
@@ -315,8 +315,11 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              <p className="text-lg font-medium">No rent payment due this month</p>
-              <p className="text-sm mt-2">Your rent is paid or no payment scheduled</p>
+              <div className="flex flex-col items-center gap-3">
+                <CheckCircle size={48} className="text-green-500 mb-2" />
+                <p className="text-lg font-medium">No rent payment due this month</p>
+                <p className="text-sm mt-2">Your rent is paid or no payment scheduled</p>
+              </div>
             </div>
           )}
         </div>
@@ -441,7 +444,10 @@ const Dashboard = () => {
                     </span>
                   </p>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Provider:</span> {insurance.providerName || 'N/A'}
+                    <span className="font-medium">Provider:</span>{' '}
+                    <span className="inline-block max-w-full truncate md:max-w-none md:inline">
+                      {insurance.providerName || 'N/A'}
+                    </span>
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Policy Number:</span> {insurance.policyNumber || 'N/A'}

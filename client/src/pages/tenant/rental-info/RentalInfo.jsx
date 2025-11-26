@@ -28,10 +28,9 @@ const RentalInfoSkeleton = () => (
       <Skeleton className="h-6 w-44 mb-4" />
       <Card className="border border-gray-300 p-6">
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-48 flex-shrink-0 space-y-3">
-            {Array.from({ length: 3 }).map((_, idx) => (
-              <Skeleton key={idx} className="w-full h-32 rounded-xl" />
-            ))}
+          <div className="w-full md:w-48 flex-shrink-0">
+            {/* Show only 1 image to match actual content */}
+            <Skeleton className="w-full h-32 rounded-xl" />
           </div>
           <div className="flex-1 space-y-6">
             <div className="space-y-3">
@@ -64,10 +63,9 @@ const RentalInfoSkeleton = () => (
         {Array.from({ length: 3 }).map((_, idx) => (
           <Card key={idx} className="border border-gray-300 p-5">
             <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full md:w-40 flex-shrink-0 space-y-3">
-                {Array.from({ length: 2 }).map((__, imgIdx) => (
-                  <Skeleton key={imgIdx} className="w-full h-24 rounded-lg" />
-                ))}
+              <div className="w-full md:w-40 flex-shrink-0">
+                {/* Show only 1 image to match actual content */}
+                <Skeleton className="w-full h-32 rounded-lg" />
               </div>
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -301,18 +299,16 @@ const RentalInfo = () => {
             
             <Card className="border border-gray-300 p-6">
               <div className="flex flex-col md:flex-row gap-6">
-                {/* Left: Property Images Stacked */}
+                {/* Left: Property Image - First Image Only */}
                 {currentLease.listing?.images && currentLease.listing.images.length > 0 && (
-                  <div className="w-full md:w-48 flex-shrink-0 space-y-3">
-                    {currentLease.listing.images.map((img, idx) => (
-                      <div key={idx} className="w-full h-32 rounded-lg overflow-hidden">
-                        <PropertyImage
-                          image={img}
-                          alt={`${currentLease.listing?.title || 'Property'} - Image ${idx + 1}`}
-                          className="w-full h-full"
-                        />
-                      </div>
-                    ))}
+                  <div className="w-full md:w-48 flex-shrink-0">
+                    <div className="w-full h-32 rounded-lg overflow-hidden">
+                      <PropertyImage
+                        image={currentLease.listing.images[0]}
+                        alt={`${currentLease.listing?.title || 'Property'} - Image 1`}
+                        className="w-full h-full"
+                      />
+                    </div>
                   </div>
                 )}
 

@@ -18,8 +18,6 @@ const TenantInsurance = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuthStore();
-  const [insurances, setInsurances] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
   const [viewingInsurance, setViewingInsurance] = useState(null);
   const prevLocationRef = useRef(location.pathname);
@@ -54,6 +52,18 @@ const TenantInsurance = () => {
     enabled: !!user,
   });
 
+  // Fetch tenant insurance data using React Query
+  const { data: insuranceData, isLoading: loading, refetch: refetchInsurances } = useQuery({
+    queryKey: ['tenant-insurances', user?.id],
+    queryFn: async () => {
+      const data = await getAllInsurances();
+      return data.insurances || [];
+    },
+    enabled: !!user,
+  });
+
+  const insurances = insuranceData || [];
+
   // Find current active lease
   const activeLeases = allLeases.filter(lease => {
     const isActive = lease.leaseStatus === 'ACTIVE';
@@ -72,21 +82,7 @@ const TenantInsurance = () => {
   const leaseId = currentLease?.leaseType === 'STANDARD' ? currentLease?.id : null;
   const customLeaseId = currentLease?.leaseType === 'CUSTOM' ? currentLease?.id : null;
 
-  const fetchInsurances = async () => {
-    try {
-      setLoading(true);
-      const data = await getAllInsurances();
-      setInsurances(data.insurances || []);
-    } catch (error) {
-      console.error("Error fetching insurances:", error);
-      toast.error("Failed to load insurance records");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchInsurances();
     // Reset showUpload when component mounts (e.g., navigating to insurance page)
     setShowUpload(false);
   }, []);
@@ -133,7 +129,7 @@ const TenantInsurance = () => {
         <UploadInsurance
           onSuccess={() => {
             setShowUpload(false);
-            fetchInsurances();
+            refetchInsurances();
           }}
           onCancel={() => {
             setShowUpload(false);
@@ -226,7 +222,7 @@ const TenantInsurance = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate max-w-[200px] md:max-w-none">
                           {insurance.providerName}
                         </h3>
                         <StatusBadge status={insurance.status} />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +38,7 @@ import DocumentPreview from "@/components/shared/DocumentPreview";
 const ApplyForm = () => {
   const { publicId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [redirectAfterSubmit, setRedirectAfterSubmit] = useState(false);
   const documentInputRef = useRef(null);
@@ -120,6 +121,7 @@ const ApplyForm = () => {
     isLoading,
     isError,
     error,
+    refetch: refetchApplicationMeta,
   } = useQuery({
     queryKey: ["applicationPublic", publicId],
     queryFn: async () => {
@@ -144,12 +146,36 @@ const ApplyForm = () => {
       );
       return res.data;
     },
-    onSuccess: () => {
-      toast.success("Application submitted — landlord will be notified.");
-      // setRedirectAfterSubmit(true);
+    onSuccess: async (data) => {
+      // Store landlord email before navigation
+      const landlordEmail = applicationMeta?.landlord?.email;
+      
+      // Navigate immediately to prevent showing "already submitted" page
+      // This must happen before any cache updates to avoid re-render showing the "already submitted" view
       navigate("/apply/thank-you", { 
-        state: { landlordEmail: applicationMeta.landlord?.email } 
+        state: { landlordEmail } 
       });
+      
+      // Update cache in the background after navigation
+      // This ensures data is fresh if user navigates back, but doesn't block navigation
+      setTimeout(() => {
+        queryClient.setQueryData(["applicationPublic", publicId], (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            status: data?.data?.status || "NEW",
+            fullName: form.fullName,
+            email: form.email,
+            phone: form.phone,
+            submittedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+        });
+        queryClient.invalidateQueries({ queryKey: ["applicationPublic", publicId] });
+        refetchApplicationMeta();
+      }, 100);
+      
+      toast.success("Application submitted — landlord will be notified.");
     },
     onError: (err) => {
       console.error(err);
@@ -522,8 +548,18 @@ const ApplyForm = () => {
 
   const handleAddDocument = (files) => {
     const fileArray = Array.isArray(files) ? files : [files];
+    const MAX_FILES = 3;
+    const currentCount = form.documents?.length || 0;
+    const remainingSlots = MAX_FILES - currentCount;
+    
+    if (remainingSlots <= 0) {
+      // Already at max, don't add more
+      return;
+    }
+
+    const filesToAdd = fileArray.slice(0, remainingSlots);
     setForm((s) => {
-      const newDocs = [...(s.documents || []), ...fileArray];
+      const newDocs = [...(s.documents || []), ...filesToAdd];
       return { ...s, documents: newDocs };
     });
   };
@@ -610,14 +646,14 @@ const ApplyForm = () => {
 
   // ---------- UI Steps ----------
   return (
-    <div className="min-h-screen flex items-start justify-center py-10 px-4 md:px-8 bg-gray-50">
-      <div className="w-full max-w-3xl bg-stone-50 rounded-lg shadow p-8 border border-stone-200">
+    <div className="min-h-screen flex items-start justify-center py-4 md:py-10 px-4 md:px-8 bg-gray-50">
+      <div className="w-full max-w-3xl bg-stone-50 rounded-lg shadow p-4 md:p-8 border border-stone-200">
         {/* Header */}
-        <div className="mb-6 space-y-2">
-          <h1 className="text-2xl font-semibold">
+        <div className="mb-4 md:mb-6 space-y-1 md:space-y-2">
+          <h1 className="text-lg md:text-2xl font-semibold">
             Apply for {applicationMeta.listing?.title || "property"}
           </h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs md:text-sm text-gray-600">
             {applicationMeta.listing?.streetAddress}
           </p>
           {applicationMeta.expirationDate && (
@@ -652,27 +688,27 @@ const ApplyForm = () => {
         </div>
 
         {/* Stepper */}
-        <div className="flex items-center gap-4 my-10">
+        <div className="flex items-center gap-2 md:gap-4 my-4 md:my-10 overflow-x-auto pb-2">
           <div
-            className={`px-3 py-1 rounded-2xl ${step === 1 ? "bg-black text-white" : "bg-gray-100"
+            className={`px-2 md:px-3 py-1 rounded-2xl text-xs md:text-sm whitespace-nowrap ${step === 1 ? "bg-black text-white" : "bg-gray-100"
               }`}
           >
             1. Personal
           </div>
           <div
-            className={`px-3 py-1 rounded-2xl ${step === 2 ? "bg-black text-white" : "bg-gray-100"
+            className={`px-2 md:px-3 py-1 rounded-2xl text-xs md:text-sm whitespace-nowrap ${step === 2 ? "bg-black text-white" : "bg-gray-100"
               }`}
           >
             2. Employment
           </div>
           <div
-            className={`px-3 py-1 rounded-2xl ${step === 3 ? "bg-black text-white" : "bg-gray-100"
+            className={`px-2 md:px-3 py-1 rounded-2xl text-xs md:text-sm whitespace-nowrap ${step === 3 ? "bg-black text-white" : "bg-gray-100"
               }`}
           >
             3. Occupants
           </div>
           <div
-            className={`px-3 py-1 rounded-2xl ${step === 4 ? "bg-black text-white" : "bg-gray-100"
+            className={`px-2 md:px-3 py-1 rounded-2xl text-xs md:text-sm whitespace-nowrap ${step === 4 ? "bg-black text-white" : "bg-gray-100"
               }`}
           >
             4. Documents
@@ -692,13 +728,13 @@ const ApplyForm = () => {
         </div>
 
         {/* Form Body */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* STEP 1: Personal */}
           {step === 1 && (
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="mb-1">Full name</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Full name</Label>
                   <Input
                     value={form.fullName}
                     onChange={(e) => {
@@ -711,8 +747,8 @@ const ApplyForm = () => {
                   />
                   {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label className="mb-1">Email</Label>
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Email</Label>
                   <Input
                     type="email"
                     value={form.email}
@@ -727,8 +763,8 @@ const ApplyForm = () => {
                   {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="mb-1">Phone</Label>
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Phone</Label>
                   <Input
                     type="tel"
                     value={form.phone}
@@ -743,8 +779,8 @@ const ApplyForm = () => {
                   {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="mb-1">Date of birth</Label>
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Date of birth</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -775,8 +811,8 @@ const ApplyForm = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="mb-1">Monthly Income</Label>
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Monthly Income</Label>
                   <Input
                     type="number"
                     value={form.monthlyIncome}
@@ -798,8 +834,8 @@ const ApplyForm = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="mb-1">Move-in Date</Label>
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Move-in Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -830,8 +866,8 @@ const ApplyForm = () => {
                   )}
                 </div>
 
-                <div className="md:col-span-2 space-y-2">
-                  <Label className="mb-1">Current Address</Label>
+                <div className="md:col-span-2 space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Current Address</Label>
                   <Input
                     value={form.currentAddress}
                     onChange={(e) => {
@@ -853,24 +889,24 @@ const ApplyForm = () => {
           {/* STEP 2: Employment (repeatable) */}
           {step === 2 && (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium">Employment Information</h3>
-                <Button className="rounded-2xl" variant="outline" onClick={addEmployment}>
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <h3 className="font-medium text-sm md:text-base">Employment Information</h3>
+                <Button className="rounded-2xl text-xs md:text-sm px-3 md:px-4" variant="outline" onClick={addEmployment}>
                   Add Employment
                 </Button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {(form.employmentInfo || []).length === 0 && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs md:text-sm text-gray-500">
                     No employment records yet. Add one.
                   </p>
                 )}
                 {(form.employmentInfo || []).map((emp, idx) => (
-                  <div key={idx} className="border p-6 rounded">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="mb-1">Employer</Label>
+                  <div key={idx} className="border p-3 md:p-6 rounded">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="space-y-1 md:space-y-2">
+                        <Label className="mb-1 text-xs md:text-sm">Employer</Label>
                         <Input
                           value={emp.employerName}
                           onChange={(e) => {
@@ -885,8 +921,8 @@ const ApplyForm = () => {
                           <p className="text-red-500 text-sm">{employmentErrors[`${idx}_employerName`]}</p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="mb-1">Job title</Label>
+                      <div className="space-y-1 md:space-y-2">
+                        <Label className="mb-1 text-xs md:text-sm">Job title</Label>
                         <Input
                           value={emp.jobTitle}
                           onChange={(e) => {
@@ -901,8 +937,8 @@ const ApplyForm = () => {
                           <p className="text-red-500 text-sm">{employmentErrors[`${idx}_jobTitle`]}</p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="mb-1">Annual Income</Label>
+                      <div className="space-y-1 md:space-y-2">
+                        <Label className="mb-1 text-xs md:text-sm">Annual Income</Label>
                         <Input
                           type="number"
                           value={emp.income || ""}
@@ -929,8 +965,8 @@ const ApplyForm = () => {
                           <p className="text-red-500 text-sm">{employmentErrors[`${idx}_income`]}</p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="mb-1">Duration</Label>
+                      <div className="space-y-1 md:space-y-2">
+                        <Label className="mb-1 text-xs md:text-sm">Duration</Label>
                         <Input
                           value={emp.duration}
                           onChange={(e) => {
@@ -945,8 +981,8 @@ const ApplyForm = () => {
                           <p className="text-red-500 text-sm">{employmentErrors[`${idx}_duration`]}</p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="mb-1">Address</Label>
+                      <div className="space-y-1 md:space-y-2">
+                        <Label className="mb-1 text-xs md:text-sm">Address</Label>
                         <Textarea
                           value={emp.address}
                           onChange={(e) => {
@@ -954,16 +990,16 @@ const ApplyForm = () => {
                             clearEmploymentError(idx, "address");
                           }}
                           onBlur={(e) => validateEmploymentField(idx, "address", e.target.value)}
-                          className={`bg-white min-h-[88px] ${employmentErrors[`${idx}_address`] ? "border-red-500" : ""}`}
+                          className={`bg-white min-h-[60px] md:min-h-[88px] text-sm md:text-base ${employmentErrors[`${idx}_address`] ? "border-red-500" : ""}`}
                           placeholder="Enter employer address"
-                          rows={3}
+                          rows={2}
                         />
                         {employmentErrors[`${idx}_address`] && (
                           <p className="text-red-500 text-sm">{employmentErrors[`${idx}_address`]}</p>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <Label className="mb-1">Proof document</Label>
+                      <div className="space-y-1 md:space-y-2">
+                        <Label className="mb-1 text-xs md:text-sm">Proof document</Label>
                         {employmentErrors[`${idx}_proofDocument`] && (
                           <p className="text-red-500 text-sm mb-1">{employmentErrors[`${idx}_proofDocument`]}</p>
                         )}
@@ -985,11 +1021,11 @@ const ApplyForm = () => {
                           {!emp.proofDocumentFile && (
                             <label
                               htmlFor={`proof-${idx}`}
-                              className="block border-2 border-dashed rounded-lg p-4 cursor-pointer hover:bg-gray-50 text-center"
+                              className="block border-2 border-dashed rounded-lg p-3 md:p-4 cursor-pointer hover:bg-gray-50 text-center"
                               onClick={() => employmentProofInputRefs.current[idx]?.click()}
                             >
-                              <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
-                              <span className="text-sm text-gray-600">Upload proof document</span>
+                              <Upload className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1 md:mb-2 text-gray-400" />
+                              <span className="text-xs md:text-sm text-gray-600">Upload proof document</span>
                             </label>
                           )}
                           {emp.proofDocumentFile && (
@@ -1005,9 +1041,9 @@ const ApplyForm = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex justify-end mt-6">
+                    <div className="flex justify-end mt-3 md:mt-6">
                       <Button
-                        className="rounded-2xl"
+                        className="rounded-2xl text-xs md:text-sm px-3 md:px-4"
                         variant="ghost"
                         onClick={() => removeEmployment(idx)}
                       >
@@ -1022,9 +1058,9 @@ const ApplyForm = () => {
 
           {/* STEP 3: Occupants / Pets / Tenants / Message */}
           {step === 3 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="mb-1">Number of tenants</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="space-y-1 md:space-y-2">
+                <Label className="mb-1 text-xs md:text-sm">Number of tenants</Label>
                 <Input
                   type="number"
                   value={form.numberOfTenants}
@@ -1044,8 +1080,8 @@ const ApplyForm = () => {
                   <p className="text-red-500 text-sm">{errors.numberOfTenants}</p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label className="mb-1">Number of occupants</Label>
+              <div className="space-y-1 md:space-y-2">
+                <Label className="mb-1 text-xs md:text-sm">Number of occupants</Label>
                 <Input
                   type="number"
                   value={form.occupantsCount}
@@ -1065,8 +1101,8 @@ const ApplyForm = () => {
                   <p className="text-red-500 text-sm">{errors.occupantsCount}</p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label className="mb-1">Number of pets</Label>
+              <div className="space-y-1 md:space-y-2">
+                <Label className="mb-1 text-xs md:text-sm">Number of pets</Label>
                 <Input
                   type="number"
                   value={form.petsCount}
@@ -1082,8 +1118,8 @@ const ApplyForm = () => {
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-2">
-                <Label className="mb-1">Additional message</Label>
+              <div className="md:col-span-2 space-y-1 md:space-y-2">
+                <Label className="mb-1 text-xs md:text-sm">Additional message</Label>
                 <Textarea
                   value={form.message}
                   onChange={(e) => {
@@ -1091,9 +1127,9 @@ const ApplyForm = () => {
                     clearError("message");
                   }}
                   onBlur={(e) => validateField("message", e.target.value)}
-                  className={`bg-white ${errors.message ? "border-red-500" : ""}`}
+                  className={`bg-white text-sm md:text-base ${errors.message ? "border-red-500" : ""}`}
                   placeholder="Any additional information you'd like to share with the landlord..."
-                  rows={4}
+                  rows={3}
                 />
                 {errors.message && (
                   <p className="text-red-500 text-sm">{errors.message}</p>
@@ -1105,11 +1141,21 @@ const ApplyForm = () => {
           {/* STEP 4: Documents & Review */}
           {step === 4 && (
             <div>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="mb-1">Upload documents (ID, payslips etc.)</Label>
+              <div className="space-y-3 md:space-y-4">
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="mb-1 text-xs md:text-sm">Upload documents (ID, payslips etc.)</Label>
                   {form.documents.length === 0 && (
                     <p className="text-red-500 text-sm">At least one document is required</p>
+                  )}
+                  {form.documents.length > 0 && form.documents.length < 3 && (
+                    <p className="text-xs text-gray-500 mb-1">
+                      {form.documents.length} of 3 documents uploaded
+                    </p>
+                  )}
+                  {form.documents.length >= 3 && (
+                    <p className="text-xs text-gray-500 mb-1">
+                      Maximum of 3 documents reached
+                    </p>
                   )}
                   <input
                     ref={documentInputRef}
@@ -1124,14 +1170,14 @@ const ApplyForm = () => {
                       }
                     }}
                   />
-                  {form.documents.length === 0 && (
+                  {form.documents.length < 3 && (
                     <label
                       htmlFor="document-input"
-                      className={`block border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-gray-50 text-center mt-2 ${form.documents.length === 0 ? "border-red-500" : ""}`}
+                      className={`block border-2 border-dashed rounded-lg p-4 md:p-6 cursor-pointer hover:bg-gray-50 text-center mt-2 ${form.documents.length === 0 ? "border-red-500" : ""}`}
                       onClick={() => documentInputRef.current?.click()}
                     >
-                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                      <span className="text-sm text-gray-600">Click to upload documents</span>
+                      <Upload className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 md:mb-2 text-gray-400" />
+                      <span className="text-xs md:text-sm text-gray-600">Click to upload documents (Max 3)</span>
                       <p className="text-xs text-gray-500 mt-1">
                         Supports images and PDF files
                       </p>
@@ -1147,33 +1193,35 @@ const ApplyForm = () => {
                   )}
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded">
-                  <h4 className="font-semibold mb-2">Review</h4>
-                  <p>
-                    <strong>Name:</strong> {form.fullName}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {form.email}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {form.phone}
-                  </p>
-                  <p>
-                    <strong>Occupants:</strong> {form.occupantsCount}
-                  </p>
-                  <p>
-                    <strong>Number of Tenants:</strong> {form.numberOfTenants}
-                  </p>
-                  <p>
-                    <strong>Pets:</strong> {form.petsCount}
-                  </p>
-                  <p>
-                    <strong>Monthly Income:</strong> {form.monthlyIncome ? `$${form.monthlyIncome}` : "Not provided"}
-                  </p>
-                  <p>
-                    <strong>Move-in Date:</strong> {form.moveInDate ? format(form.moveInDate, "PPP") : "Not selected"}
-                  </p>
-                  <p className="mt-2 text-sm text-gray-600">
+                <div className="bg-gray-50 p-3 md:p-4 rounded">
+                  <h4 className="font-semibold mb-2 text-sm md:text-base">Review</h4>
+                  <div className="space-y-1 md:space-y-2 text-xs md:text-sm">
+                    <p>
+                      <strong>Name:</strong> {form.fullName}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {form.email}
+                    </p>
+                    <p>
+                      <strong>Phone:</strong> {form.phone}
+                    </p>
+                    <p>
+                      <strong>Occupants:</strong> {form.occupantsCount}
+                    </p>
+                    <p>
+                      <strong>Number of Tenants:</strong> {form.numberOfTenants}
+                    </p>
+                    <p>
+                      <strong>Pets:</strong> {form.petsCount}
+                    </p>
+                    <p>
+                      <strong>Monthly Income:</strong> {form.monthlyIncome ? `$${form.monthlyIncome}` : "Not provided"}
+                    </p>
+                    <p>
+                      <strong>Move-in Date:</strong> {form.moveInDate ? format(form.moveInDate, "PPP") : "Not selected"}
+                    </p>
+                  </div>
+                  <p className="mt-2 text-xs md:text-sm text-gray-600">
                     <strong>Note:</strong> By submitting you agree that the
                     landlord may review your information.
                   </p>
@@ -1184,18 +1232,18 @@ const ApplyForm = () => {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between mt-6">
+        <div className="flex items-center justify-between mt-4 md:mt-6">
           <div>
             {step > 1 && (
-              <Button className="rounded-2xl" variant="ghost" onClick={() => setStep(step - 1)}>
+              <Button className="rounded-2xl text-xs md:text-sm px-3 md:px-4" variant="ghost" onClick={() => setStep(step - 1)}>
                 Back
               </Button>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {step < 4 && (
-              <Button className="rounded-2xl" onClick={() => {
+              <Button className="rounded-2xl text-xs md:text-sm px-3 md:px-4" onClick={() => {
                 // Validate based on current step
                 let canProceed = false;
                 
@@ -1253,7 +1301,7 @@ const ApplyForm = () => {
             )}
             {step === 4 && (
               <Button
-                className="rounded-2xl"
+                className="rounded-2xl text-xs md:text-sm px-3 md:px-4"
                 onClick={handleSubmit}
                 disabled={submitMutation.isPending}
               >

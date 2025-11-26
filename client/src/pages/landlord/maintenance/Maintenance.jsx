@@ -8,6 +8,7 @@ import {
 } from "@/lib/maintenanceApi";
 import axios from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import MaintenanceForm from "./MaintenanceForm";
 import MaintenanceColumn from "./MaintenanceColumn";
 import MaintenanceSearchBar from "./MaintanenceSearchBar";
@@ -29,8 +30,6 @@ import {
 function Maintenance() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [properties, setProperties] = useState([]);
   const [saving, setSaving] = useState(false);
   const [chips, setChips] = useState([]);
@@ -40,6 +39,7 @@ function Maintenance() {
     category: "",
     listingId: "",
   });
+  const queryClient = useQueryClient();
   const [within7Days, setWithin7Days] = useState(false);
   const [within30Days, setWithin30Days] = useState(false);
   const [withinToday, setWithinToday] = useState(false);
@@ -139,23 +139,18 @@ function Maintenance() {
     }
   }, [user?.role, checkTerminatedLease]);
 
-  const loadMaintenanceRequests = useCallback(async () => {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const data = await maintenanceApi.getAllRequests(filters);
-        setMaintenanceRequests(data.data || data);
-      } catch (err) {
-        console.error("Error fetching maintenance requests:", err);
-        toast.error("Failed to fetch maintenance requests.");
-      } finally {
-        setLoading(false);
-      }
-  }, [token, filters]);
+  // Fetch maintenance requests using React Query
+  const { data: maintenanceData, isLoading: loading, refetch: refetchMaintenance } = useQuery({
+    queryKey: ['maintenance-requests', user?.id, filters],
+    queryFn: async () => {
+      if (!token) return { data: [] };
+      const data = await maintenanceApi.getAllRequests(filters);
+      return data.data || data;
+    },
+    enabled: !!token && !!user?.id,
+  });
 
-  useEffect(() => {
-    loadMaintenanceRequests();
-  }, [loadMaintenanceRequests]);
+  const maintenanceRequests = maintenanceData || [];
 
   const handleChange = useCallback((e) => {
     const { name, value, files } = e.target;
@@ -225,14 +220,14 @@ function Maintenance() {
         images: [],
       });
 
-      await loadMaintenanceRequests();
+      await refetchMaintenance();
     } catch (error) {
       console.error("Error submitting request:", error);
       toast.error("Failed to create request");
     } finally {
       setSaving(false); // stop saving
     }
-  }, [formData, user.role, properties, loadMaintenanceRequests]);
+  }, [formData, user.role, properties, refetchMaintenance]);
 
   const handleStatusUpdate = useCallback(async (requestId, actionName, newStatus) => {
     try {
@@ -240,12 +235,8 @@ function Maintenance() {
 
       await maintenanceApi.updateStatus(requestId, newStatus);
 
-      // Update local state instead of refetching
-      setMaintenanceRequests((prev) =>
-        prev.map((req) =>
-          req.id === requestId ? { ...req, status: newStatus } : req
-        )
-      );
+      // Invalidate query to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] });
 
       toast.success(`Request ${newStatus.replace(/_/g, " ").toLowerCase()} successfully!`);
     } catch (error) {
@@ -258,7 +249,7 @@ function Maintenance() {
         return updated;
       });
     }
-  }, []);
+  }, [queryClient]);
 
   const handleDeleteRequest = useCallback(async () => {
     if (!requestToDelete) return;
@@ -268,10 +259,8 @@ function Maintenance() {
 
       await maintenanceApi.deleteRequest(requestToDelete);
 
-      // Remove from local state instead of refetching
-      setMaintenanceRequests((prev) =>
-        prev.filter((req) => req.id !== requestToDelete)
-      );
+      // Invalidate query to refetch updated data
+      queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] });
 
       toast.success("Request deleted successfully!");
       setDeleteDialogOpen(false);

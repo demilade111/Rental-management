@@ -17,13 +17,21 @@ export const notificationApi = {
     if (options.offset) {
       params.append("offset", options.offset);
     }
+    // Add cache-busting timestamp to ensure fresh data
+    params.append("_t", Date.now());
 
     const queryString = params.toString();
     const url = queryString
       ? `${NOTIFICATION_API_BASE}?${queryString}`
-      : NOTIFICATION_API_BASE;
+      : `${NOTIFICATION_API_BASE}?_t=${Date.now()}`;
 
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     return response.data;
   },
 
@@ -31,7 +39,13 @@ export const notificationApi = {
    * Get unread notification count
    */
   getUnreadCount: async () => {
-    const response = await axios.get(`${NOTIFICATION_API_BASE}/unread-count`);
+    const response = await axios.get(`${NOTIFICATION_API_BASE}/unread-count?_t=${Date.now()}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     return response.data;
   },
 

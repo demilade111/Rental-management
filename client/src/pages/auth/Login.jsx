@@ -94,11 +94,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: 'url(/images/PropEase_bg.jpg)',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover'
+      }}
+    >
+      {/* Matte filter overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-card/50 to-background backdrop-blur-[1px] z-0"></div>
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
+      <div className="w-full max-w-sm rounded-2xl shadow-lg backdrop-blur-md bg-card/80">
         <form
           onSubmit={handleSubmit}
-          className="bg-card px-8 py-10 rounded-2xl shadow-lg border border-border"
+          className="bg-white backdrop-blur-sm px-8 py-10 rounded-2xl shadow-lg border border-border"
           autoComplete="off"
         >
           <div className="flex flex-col gap-0 my-4">
@@ -121,7 +133,7 @@ export default function LoginPage() {
                 disabled={isPending}
                 autoComplete="off"
                 placeholder="your@email.com"
-                className="w-full p-2 pr-10 rounded disabled:opacity-50 bg-card text-foreground placeholder:text-foreground/50"
+                className="w-full p-2 pr-10 rounded disabled:opacity-50 bg-white text-foreground placeholder:text-foreground/50"
               />
               <div className="absolute inset-y-0 right-3 flex items-center text-foreground/70 pointer-events-none">
                 <Mail className="w-5 h-5" />
@@ -143,7 +155,7 @@ export default function LoginPage() {
                 disabled={isPending}
                 autoComplete="new-password"
                 placeholder="Enter your password"
-                className="w-full p-2 pr-12 rounded disabled:opacity-50 bg-card text-foreground placeholder:text-foreground/50"
+                className="w-full p-2 pr-12 rounded disabled:opacity-50 bg-white text-foreground placeholder:text-foreground/50"
               />
               <button
                 type="button"
@@ -190,7 +202,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm mt-20">
         <h2 className="text-lg font-semibold text-primary mb-2">Demo Login</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div className="p-3 rounded-md border border-border bg-card shadow-sm">
+          <div className="p-3 rounded-md border border-border bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-primary">Landlord</span>
               <Button
@@ -206,7 +218,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="p-3 rounded-md border border-border bg-card shadow-sm">
+          <div className="p-3 rounded-md border border-border bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-primary">Tenant</span>
               <Button
@@ -225,6 +237,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

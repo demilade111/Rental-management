@@ -169,7 +169,7 @@ const UploadInsurance = ({ onSuccess, onCancel, leaseId, customLeaseId }) => {
   };
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <div className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
       <div className="max-w-3xl mx-auto">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
@@ -180,7 +180,7 @@ const UploadInsurance = ({ onSuccess, onCancel, leaseId, customLeaseId }) => {
         </div>
         <Button
           type="button"
-          className="bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-full text-sm"
+          className="w-fit bg-blue-50/70 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-full text-sm"
           onClick={() => {
             form.reset({
               providerName: "Evertrust Insurance Group",

@@ -50,17 +50,25 @@ export async function createInsurance(data) {
         },
       },
       lease: {
-        select: {
-          id: true,
-          propertyAddress: true,
-          landlordId: true,
+        include: {
+          listing: {
+            select: {
+              id: true,
+              title: true,
+              streetAddress: true,
+            },
+          },
         },
       },
       customLease: {
-        select: {
-          id: true,
-          leaseName: true,
-          landlordId: true,
+        include: {
+          listing: {
+            select: {
+              id: true,
+              title: true,
+              streetAddress: true,
+            },
+          },
         },
       },
     },

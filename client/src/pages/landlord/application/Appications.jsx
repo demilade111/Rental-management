@@ -120,7 +120,7 @@ const Applications = () => {
     const applicationsForAvailability = (applicationsData.applications || [])
         .filter((app) => !terminatedListingIds.includes(app.listingId))
         .filter((app) => !isPlaceholderApplication(app));
-    const availableListings = getAvailableListings(listings, applicationsForAvailability);
+    const availableListings = getAvailableListings(listings, applicationsForAvailability, activeLeaseListingIds);
 
     // Filter applications by search and user filters (backend already filters out active/terminated leases)
     // Backend now handles: excluding listings with active/terminated leases and non-ACTIVE listings
@@ -309,7 +309,7 @@ const Applications = () => {
 
             <div className="rounded overflow-hidden flex-1 flex flex-col min-h-0">
                 {/* Table Header - Desktop */}
-                <div className={`hidden md:grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
+                <div className={`hidden md:grid grid-cols-[auto_1fr_1fr_1fr_1fr_auto] mb-3 bg-primary p-3 text-primary-foreground font-semibold rounded-2xl gap-4 flex-shrink-0`}>
                     <div className="flex items-center justify-center">
                         <Checkbox
                             checked={allSelected}
@@ -321,7 +321,7 @@ const Applications = () => {
                     <div className="border-l border-primary-foreground/20 pl-4">Listing Info</div>
                     <div className="border-l border-primary-foreground/20 pl-4">Created</div>
                     <div className="border-l border-primary-foreground/20 pl-4">Status</div>
-                    <div className="border-l border-primary-foreground/20 pl-4">Actions</div>
+                    <div className="border-l border-primary-foreground/20 pl-4 flex items-center justify-center min-w-[280px]">Actions</div>
                 </div>
 
                 {/* Table Header - Mobile: Only Applicant Info */}
@@ -345,7 +345,7 @@ const Applications = () => {
                             {[...Array(5)].map((_, idx) => (
                                 <div
                                     key={`application-skeleton-${idx}`}
-                                    className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-4 border border-gray-200 rounded-2xl p-3 items-center bg-card"
+                                    className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_auto] gap-4 border border-gray-200 rounded-2xl p-3 items-center bg-card"
                                 >
                                     <div className="flex justify-center">
                                         <Skeleton className="h-4 w-4 rounded-sm" />
@@ -365,9 +365,9 @@ const Applications = () => {
                                         <Skeleton className="h-4 w-16 rounded-full" />
                                         <Skeleton className="h-4 w-12 rounded-md" />
                                     </div>
-                                    <div className="border-l border-gray-100 pl-4 flex justify-end gap-2">
-                                        <Skeleton className="h-8 w-8 rounded-xl" />
-                                        <Skeleton className="h-8 w-8 rounded-xl" />
+                                    <div className="border-l border-gray-100 pl-4 flex justify-end gap-2 min-w-[280px]">
+                                        <Skeleton className="h-8 w-28 rounded-xl" />
+                                        <Skeleton className="h-8 w-32 rounded-xl" />
                                     </div>
                                 </div>
                             ))}

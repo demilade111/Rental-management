@@ -17,6 +17,8 @@ import ApplyForm from "./pages/landlord/application/ApplyForm";
 import SignLeasePage from "./pages/landlord/application/SignLeasePage";
 import ThankYouApplyPage from "./pages/landlord/application/ThankYouApplyPage";
 import ThankYouSigningPage from "./pages/landlord/application/ThankYouSigningPage";
+import LandingPage from "./pages/LandingPage";
+import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +34,9 @@ function App() {
       <Toaster position="top-right" richColors />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/home" element={<LandingPage />} />
+          <Route path="/documentation" element={<Documentation />} />
 
           <Route
             path="/login"

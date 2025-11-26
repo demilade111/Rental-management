@@ -1,0 +1,139 @@
+import React from "react";
+import { Linkedin, Globe } from "lucide-react";
+
+const TeamSection = ({ sectionRef }) => {
+    const teamMembers = [
+        // First Row - 5 People
+        { name: "Aboubakar", role: "PM (Developer)", image: "/images/dev-team/dev-2.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Nil Yilmaz", role: "Lead Designer", image: "/images/dev-team/dev-6.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Ana Paola", role: "Designer", image: "/images/dev-team/dev-8.jpeg", linkedin: "#", portfolio: "https://anapaolasdm.myportfolio.com/work" },
+        { name: "Tejinder Kaur", role: "Designer", image: "/images/dev-team/dev-5.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Yang Yi Hsiang", role: "Designer", image: "/images/dev-team/dev-7.jpeg", linkedin: "#", portfolio: "#" },
+        // Second Row - 4 People
+        { name: "Oluwademilade", role: "Full Stack Dev (Lead)", image: "/images/dev-team/dev-1.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Shubham Sharma", role: "Full Stack Dev", image: "/images/dev-team/dev-4.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Gurdit Singh", role: "Full Stack Dev", image: "/images/dev-team/dev-3.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Zin Min Htun", role: "Full Stack Dev", image: "/images/dev-team/dev-9.jpeg", linkedin: "#", portfolio: "https://zin-min-portfolio.vercel.app/" },
+    ];
+
+    const firstRow = teamMembers.slice(0, 5);
+    const secondRow = teamMembers.slice(5);
+
+    return (
+        <section className="py-12 sm:py-16 lg:py-20 relative overflow-hidden">
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
+            <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 relative z-10">
+                <div className="text-center mb-16" ref={sectionRef}>
+                    <h2 className="text-5xl font-bold text-primary mb-8 leading-relaxed">
+                        Meet Our Team
+                    </h2>
+                    <p className="text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                        Get to know the dedicated professionals who drive our success and innovation.
+                    </p>
+                </div>
+
+                <div className="max-w-6xl mx-auto mt-12 text-center sm:px-0 md:mt-20">
+                    {/* First Row - 5 People */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-12 lg:gap-x-16 xl:gap-x-20 mb-12 px-20 sm:px-0">
+                        {firstRow.map((member, index) => (
+                            <div key={index} className="group">
+                                <div className="relative inline-block mx-auto">
+                                    <img
+                                        className="object-cover w-24 h-24 rounded-full lg:w-32 lg:h-32 grayscale-50 filter border-4 border-transparent transition-all duration-300 group-hover:grayscale-0 group-hover:scale-105 group-hover:border-primary"
+                                        src={member.image}
+                                        alt={member.name}
+                                    />
+                                    <span className="absolute bottom-0 right-2 w-5 h-5 bg-green-500 rounded-full border-3 border-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                </div>
+                                {/* Name and Role - Hidden on hover */}
+                                <div className="mt-2 group-hover:hidden transition-opacity duration-300">
+                                    <p className="text-base font-bold text-primary sm:text-lg sm:mt-3 leading-relaxed">{member.name}</p>
+                                    <p className="text-sm font-normal text-gray-600 leading-relaxed mt-1">{member.role}</p>
+                                </div>
+                                {/* Buttons - Shown on hover */}
+                                <div className="hidden group-hover:flex items-center justify-center gap-2 mt-4">
+                                    {member.portfolio && (
+                                        <a
+                                            href={member.portfolio}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300"
+                                            aria-label={`View ${member.name}'s portfolio`}
+                                            title="View Portfolio"
+                                        >
+                                            <Globe className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                    {member.linkedin && (
+                                        <a
+                                            href={member.linkedin}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300"
+                                            aria-label={`Connect with ${member.name} on LinkedIn`}
+                                            title="LinkedIn"
+                                        >
+                                            <Linkedin className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Second Row - 4 People */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12 lg:gap-x-16 xl:gap-x-20 px-20 sm:px-0 md:max-w-5xl md:mx-auto">
+                        {secondRow.map((member, index) => (
+                            <div key={index} className="group">
+                                <div className="relative inline-block mx-auto">
+                                    <img
+                                        className="object-cover w-24 h-24 rounded-full lg:w-32 lg:h-32 grayscale-50 filter border-4 border-transparent transition-all duration-300 group-hover:grayscale-0 group-hover:scale-105 group-hover:border-primary"
+                                        src={member.image}
+                                        alt={member.name}
+                                    />
+                                    <span className="absolute bottom-0 right-2 w-5 h-5 bg-green-500 rounded-full border-3 border-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                </div>
+                                {/* Name and Role - Hidden on hover */}
+                                <div className="mt-2 group-hover:hidden transition-opacity duration-300">
+                                    <p className="text-base font-bold text-primary sm:text-lg sm:mt-3 leading-relaxed">{member.name}</p>
+                                    <p className="text-sm font-normal text-gray-600 leading-relaxed mt-1">{member.role}</p>
+                                </div>
+                                {/* Buttons - Shown on hover */}
+                                <div className="hidden group-hover:flex items-center justify-center gap-2 mt-4">
+                                    {member.portfolio && (
+                                        <a
+                                            href={member.portfolio}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300"
+                                            aria-label={`View ${member.name}'s portfolio`}
+                                            title="View Portfolio"
+                                        >
+                                            <Globe className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                    {member.linkedin && (
+                                        <a
+                                            href={member.linkedin}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300"
+                                            aria-label={`Connect with ${member.name} on LinkedIn`}
+                                            title="LinkedIn"
+                                        >
+                                            <Linkedin className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default TeamSection;
+
