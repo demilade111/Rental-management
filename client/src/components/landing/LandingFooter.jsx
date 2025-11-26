@@ -3,7 +3,7 @@ import { FileText } from "lucide-react";
 
 const LandingFooter = () => {
     return (
-        <footer id="contact" className="bg-primary text-white py-12 px-4 sm:px-6 lg:px-8">
+        <footer id="contact" className="bg-primary text-white py-12 px-4 mt-12 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
                     {/* Company Info */}
@@ -63,7 +63,7 @@ const LandingFooter = () => {
                         <ul className="space-y-3 text-sm">
                             <li>
                                 <a 
-                                    href="/proposal.pdf" 
+                                    href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"

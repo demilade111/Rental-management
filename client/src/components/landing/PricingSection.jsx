@@ -2,18 +2,18 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 
-const PricingSection = ({ isVisible, sectionRef, animationKey }) => {
+const PricingSection = ({ sectionRef }) => {
 
     return (
-        <section id="pricing" className="pt-16 py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <section id="pricing" className="pt-16 py-32 px-4 sm:px-6 lg:px-8 scroll-mt-24 relative overflow-hidden">
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
             <div className="max-w-7xl mx-auto relative z-10">
                 <div className="text-center mb-16" ref={sectionRef}>
-                    <h2 key={`pricing-title-${animationKey}`} className={`text-5xl font-bold text-primary mb-8 leading-relaxed ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+                    <h2 className="text-5xl font-bold text-primary mb-8 leading-relaxed">
                         Choose Your Plan
                     </h2>
-                    <p key={`pricing-desc-${animationKey}`} className={`text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed ${isVisible ? 'animate-fade-in-up-delay' : 'opacity-0'}`}>
+                    <p className="text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         Flexible pricing options to suit your property management needs
                     </p>
                 </div>

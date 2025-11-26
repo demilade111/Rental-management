@@ -27,7 +27,7 @@ const LandingPage = () => {
         { ref: teamRef, name: 'team' }
     ];
 
-    const { visibilityStates, animationKeys } = useIntersectionObserver(refs);
+    useIntersectionObserver(refs);
     const [showScrollTop, setShowScrollTop] = useState(false);
 
     // Auto-scroll to contact section if hash is present
@@ -79,27 +79,19 @@ const LandingPage = () => {
             <LandingHeader />
             <HeroSection />
             <FeaturesSection 
-                isVisible={visibilityStates.features} 
                 sectionRef={featuresRef} 
             />
             <DashboardImageSection 
-                isVisible={visibilityStates.dashboard} 
                 sectionRef={dashboardRef} 
             />
             <PricingSection 
-                isVisible={visibilityStates.pricing} 
                 sectionRef={pricingRef}
-                animationKey={animationKeys.pricing || 0}
             />
             <ContactSection 
-                isVisible={visibilityStates.contact} 
                 sectionRef={contactRef}
-                animationKey={animationKeys.contact || 0}
             />
             <TeamSection 
-                isVisible={visibilityStates.team} 
                 sectionRef={teamRef}
-                animationKey={animationKeys.team || 0}
             />
             <LandingFooter />
             </div>

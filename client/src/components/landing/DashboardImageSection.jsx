@@ -1,6 +1,6 @@
 import React from "react";
 
-const DashboardImageSection = ({ isVisible, sectionRef }) => {
+const DashboardImageSection = ({ sectionRef }) => {
     return (
         <section className="pt-16 py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
             {/* Gradient Overlay */}
@@ -9,7 +9,7 @@ const DashboardImageSection = ({ isVisible, sectionRef }) => {
                 <img
                     src="/images/dashboard-frame.png"
                     alt="Dashboard Preview"
-                    className={`w-full max-w-5xl transition-opacity duration-500 ${isVisible ? 'animate-fade-in-up-slow' : 'opacity-0'}`}
+                    className="w-full max-w-5xl"
                 />
             </div>
         </section>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const ContactSection = ({ isVisible, sectionRef, animationKey }) => {
+const ContactSection = ({ sectionRef }) => {
     const [contactForm, setContactForm] = useState({
         name: '',
         email: '',
@@ -37,23 +37,23 @@ const ContactSection = ({ isVisible, sectionRef, animationKey }) => {
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
             <div className="max-w-7xl mx-auto relative z-10">
                 <div className="text-left mb-16" ref={sectionRef}>
-                    <h2 key={`contact-title-${animationKey}`} className={`text-5xl font-bold text-primary mb-2 leading-relaxed ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+                    <h2 className="text-5xl font-bold text-primary mb-2 leading-relaxed">
                         Contact Us
                     </h2>
-                    <p key={`contact-desc-${animationKey}`} className={`text-2xl text-gray-500 max-w-2xl leading-relaxed ${isVisible ? 'animate-fade-in-up-delay' : 'opacity-0'}`}>
+                    <p className="text-2xl text-gray-500 max-w-2xl leading-relaxed">
                         Get in touch with us. We'd love to hear from you.
                     </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-16 items-center">
                     {/* Contact Form - Left Side */}
-                    <div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
                         <form 
                             className="space-y-6"
                             onSubmit={handleSubmit}
                         >
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="name" className="block text-sm font-medium text-primary mb-2">
                                     Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -63,12 +63,12 @@ const ContactSection = ({ isVisible, sectionRef, animationKey }) => {
                                     required
                                     value={contactForm.name}
                                     onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-primary-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                    className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-primary/60"
                                     placeholder="Your name"
                                 />
                             </div>
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
                                     Email <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -78,12 +78,12 @@ const ContactSection = ({ isVisible, sectionRef, animationKey }) => {
                                     required
                                     value={contactForm.email}
                                     onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-primary-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                    className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-primary/60"
                                     placeholder="your.email@example.com"
                                 />
                             </div>
                             <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="message" className="block text-sm font-medium text-primary mb-2">
                                     Message <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
@@ -93,7 +93,7 @@ const ContactSection = ({ isVisible, sectionRef, animationKey }) => {
                                     rows={5}
                                     value={contactForm.message}
                                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-primary-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                                    className="w-full px-4 py-3 rounded-lg border border-white/30 bg-white/20 backdrop-blur-sm text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none placeholder:text-primary/60"
                                     placeholder="Your message..."
                                 ></textarea>
                             </div>
@@ -107,7 +107,7 @@ const ContactSection = ({ isVisible, sectionRef, animationKey }) => {
                     </div>
 
                     {/* Image - Right Side */}
-                    <div className={`flex justify-center items-center ${isVisible ? 'animate-fade-in-up-delay-3' : 'opacity-0'}`}>
+                    <div className="flex justify-center items-center">
                         <img
                             src="/images/dashboard-frame-mob.png"
                             alt="Dashboard Preview"

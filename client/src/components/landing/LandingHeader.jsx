@@ -1,15 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, FileText, ChevronDown, Github } from "lucide-react";
 
 const LandingHeader = () => {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
+    const resourcesDropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (resourcesDropdownRef.current && !resourcesDropdownRef.current.contains(event.target)) {
+                setResourcesDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <header
-            className="sticky top-0 z-50 shadow-lg shadow-primary-foreground/5 overflow-hidden"
+            className="sticky top-0 z-50 shadow-lg shadow-primary-foreground/5"
             style={{
                 backgroundImage: 'url(/images/bg-banner.jpg)',
                 backgroundAttachment: 'fixed',
@@ -19,7 +33,7 @@ const LandingHeader = () => {
             }}
         >
             {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/65 dark:bg-gray-950/90 z-0 backdrop-blur-xs"></div>
+            <div className="absolute inset-0 bg-black/65 dark:bg-gray-950/90 z-0 backdrop-blur-xs overflow-hidden"></div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="flex justify-between items-center h-24">
                     {/* Logo */}
@@ -39,12 +53,53 @@ const LandingHeader = () => {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center space-x-8">
-                        <a href="#home" className="text-xl text-background/80 hover:text-background transition-colors">
-                            Home
+                        <a href="#features" className="text-xl text-background/80 hover:text-background transition-colors">
+                            Features
+                        </a>
+                        <a href="#pricing" className="text-xl text-background/80 hover:text-background transition-colors">
+                            Pricing
                         </a>
                         <a href="#contact" className="text-xl text-background/80 hover:text-background transition-colors">
                             Contact Us
                         </a>
+                        {/* Resources Dropdown */}
+                        <div 
+                            className="relative z-50"
+                            ref={resourcesDropdownRef}
+                            onMouseEnter={() => setResourcesDropdownOpen(true)}
+                            onMouseLeave={() => setResourcesDropdownOpen(false)}
+                        >
+                            <button className="text-xl text-background/80 hover:text-background transition-colors flex items-center gap-1">
+                                Resources
+                                <ChevronDown className={`w-4 h-4 transition-transform ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            {resourcesDropdownOpen && (
+                                <>
+                                    {/* Invisible bridge to prevent gap */}
+                                    <div className="absolute top-full left-0 w-full h-2"></div>
+                                    <div className="absolute top-full left-0 mt-2 py-2 min-w-[160px] rounded-lg backdrop-blur-md bg-white/30 shadow-lg z-[60]">
+                                        <a
+                                            href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 px-4 py-2 text-background/90 hover:text-background hover:bg-white/20 transition-colors cursor-pointer"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            Proposal
+                                        </a>
+                                        <a
+                                            href="https://github.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 px-4 py-2 text-background/90 hover:text-background hover:bg-white/20 transition-colors cursor-pointer"
+                                        >
+                                            <Github className="w-4 h-4" />
+                                            GitHub
+                                        </a>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </nav>
 
                     {/* Mobile menu button */}
@@ -61,11 +116,18 @@ const LandingHeader = () => {
                     <div className="md:hidden py-4 border-t border-background/20">
                         <nav className="flex flex-col space-y-4">
                             <a
-                                href="#home"
+                                href="#features"
                                 className="text-background hover:text-background/80 transition-colors"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Home
+                                Features
+                            </a>
+                            <a
+                                href="#pricing"
+                                className="text-background hover:text-background/80 transition-colors"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Pricing
                             </a>
                             <a
                                 href="#contact"
@@ -74,6 +136,32 @@ const LandingHeader = () => {
                             >
                                 Contact Us
                             </a>
+                            {/* Mobile Resources Section */}
+                            <div className="space-y-2">
+                                <div className="text-background font-medium">Resources</div>
+                                <div className="pl-4 space-y-2">
+                                    <a
+                                        href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-background/80 hover:text-background transition-colors flex items-center gap-2"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Proposal
+                                    </a>
+                                    <a
+                                        href="https://github.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-background/80 hover:text-background transition-colors flex items-center gap-2"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <Github className="w-4 h-4" />
+                                        GitHub
+                                    </a>
+                                </div>
+                            </div>
                             <Button
                                 onClick={() => {
                                     setMobileMenuOpen(false);
