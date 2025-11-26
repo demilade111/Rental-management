@@ -10,7 +10,7 @@ const HeroSection = () => {
     return (
         <section
             id="home"
-            className="min-h-screen pt-16 pb-32 md:pt-20 md:pb-40 lg:pt-24 lg:pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center"
+            className="min-h-screen pt-0 pb-32 md:pt-24 md:pb-40 lg:pt-24 lg:pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center"
         >
             <div className="max-w-7xl mx-auto relative z-[3]">
                 <div className="text-center">
