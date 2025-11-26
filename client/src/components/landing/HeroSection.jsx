@@ -11,14 +11,14 @@ const HeroSection = () => {
         <section
             id="home"
             className="min-h-screen pt-16 pb-32 md:pt-20 md:pb-40 lg:pt-24 lg:pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center"
-            style={{
-                backgroundImage: 'url(/images/bg-banner.jpg)',
-                backgroundAttachment: 'fixed',
-                backgroundPosition: 'bottom',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'cover'
-            }}
         >
+            {/* Background Image - Only covers HeroSection */}
+            <div 
+                className="absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat"
+                style={{
+                    backgroundImage: 'url(/images/bg-banner.jpg)',
+                }}
+            ></div>
             {/* Overlay for better text readability */}
             <div className="absolute inset-0 bg-black/65 dark:bg-gray-950/90 z-0 backdrop-blur-xs"></div>
 

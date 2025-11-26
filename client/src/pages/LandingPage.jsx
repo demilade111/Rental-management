@@ -62,18 +62,25 @@ const LandingPage = () => {
     };
 
     return (
-        <div 
-            className="min-h-screen relative"
-            style={{
-                backgroundImage: 'url(/images/PropEase_bg.jpg)',
-                backgroundAttachment: 'fixed',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'cover'
-            }}
-        >
-            {/* Matte filter overlay */}
-            <div className="absolute inset-0 bg-primary/10 backdrop-blur-[1px] z-0"></div>
+        <div className="min-h-screen relative">
+            {/* Background Image - Using fixed position for better mobile support */}
+            <div 
+                className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                    backgroundImage: 'url(/images/PropEase_bg.jpg)',
+                    backgroundAttachment: 'fixed',
+                    WebkitBackgroundAttachment: 'fixed',
+                    willChange: 'transform',
+                }}
+            ></div>
+            {/* Matte filter overlay with backdrop blur - mobile compatible */}
+            <div 
+                className="fixed inset-0 bg-primary/10 z-0"
+                style={{
+                    backdropFilter: 'blur(1px)',
+                    WebkitBackdropFilter: 'blur(1px)',
+                }}
+            ></div>
             <div className="relative z-10">
             <LandingStyles />
             <LandingHeader />
