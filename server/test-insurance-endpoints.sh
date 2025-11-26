@@ -267,3 +267,7 @@ echo "  9. POST /insurance/:id/notify      - Send reminder (Admin)"
 echo " 10. GET  /insurance/download        - Get download URL"
 echo ""
 
+
+
+
+
