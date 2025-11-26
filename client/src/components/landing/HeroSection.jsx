@@ -10,19 +10,9 @@ const HeroSection = () => {
     return (
         <section
             id="home"
-            className="min-h-screen pt-16 pb-32 md:pt-20 md:pb-40 lg:pt-24 lg:pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center"
+            className="min-h-screen pt-0 pb-32 md:pt-24 md:pb-40 lg:pt-24 lg:pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center"
         >
-            {/* Background Image - Only covers HeroSection */}
-            <div 
-                className="absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat"
-                style={{
-                    backgroundImage: 'url(/images/bg-banner.jpg)',
-                }}
-            ></div>
-            {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/65 dark:bg-gray-950/90 z-0 backdrop-blur-xs"></div>
-
-            <div className="max-w-7xl mx-auto relative z-10">
+            <div className="max-w-7xl mx-auto relative z-[3]">
                 <div className="text-center">
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-relaxed bg-gradient-to-r from-primary-foreground via-primary-foreground to-primary-foreground/70 bg-clip-text text-transparent">
                         Streamline Your Rental Management

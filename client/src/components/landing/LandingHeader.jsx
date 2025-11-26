@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, FileText, ChevronDown, Github } from "lucide-react";
@@ -23,17 +24,8 @@ const LandingHeader = () => {
 
     return (
         <header
-            className="sticky top-0 z-50 shadow-lg shadow-primary-foreground/5"
-            style={{
-                backgroundImage: 'url(/images/bg-banner.jpg)',
-                backgroundAttachment: 'fixed',
-                backgroundPosition: 'bottom',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'cover'
-            }}
+            className="relative top-0 left-0 right-0 z-50 shadow-lg backdrop-blur-sm"
         >
-            {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/65 dark:bg-gray-950/90 z-0 backdrop-blur-xs overflow-hidden"></div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="flex justify-between items-center h-24">
                     {/* Logo */}
@@ -52,7 +44,7 @@ const LandingHeader = () => {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center space-x-8">
+                    <nav className="hidden md:flex items-center space-x-12">
                         <a href="#features" className="text-xl text-background/80 hover:text-background transition-colors">
                             Features
                         </a>
@@ -111,59 +103,71 @@ const LandingHeader = () => {
                     </button>
                 </div>
 
-                {/* Mobile Navigation */}
-                {mobileMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-background/20">
-                        <nav className="flex flex-col space-y-4">
-                            <a
-                                href="#features"
-                                className="text-background hover:text-background/80 transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Features
-                            </a>
-                            <a
-                                href="#pricing"
-                                className="text-background hover:text-background/80 transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Pricing
-                            </a>
-                            <a
-                                href="#contact"
-                                className="text-background hover:text-background/80 transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Contact Us
-                            </a>
-                            {/* Mobile Resources Section */}
-                            <div className="space-y-2">
-                                <div className="text-background font-medium">Resources</div>
-                                <div className="pl-4 space-y-2">
-                                    <a
-                                        href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-background/80 hover:text-background transition-colors flex items-center gap-2"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        <FileText className="w-4 h-4" />
-                                        Proposal
-                                    </a>
-                                    <a
-                                        href="https://github.com"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-background/80 hover:text-background transition-colors flex items-center gap-2"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        <Github className="w-4 h-4" />
-                                        GitHub
-                                    </a>
+                {/* Mobile Navigation Dropdown */}
+                {mobileMenuOpen && createPortal(
+                    <>
+                        {/* Overlay backdrop */}
+                        <div
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] md:hidden"
+                            onClick={() => setMobileMenuOpen(false)}
+                        ></div>
+                        {/* Mobile menu dropdown */}
+                        <div 
+                            className="fixed top-24 left-4 right-4 bg-white/10 backdrop-blur-md shadow-2xl rounded-xl border border-white/20 z-[9999] md:hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <nav className="flex flex-col p-4 space-y-3">
+                                <a
+                                    href="#features"
+                                    className="text-primary-foreground hover:text-primary-foreground/80 hover:bg-white/10 transition-colors py-2 px-3 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Features
+                                </a>
+                                <a
+                                    href="#pricing"
+                                    className="text-primary-foreground hover:text-primary-foreground/80 hover:bg-white/10 transition-colors py-2 px-3 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Pricing
+                                </a>
+                                <a
+                                    href="#contact"
+                                    className="text-primary-foreground hover:text-primary-foreground/80 hover:bg-white/10 transition-colors py-2 px-3 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Contact Us
+                                </a>
+                                {/* Mobile Resources Section */}
+                                <div className="space-y-2 pt-2 border-t border-white/20">
+                                    <div className="text-primary-foreground font-medium px-3 py-1">Resources</div>
+                                    <div className="space-y-1">
+                                        <a
+                                            href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            Proposal
+                                        </a>
+                                        <a
+                                            href="https://github.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            <Github className="w-4 h-4" />
+                                            GitHub
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-                        </nav>
-                    </div>
+                            </nav>
+                        </div>
+                    </>,
+                    document.body
                 )}
             </div>
         </header>

@@ -5,7 +5,7 @@ const TeamSection = ({ sectionRef }) => {
     const [activeMember, setActiveMember] = useState(null);
     const teamMembers = [
         // First Row - 5 People
-        { name: "Aboubakar", role: "PM (Developer)", image: "/images/dev-team/dev-2.jpeg", linkedin: "#", portfolio: "#" },
+        { name: "Aboubakar Muco", role: "PM (Full Stack Dev)", image: "/images/dev-team/dev-2.jpeg", linkedin: "#", portfolio: "#" },
         { name: "Nil Yilmaz", role: "Lead Designer", image: "/images/dev-team/dev-6.jpeg", linkedin: "#", portfolio: "#" },
         { name: "Ana Paola", role: "Designer", image: "/images/dev-team/dev-8.jpeg", linkedin: "#", portfolio: "https://anapaolasdm.myportfolio.com/work" },
         { name: "Tejinder Kaur", role: "Designer", image: "/images/dev-team/dev-5.jpeg", linkedin: "#", portfolio: "#" },
@@ -19,8 +19,6 @@ const TeamSection = ({ sectionRef }) => {
 
     return (
         <section className="py-8 sm:py-16 lg:py-20 relative overflow-hidden">
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/20 via-teal-100/20 to-pink-100/20 z-0"></div>
             <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center mb-6 sm:mb-12 md:mb-16" ref={sectionRef}>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4 sm:mb-6 md:mb-8 leading-relaxed">
