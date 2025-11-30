@@ -2,7 +2,7 @@
 ```markdown
 # 🏠 Rental Management System
 
-A full-stack rental management web app for landlords and tenants.  
+A full-stack rental management web app for landlords and tenants.
 Built with **React (Vite + Tailwind + Shadcn UI)** on the frontend, and **Node.js (Express + Prisma + PostgreSQL)** on the backend.  
 
 ---
