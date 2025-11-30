@@ -7,8 +7,14 @@ import SignaturePad from "react-signature-pad-wrapper";
 import api from "@/lib/axios";
 import API_ENDPOINTS from "@/lib/apiEndpoints";
 import { Button } from "@/components/ui/button";
-import { FileEdit, CheckCircle } from "lucide-react";
+import { FileEdit, CheckCircle, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export default function SignLeasePage() {
     const { token } = useParams();
@@ -22,6 +28,10 @@ export default function SignLeasePage() {
     const [isLoadingInvite, setIsLoadingInvite] = useState(true);
     const [leaseInfo, setLeaseInfo] = useState(null);
     const [signedPdfUrl, setSignedPdfUrl] = useState(null);
+    const [numPages, setNumPages] = useState(null);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [scale, setScale] = useState(1.0);
+    const [pdfError, setPdfError] = useState(null);
 
     // Fetch lease info and check if already signed
     useEffect(() => {
@@ -131,6 +141,39 @@ export default function SignLeasePage() {
         sigPadRef.current?.clear();
     };
 
+    const onDocumentLoadSuccess = ({ numPages }) => {
+        setNumPages(numPages);
+        setPdfLoaded(true);
+        setPdfError(null);
+    };
+
+    const onDocumentLoadError = (error) => {
+        console.error("Error loading PDF:", error);
+        setPdfError("Failed to load PDF document");
+        setPdfLoaded(false);
+        toast.error("Failed to load PDF. Please try refreshing the page.");
+    };
+
+    const previousPage = () => {
+        if (pageNumber > 1) {
+            setPageNumber(pageNumber - 1);
+        }
+    };
+
+    const nextPage = () => {
+        if (pageNumber < numPages) {
+            setPageNumber(pageNumber + 1);
+        }
+    };
+
+    const zoomIn = () => {
+        setScale((prevScale) => Math.min(prevScale + 0.25, 3.0));
+    };
+
+    const zoomOut = () => {
+        setScale((prevScale) => Math.max(prevScale - 0.25, 0.5));
+    };
+
     // Show already signed message
     if (isLoadingInvite) {
         return (
@@ -185,24 +228,98 @@ export default function SignLeasePage() {
             )}
 
             {/* PDF Viewer */}
-            <div className="w-full max-w-3xl h-[600px] bg-gray-200 rounded border shadow mb-6 overflow-hidden">
+            <div className="w-full max-w-3xl bg-white rounded border shadow mb-6 overflow-hidden">
                 {signedPdfUrl ? (
-                    <iframe
-                        src={signedPdfUrl}
-                        className="w-full h-full"
-                        title={leaseInfo?.leaseType === "CUSTOM" ? "Custom Lease Agreement" : "Standard Lease Agreement (BC RTB-1)"}
-                        onLoad={() => setPdfLoaded(true)}
-                    />
+                    <>
+                        {/* PDF Controls */}
+                        {numPages && (
+                            <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+                                <div className="flex items-center space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={previousPage}
+                                        disabled={pageNumber <= 1}
+                                        className="h-8"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <span className="text-sm text-gray-700 min-w-[100px] text-center">
+                                        Page {pageNumber} of {numPages}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={nextPage}
+                                        disabled={pageNumber >= numPages}
+                                        className="h-8"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Button variant="outline" size="sm" onClick={zoomOut} className="h-8">
+                                        <ZoomOut className="h-4 w-4" />
+                                    </Button>
+                                    <span className="text-sm text-gray-700 w-16 text-center">
+                                        {Math.round(scale * 100)}%
+                                    </span>
+                                    <Button variant="outline" size="sm" onClick={zoomIn} className="h-8">
+                                        <ZoomIn className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* PDF Display */}
+                        <div className="h-[600px] overflow-auto bg-gray-100 flex items-center justify-center p-4">
+                            {!pdfLoaded && !pdfError && (
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+                                    <p className="mt-4 text-gray-600">Loading PDF...</p>
+                                </div>
+                            )}
+                            
+                            {pdfError ? (
+                                <div className="text-center">
+                                    <p className="text-red-600 mb-4">{pdfError}</p>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => window.open(signedPdfUrl, "_blank")}
+                                    >
+                                        Open PDF in New Tab
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="bg-white shadow-lg">
+                                    <Document
+                                        file={signedPdfUrl}
+                                        onLoadSuccess={onDocumentLoadSuccess}
+                                        onLoadError={onDocumentLoadError}
+                                        loading={
+                                            <div className="text-center p-8">
+                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+                                                <p className="mt-4 text-gray-600">Loading PDF...</p>
+                                            </div>
+                                        }
+                                    >
+                                        <Page
+                                            pageNumber={pageNumber}
+                                            scale={scale}
+                                            renderTextLayer={true}
+                                            renderAnnotationLayer={true}
+                                        />
+                                    </Document>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div className="w-full h-[600px] flex items-center justify-center bg-gray-100">
                         <p className="text-gray-500">Loading lease document...</p>
                     </div>
                 )}
             </div>
-
-            {signedPdfUrl && !pdfLoaded && (
-                <p className="text-sm text-gray-500 mb-4">Loading lease document...</p>
-            )}
 
             {/* Signature Pad */}
             <div className="mb-6 w-full max-w-md mt-10">
