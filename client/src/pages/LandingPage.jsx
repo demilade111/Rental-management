@@ -71,9 +71,9 @@ const LandingPage = () => {
                     backgroundImage: 'url(/images/bg-banner.jpg)',
                     // Fixed attachment for desktop parallax effect
                     // On mobile, the fixed div itself keeps the background in place
-                    backgroundAttachment: 'fixed',
-                    WebkitBackgroundAttachment: 'fixed',
-                    willChange: 'transform',
+                    // backgroundAttachment: 'fixed',
+                    // WebkitBackgroundAttachment: 'fixed',
+                    // willChange: 'transform',
                 }}
             ></div>
             {/* Filter overlay - darkens and adds blur */}
