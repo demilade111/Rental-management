@@ -9,7 +9,7 @@ const TeamSection = ({ sectionRef }) => {
         { name: "Nil Yilmaz", role: "Lead Designer", image: "/images/dev-team/dev-6.jpeg", linkedin: "https://www.linkedin.com/in/nil-yılmaz-8b4476111/?utm_source=share_via&utm_content=profile&utm_medium=member_ios", portfolio: "#" },
         { name: "Ana Paola", role: "Designer", image: "/images/dev-team/dev-8.jpeg", linkedin: "https://www.linkedin.com/in/ana-morais-80a613128?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app", portfolio: "https://anapaolasdm.myportfolio.com/work" },
         { name: "Tejinder Kaur", role: "Designer", image: "/images/dev-team/dev-5.jpeg", linkedin: "https://www.linkedin.com/in/tejinder-kaur-b853442a5?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app", portfolio: "#" },
-        { name: "Yang Yi Hsiang", role: "Designer", image: "/images/dev-team/dev-7.jpeg", linkedin: "www.linkedin.com/in/yi-hsiang-yang-186817178", portfolio: "#" },
+        { name: "Yang Yi Hsiang", role: "Designer", image: "/images/dev-team/dev-7.jpeg", linkedin: "https://www.linkedin.com/in/yi-hsiang-yang-186817178", portfolio: "#" },
         // Second Row - 4 People
         { name: "Oluwademilade", role: "Full Stack Dev (Lead)", image: "/images/dev-team/dev-1.jpeg", linkedin: "https://www.linkedin.com/in/oluwademiladealuko?utm_source=share_via&utm_content=profile&utm_medium=member_ios", portfolio: "#" },
         { name: "Shubham Sharma", role: "Full Stack Dev", image: "/images/dev-team/dev-4.jpeg", linkedin: "https://www.linkedin.com/in/shubham-sharma-1a179727b/", portfolio: "#" },
