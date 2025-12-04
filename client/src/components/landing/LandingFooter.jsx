@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Github } from "lucide-react";
+import { Download, Github } from "lucide-react";
 
 const LandingFooter = () => {
     return (
@@ -21,15 +21,15 @@ const LandingFooter = () => {
                                 <path d="M55.3841 11.7385V15.1818C55.3841 15.3635 54.6706 15.3138 54.4621 15.3616C49.9935 16.3678 51.8605 22.0205 51.4301 25.1825C51.1546 27.2083 48.0557 27.2504 47.8548 25.0104C47.7114 23.4112 47.7496 20.6585 47.8548 19.0344C48.0978 15.2602 51.5468 11.7385 55.386 11.7385H55.3841Z" fill="#FEFFF8" />
                             </svg>
                         </div>
-                        <p className="text-white/80 text-sm">
+                        <p className="text-white/80 text-base">
                             Simplifying property management for landlords and tenants.
                         </p>
                     </div>
 
                     {/* Quick Links */}
                     <div>
-                        <h3 className="font-semibold mb-4">Quick Links</h3>
-                        <ul className="space-y-2 text-sm text-white/80">
+                        <h3 className="font-semibold mb-4 text-base">Quick Links</h3>
+                        <ul className="space-y-2 text-base text-white/80">
                             <li>
                                 <a href="#home" className="hover:text-white transition-colors">
                                     Home
@@ -50,8 +50,8 @@ const LandingFooter = () => {
 
                     {/* Contact */}
                     <div>
-                        <h3 className="font-semibold mb-4">Contact Us</h3>
-                        <ul className="space-y-2 text-sm text-white/80">
+                        <h3 className="font-semibold mb-4 text-base">Contact Us</h3>
+                        <ul className="space-y-2 text-base text-white/80">
                             <li>Email: contact@raccons.dev</li>
                             <li>Team: The Tired Raccons</li>
                         </ul>
@@ -59,22 +59,21 @@ const LandingFooter = () => {
 
                     {/* Resources */}
                     <div>
-                        <h3 className="font-semibold mb-4">Resources</h3>
-                        <ul className="space-y-3 text-sm">
+                        <h3 className="font-semibold mb-4 text-base">Resources</h3>
+                        <ul className="space-y-3 text-base">
                             <li>
                                 <a 
-                                    href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
+                                    href="/PropEase_Proposal.pdf"
+                                    download="PropEase_Proposal.pdf"
                                     className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
                                 >
-                                    <FileText className="w-4 h-4" />
+                                    <Download className="w-4 h-4" />
                                     Proposal
                                 </a>
                             </li>
                             <li>
                                 <a 
-                                    href="https://github.com" 
+                                    href="https://github.com/demilade111/Rental-management" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
@@ -87,7 +86,7 @@ const LandingFooter = () => {
                     </div>
                 </div>
 
-                <div className="border-t border-white/20 pt-8 text-center text-sm text-white/60">
+                <div className="border-t border-white/20 pt-8 text-center text-base text-white/60">
                     <p>&copy; {new Date().getFullYear()} The Tired Raccons (Raccons). All rights reserved.</p>
                 </div>
             </div>

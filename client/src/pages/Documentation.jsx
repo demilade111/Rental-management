@@ -13,7 +13,15 @@ const Documentation = () => {
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                     <h1 className="text-xl font-bold text-primary">PropEase - Documentation</h1>
                     <button
-                        onClick={() => window.close()}
+                        onClick={() => {
+                            // Try to close if window was opened by JavaScript
+                            if (window.opener) {
+                                window.close();
+                            } else {
+                                // If can't close, navigate to landing page
+                                navigate("/");
+                            }
+                        }}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         aria-label="Close"
                     >

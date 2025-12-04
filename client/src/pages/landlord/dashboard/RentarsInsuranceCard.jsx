@@ -201,12 +201,12 @@ const RentersInsuranceCard = ({ showSkeleton = false }) => {
                                 {/* Accent (insured) diagonal stripe pattern */}
                                 <pattern id="patternAccent" patternUnits="userSpaceOnUse" width="8" height="8">
                                     <rect width="8" height="8" fill="var(--chart-1)" />
-                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="white" strokeWidth="1.5" strokeOpacity="0.35" />
+                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="white" strokeWidth="2" strokeOpacity="0.35" />
                                 </pattern>
                                 {/* Secondary-foreground (uninsured) diagonal stripe pattern */}
                                 <pattern id="patternSecondary" patternUnits="userSpaceOnUse" width="8" height="8">
                                     <rect width="8" height="8" fill="var(--chart-3)" />
-                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="white" strokeWidth="1.5" strokeOpacity="0.2" />
+                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="white" strokeWidth="2" strokeOpacity="0.35" />
                                 </pattern>
                             </defs>
                             <Bar 

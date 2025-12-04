@@ -74,7 +74,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                 onClick={() => setIsCollapsed(false)}
                 className="hidden lg:block p-2 hover:bg-gray-700 rounded-lg transition"
               >
-                <ChevronRight size={20} />
+                {/* <ChevronRight size={20} /> */}
               </button>
             </div>
           ) : (
@@ -96,7 +96,7 @@ const Sidebar = ({ navItems, activeNav, setActiveNav }) => {
                 onClick={() => setIsCollapsed(true)}
                 className="hidden lg:block p-2 hover:bg-gray-700 rounded-lg transition"
               >
-                <ChevronLeft size={20} />
+                {/* <ChevronLeft size={20} /> */}
               </button>
             </div>
           )}
