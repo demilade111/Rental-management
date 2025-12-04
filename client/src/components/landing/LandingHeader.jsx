@@ -2,25 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, FileText, ChevronDown, Github } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const LandingHeader = () => {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
-    const resourcesDropdownRef = useRef(null);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (resourcesDropdownRef.current && !resourcesDropdownRef.current.contains(event.target)) {
-                setResourcesDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     return (
         <header
@@ -54,44 +40,22 @@ const LandingHeader = () => {
                         <a href="#contact" className="text-xl text-background/80 hover:text-background transition-colors">
                             Contact Us
                         </a>
-                        {/* Resources Dropdown */}
-                        <div 
-                            className="relative z-50"
-                            ref={resourcesDropdownRef}
-                            onMouseEnter={() => setResourcesDropdownOpen(true)}
-                            onMouseLeave={() => setResourcesDropdownOpen(false)}
+                        <a 
+                            href="/documentation" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xl text-background/80 hover:text-background transition-colors"
                         >
-                            <button className="text-xl text-background/80 hover:text-background transition-colors flex items-center gap-1">
-                                Resources
-                                <ChevronDown className={`w-4 h-4 transition-transform ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
-                            </button>
-                            {resourcesDropdownOpen && (
-                                <>
-                                    {/* Invisible bridge to prevent gap */}
-                                    <div className="absolute top-full left-0 w-full h-2"></div>
-                                    <div className="absolute top-full left-0 mt-2 py-2 min-w-[160px] rounded-lg backdrop-blur-md bg-white/30 shadow-lg z-[60]">
-                                        <a
-                                            href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-4 py-2 text-background/90 hover:text-background hover:bg-white/20 transition-colors cursor-pointer"
-                                        >
-                                            <FileText className="w-4 h-4" />
-                                            Proposal
-                                        </a>
-                                        <a
-                                            href="https://github.com"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-4 py-2 text-background/90 hover:text-background hover:bg-white/20 transition-colors cursor-pointer"
-                                        >
-                                            <Github className="w-4 h-4" />
-                                            GitHub
-                                        </a>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                            Documentation
+                        </a>
+                        <a 
+                            href="https://www.figma.com/design/CXkcqLPtSwft5qe09M41PB/Racoon-Tenancy-App-Wireframes?node-id=86-1687&p=f&t=dOqBec3rr28PU3Fj-0" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xl text-background/80 hover:text-background transition-colors"
+                        >
+                            Design Files
+                        </a>
                     </nav>
 
                     {/* Mobile menu button */}
@@ -111,6 +75,14 @@ const LandingHeader = () => {
                             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] md:hidden"
                             onClick={() => setMobileMenuOpen(false)}
                         ></div>
+                        {/* Close button outside the box with blur effect */}
+                        <button
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="fixed top-28 right-6 p-2 rounded-lg bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors z-[10000] md:hidden"
+                            aria-label="Close menu"
+                        >
+                            <X className="w-6 h-6 text-gray-800" />
+                        </button>
                         {/* Mobile menu dropdown */}
                         <div 
                             className="fixed top-24 left-4 right-4 bg-white/10 backdrop-blur-md shadow-2xl rounded-xl border border-white/20 z-[9999] md:hidden"
@@ -138,32 +110,24 @@ const LandingHeader = () => {
                                 >
                                     Contact Us
                                 </a>
-                                {/* Mobile Resources Section */}
-                                <div className="space-y-2 pt-2 border-t border-white/20">
-                                    <div className="text-primary-foreground font-medium px-3 py-1">Resources</div>
-                                    <div className="space-y-1">
-                                        <a
-                                            href="https://www.figma.com/slides/JNsdeX6GMcNqaSwMmQxWEM/PropEase-Presentation--1?node-id=10-1407&t=Twj072Mi6V1F2jb7-0"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg"
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            <FileText className="w-4 h-4" />
-                                            Proposal
-                                        </a>
-                                        <a
-                                            href="https://github.com"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10 transition-colors flex items-center gap-2 py-2 px-3 rounded-lg"
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            <Github className="w-4 h-4" />
-                                            GitHub
-                                        </a>
-                                    </div>
-                                </div>
+                                <a
+                                    href="/documentation"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary-foreground hover:text-primary-foreground/80 hover:bg-white/10 transition-colors py-2 px-3 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Documentation
+                                </a>
+                                <a
+                                    href="https://www.figma.com/design/CXkcqLPtSwft5qe09M41PB/Racoon-Tenancy-App-Wireframes?node-id=86-1687&p=f&t=dOqBec3rr28PU3Fj-0"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary-foreground hover:text-primary-foreground/80 hover:bg-white/10 transition-colors py-2 px-3 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Design Files
+                                </a>
                             </nav>
                         </div>
                     </>,
