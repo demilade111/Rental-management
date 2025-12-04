@@ -4,7 +4,7 @@ import { Linkedin, Globe } from "lucide-react";
 const TeamSection = ({ sectionRef }) => {
     const [activeMember, setActiveMember] = useState(null);
     const teamMembers = [
-        // First Row - 5 People
+        // First Row - 5 Peopl
         { name: "Aboubakar Muco", role: "PM (Full Stack Dev)", image: "/images/dev-team/dev-2.jpeg", linkedin: "https://www.linkedin.com/in/aboubakar-muco-47b31975/", portfolio: "#" },
         { name: "Nil Yilmaz", role: "Lead Designer", image: "/images/dev-team/dev-6.jpeg", linkedin: "https://www.linkedin.com/in/nil-yılmaz-8b4476111/?utm_source=share_via&utm_content=profile&utm_medium=member_ios", portfolio: "#" },
         { name: "Ana Paola", role: "Designer", image: "/images/dev-team/dev-8.jpeg", linkedin: "https://www.linkedin.com/in/ana-morais-80a613128?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app", portfolio: "https://anapaolasdm.myportfolio.com/work" },
