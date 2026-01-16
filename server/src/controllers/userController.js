@@ -5,19 +5,41 @@ import {
   HandleError,
   BadRequest,
 } from "../utils/httpResponse.js";
+import {
+  getFromCache,
+  setInCache,
+  generateCacheKey,
+  invalidateEntityCache,
+  CACHE_TTL,
+} from "../utils/cache.js";
 
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await getUserById(req.user.id);
+    const userId = req.user.id;
+    
+    // Generate cache key
+    const cacheKey = generateCacheKey('user', userId);
+
+    // Try to get from cache
+    const cachedData = await getFromCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
+    const user = await getUserById(userId);
 
     if (!user) return NotFound(res, "User not found");
 
-    return SuccessResponse(
-      res,
-      200,
-      "User profile retrieved successfully",
-      user
-    );
+    const response = {
+      success: true,
+      message: "User profile retrieved successfully",
+      data: user,
+    };
+
+    // Cache the response for 5 minutes
+    await setInCache(cacheKey, response, CACHE_TTL.DEFAULT);
+
+    return res.status(200).json(response);
   } catch (err) {
     console.error(err);
     return HandleError(res, err);
@@ -30,6 +52,9 @@ export const updateProfile = async (req, res) => {
     const updates = req.body;
 
     const updatedUser = await updateUserProfile(userId, updates);
+
+    // Invalidate user cache
+    await invalidateEntityCache('user', userId);
 
     return SuccessResponse(
       res,

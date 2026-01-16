@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { createRequire } from "module";
 import "./prisma/client.js";
+import "./config/redis.js"; // Initialize Redis connection
 import authRoutes from "./routes/authRoute.js";
 import userRoutes from "./routes/userRoutes.js";
 import listingRoutes from "./routes/listingRoute.js";

@@ -12,12 +12,22 @@ import {
   SuccessResponse,
   HandleError,
 } from "../utils/httpResponse.js";
+import {
+  getFromCache,
+  setInCache,
+  generateCacheKey,
+  invalidateEntityCache,
+  CACHE_TTL,
+} from "../utils/cache.js";
 
 async function createListing(req, res) {
   try {
     const body = createListingSchema.parse(req.body);
     const userId = req.user.id;
     const listing = await createListings(userId, body);
+
+    // Invalidate listings cache for this user
+    await invalidateEntityCache('listings', userId);
 
     return CreatedResponse(res, "Listing created successfully", listing);
   } catch (error) {
@@ -27,8 +37,8 @@ async function createListing(req, res) {
 
 async function fetchAllListings(req, res) {
   try {
-    const userId = req.user?.id;       // from JWT payload
-    const userRole = req.user?.role;   // TENANT, LANDLORD, ADMIN
+    const userId = req.user?.id; // from JWT payload
+    const userRole = req.user?.role; // TENANT, LANDLORD, ADMIN
 
     if (!userId) {
       return res.status(401).json({
@@ -37,25 +47,57 @@ async function fetchAllListings(req, res) {
       });
     }
 
+    // Generate cache key based on user and role
+    const cacheKey = generateCacheKey('listings', userId, { role: userRole });
+
+    // Try to get from cache
+    const cachedData = await getFromCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
     const listings = await getAllListings(userId, userRole);
 
-    return res.status(200).json({
+    const response = {
       success: true,
       message: "Listings fetched successfully",
       timestamp: new Date().toISOString(),
       listing: listings,
-    });
+    };
+
+    // Cache the response for 5 minutes
+    await setInCache(cacheKey, response, CACHE_TTL.DEFAULT);
+
+    return res.status(200).json(response);
   } catch (error) {
     return HandleError(res, error);
   }
 }
 
-
 async function fetchListingById(req, res) {
   try {
     const { id } = req.params;
+    
+    // Generate cache key
+    const cacheKey = generateCacheKey('listing', id);
+
+    // Try to get from cache
+    const cachedData = await getFromCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
     const listing = await getListingById(id);
-    return SuccessResponse(res, 200, "Listing fetched successfully", listing);
+    const response = {
+      success: true,
+      message: "Listing fetched successfully",
+      data: listing,
+    };
+
+    // Cache the response for 5 minutes
+    await setInCache(cacheKey, response, CACHE_TTL.DEFAULT);
+
+    return res.status(200).json(response);
   } catch (error) {
     return HandleError(res, error);
   }
@@ -66,6 +108,10 @@ async function deleteListing(req, res) {
     const { id } = req.params;
     const userId = req.user.id;
     const result = await deleteListingById(id, userId);
+
+    // Invalidate cache for this listing and user's listings
+    await invalidateEntityCache('listing', id);
+    await invalidateEntityCache('listings', userId);
 
     return SuccessResponse(res, 200, result.message);
   } catch (error) {
@@ -79,6 +125,10 @@ async function updateListing(req, res) {
     const updates = req.body;
     const userId = req.user.id;
     const updatedListing = await updateListingById(id, userId, updates);
+
+    // Invalidate cache for this listing and user's listings
+    await invalidateEntityCache('listing', id);
+    await invalidateEntityCache('listings', userId);
 
     return SuccessResponse(
       res,
@@ -96,7 +146,7 @@ async function checkListingLeasesController(req, res) {
     const { id } = req.params;
 
     const result = await checkListingHasLeases(id);
-    
+
     return SuccessResponse(res, 200, "Lease check successful", result);
   } catch (error) {
     return HandleError(res, error);
@@ -109,5 +159,5 @@ export {
   fetchListingById,
   deleteListing,
   updateListing,
-  checkListingLeasesController
+  checkListingLeasesController,
 };

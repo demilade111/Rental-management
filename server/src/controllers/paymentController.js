@@ -1,6 +1,13 @@
-import * as paymentService from '../services/paymentService.js';
-import { validateRequest } from '../middleware/validateRequest.js';
-import { z } from 'zod';
+import * as paymentService from "../services/paymentService.js";
+import { validateRequest } from "../middleware/validateRequest.js";
+import { z } from "zod";
+import {
+  getFromCache,
+  setInCache,
+  generateCacheKey,
+  invalidateEntityCache,
+  CACHE_TTL,
+} from "../utils/cache.js";
 
 /**
  * Get all payments for landlord or tenant
@@ -20,7 +27,7 @@ export const getPayments = async (req, res) => {
     };
 
     let result;
-    if (userRole === 'ADMIN') {
+    if (userRole === "ADMIN") {
       // Landlord - get all payments for properties they own
       result = await paymentService.getPaymentsForLandlord(userId, filters);
     } else {
@@ -33,10 +40,10 @@ export const getPayments = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error fetching payments:', error);
+    console.error("Error fetching payments:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch payments',
+      message: "Failed to fetch payments",
       error: error.message,
     });
   }
@@ -50,23 +57,39 @@ export const getPaymentSummary = async (req, res) => {
   try {
     const userId = req.user.id;
     const userRole = req.user.role;
-    
+
+    // Generate cache key
+    const cacheKey = generateCacheKey("payments:summary", userId, {
+      role: userRole,
+    });
+
+    // Try to get from cache
+    const cachedData = await getFromCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
     let summary;
-    if (userRole === 'ADMIN') {
+    if (userRole === "ADMIN") {
       summary = await paymentService.calculatePaymentSummary(userId);
     } else {
       summary = await paymentService.calculateTenantPaymentSummary(userId);
     }
 
-    res.status(200).json({
+    const response = {
       success: true,
       data: summary,
-    });
+    };
+
+    // Cache for 2 minutes (payment summaries change moderately)
+    await setInCache(cacheKey, response, 120);
+
+    res.status(200).json(response);
   } catch (error) {
-    console.error('Error fetching payment summary:', error);
+    console.error("Error fetching payment summary:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch payment summary',
+      message: "Failed to fetch payment summary",
       error: error.message,
     });
   }
@@ -88,11 +111,11 @@ export const getPaymentById = async (req, res) => {
       data: payment,
     });
   } catch (error) {
-    console.error('Error fetching payment:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 500;
+    console.error("Error fetching payment:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 500;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to fetch payment',
+      message: error.message || "Failed to fetch payment",
     });
   }
 };
@@ -108,16 +131,20 @@ export const createPayment = async (req, res) => {
 
     const payment = await paymentService.createPayment(landlordId, paymentData);
 
+    // Invalidate payment caches
+    await invalidateEntityCache("payments", landlordId);
+    await invalidateEntityCache("payments:summary", landlordId);
+
     res.status(201).json({
       success: true,
-      message: 'Payment created successfully',
+      message: "Payment created successfully",
       data: payment,
     });
   } catch (error) {
-    console.error('Error creating payment:', error);
+    console.error("Error creating payment:", error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Failed to create payment',
+      message: error.message || "Failed to create payment",
     });
   }
 };
@@ -134,17 +161,22 @@ export const updatePayment = async (req, res) => {
 
     const payment = await paymentService.updatePayment(id, landlordId, updates);
 
+    // Invalidate payment caches
+    await invalidateEntityCache("payment", id);
+    await invalidateEntityCache("payments", landlordId);
+    await invalidateEntityCache("payments:summary", landlordId);
+
     res.status(200).json({
       success: true,
-      message: 'Payment updated successfully',
+      message: "Payment updated successfully",
       data: payment,
     });
   } catch (error) {
-    console.error('Error updating payment:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    console.error("Error updating payment:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 400;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to update payment',
+      message: error.message || "Failed to update payment",
     });
   }
 };
@@ -159,19 +191,28 @@ export const markAsPaid = async (req, res) => {
     const landlordId = req.user.id;
     const paymentDetails = req.body;
 
-    const payment = await paymentService.markPaymentAsPaid(id, landlordId, paymentDetails);
+    const payment = await paymentService.markPaymentAsPaid(
+      id,
+      landlordId,
+      paymentDetails
+    );
+
+    // Invalidate payment caches
+    await invalidateEntityCache("payment", id);
+    await invalidateEntityCache("payments", landlordId);
+    await invalidateEntityCache("payments:summary", landlordId);
 
     res.status(200).json({
       success: true,
-      message: 'Payment marked as paid successfully',
+      message: "Payment marked as paid successfully",
       data: payment,
     });
   } catch (error) {
-    console.error('Error marking payment as paid:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    console.error("Error marking payment as paid:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 400;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to mark payment as paid',
+      message: error.message || "Failed to mark payment as paid",
     });
   }
 };
@@ -187,16 +228,21 @@ export const deletePayment = async (req, res) => {
 
     await paymentService.deletePayment(id, landlordId);
 
+    // Invalidate payment caches
+    await invalidateEntityCache("payment", id);
+    await invalidateEntityCache("payments", landlordId);
+    await invalidateEntityCache("payments:summary", landlordId);
+
     res.status(200).json({
       success: true,
-      message: 'Payment deleted successfully',
+      message: "Payment deleted successfully",
     });
   } catch (error) {
-    console.error('Error deleting payment:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 500;
+    console.error("Error deleting payment:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 500;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to delete payment',
+      message: error.message || "Failed to delete payment",
     });
   }
 };
@@ -214,14 +260,14 @@ export const sendReminder = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Payment reminder sent successfully',
+      message: "Payment reminder sent successfully",
     });
   } catch (error) {
-    console.error('Error sending payment reminder:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    console.error("Error sending payment reminder:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 400;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to send payment reminder',
+      message: error.message || "Failed to send payment reminder",
     });
   }
 };
@@ -239,22 +285,31 @@ export const uploadReceipt = async (req, res) => {
     if (!proofUrl) {
       return res.status(400).json({
         success: false,
-        message: 'proofUrl is required',
+        message: "proofUrl is required",
       });
     }
 
-    const updatedPayment = await paymentService.uploadPaymentProof(id, proofUrl, tenantId);
+    const updatedPayment = await paymentService.uploadPaymentProof(
+      id,
+      proofUrl,
+      tenantId
+    );
+
+    // Invalidate payment caches
+    await invalidateEntityCache("payment", id);
+    await invalidateEntityCache("payments", tenantId);
+    await invalidateEntityCache("payments:summary", tenantId);
 
     res.status(200).json({
       success: true,
-      message: 'Payment receipt uploaded successfully',
+      message: "Payment receipt uploaded successfully",
       data: updatedPayment,
     });
   } catch (error) {
-    console.error('Error uploading payment receipt:', error);
-    res.status(error.message.includes('Unauthorized') ? 403 : 500).json({
+    console.error("Error uploading payment receipt:", error);
+    res.status(error.message.includes("Unauthorized") ? 403 : 500).json({
       success: false,
-      message: error.message || 'Failed to upload payment receipt',
+      message: error.message || "Failed to upload payment receipt",
     });
   }
 };
@@ -268,19 +323,27 @@ export const approveReceipt = async (req, res) => {
     const { id } = req.params;
     const landlordId = req.user.id;
 
-    const updatedPayment = await paymentService.approvePaymentReceipt(id, landlordId);
+    const updatedPayment = await paymentService.approvePaymentReceipt(
+      id,
+      landlordId
+    );
+
+    // Invalidate payment caches
+    await invalidateEntityCache("payment", id);
+    await invalidateEntityCache("payments", landlordId);
+    await invalidateEntityCache("payments:summary", landlordId);
 
     res.status(200).json({
       success: true,
-      message: 'Payment receipt approved successfully',
+      message: "Payment receipt approved successfully",
       data: updatedPayment,
     });
   } catch (error) {
-    console.error('Error approving payment receipt:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    console.error("Error approving payment receipt:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 400;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to approve payment receipt',
+      message: error.message || "Failed to approve payment receipt",
     });
   }
 };
@@ -295,20 +358,28 @@ export const rejectReceipt = async (req, res) => {
     const landlordId = req.user.id;
     const { reason } = req.body;
 
-    const updatedPayment = await paymentService.rejectPaymentReceipt(id, landlordId, reason);
+    const updatedPayment = await paymentService.rejectPaymentReceipt(
+      id,
+      landlordId,
+      reason
+    );
+
+    // Invalidate payment caches
+    await invalidateEntityCache("payment", id);
+    await invalidateEntityCache("payments", landlordId);
+    await invalidateEntityCache("payments:summary", landlordId);
 
     res.status(200).json({
       success: true,
-      message: 'Payment receipt rejected successfully',
+      message: "Payment receipt rejected successfully",
       data: updatedPayment,
     });
   } catch (error) {
-    console.error('Error rejecting payment receipt:', error);
-    const statusCode = error.message === 'Payment not found' ? 404 : 400;
+    console.error("Error rejecting payment receipt:", error);
+    const statusCode = error.message === "Payment not found" ? 404 : 400;
     res.status(statusCode).json({
       success: false,
-      message: error.message || 'Failed to reject payment receipt',
+      message: error.message || "Failed to reject payment receipt",
     });
   }
 };
-
